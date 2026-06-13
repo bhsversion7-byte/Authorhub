@@ -1,5 +1,6 @@
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
+import { EyeOff, SkipForward, Sparkles, X } from "lucide-react";
 import AuthorDashboard from "./components/AuthorDashboard.jsx";
 import NovelSection from "./components/NovelSection.jsx";
 import Sidebar from "./components/Sidebar.jsx";
@@ -10,6 +11,8 @@ export default function App() {
   const [sidebarWidth, setSidebarWidth] = useState(292);
   const [activeView, setActiveView] = useState("author");
   const [deleteCandidate, setDeleteCandidate] = useState(null);
+  const [tourStep, setTourStep] = useState(null);
+  const [privacyBlur, setPrivacyBlur] = useState(() => localStorage.getItem("author-hub-privacy-blur") === "true");
 
   useEffect(() => {
     loadAuthorHubData().then(setData);
@@ -21,8 +24,30 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    document.body.dataset.theme = data?.appearance?.darkMode ? "dark" : "light";
+  }, [data?.appearance?.darkMode]);
+
+  useEffect(() => {
+    localStorage.setItem("author-hub-privacy-blur", String(privacyBlur));
+  }, [privacyBlur]);
+
+  useEffect(() => {
     if (data) saveAuthorHubData(data);
   }, [data]);
+
+  useEffect(() => {
+    if (!data) return;
+    const completed = data.author?.hasCompletedTour || localStorage.getItem("author-hub-tour-complete") === "true";
+    if (!completed) setTourStep(0);
+  }, [data]);
+
+  useEffect(() => {
+    function onKeyDown(event) {
+      if (event.key === "Escape") setPrivacyBlur((current) => !current);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const novels = useMemo(() => data?.novels ?? [], [data]);
   const activeNovel = useMemo(() => novels.find((novel) => novel.id === activeView), [activeView, novels]);
@@ -150,6 +175,38 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function clearAllUserData() {
+    setData((current) => ({
+      ...current,
+      novels: [],
+      author: {
+        ...current.author,
+        hasCompletedTour: true,
+      },
+    }));
+    localStorage.setItem("author-hub-tour-complete", "true");
+    setActiveView("author");
+  }
+
+  function exportUserData() {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `author-hub-export-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function finishTour() {
+    localStorage.setItem("author-hub-tour-complete", "true");
+    setData((current) => ({
+      ...current,
+      author: { ...current.author, hasCompletedTour: true },
+    }));
+    setTourStep(null);
+  }
+
   function requestDeleteNovel(novelId) {
     const novel = novels.find((item) => item.id === novelId);
     if (novel) setDeleteCandidate(novel);
@@ -201,7 +258,7 @@ export default function App() {
   }
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${privacyBlur ? "privacy-blur" : ""}`}>
       <Sidebar
         novels={novels}
         width={sidebarWidth}
@@ -222,11 +279,16 @@ export default function App() {
             author={data.author}
             novels={novels}
             appearance={appearance}
+            privacyBlur={privacyBlur}
             onAuthorChange={updateAuthor}
             onAppearanceChange={updateAppearance}
+            onPrivacyBlurChange={setPrivacyBlur}
+            onExportData={exportUserData}
+            onClearData={clearAllUserData}
+            onResetDemo={resetData}
           />
         )}
-        {activeNovel && (
+        {activeNovel ? (
           <NovelSection
             key={activeNovel.id}
             novel={activeNovel}
@@ -238,8 +300,31 @@ export default function App() {
             onAddEvent={addEvent}
             onUpdateEvent={updateEvent}
           />
+        ) : activeView !== "author" ? (
+          <section className="section empty-state">
+            <Sparkles size={30} />
+            <h2>这里还没有小说</h2>
+            <p>点击左侧的“新增小说”，创建你的第一组人物星图、时间线和设定集。</p>
+            <button type="button" className="primary-button compact-action" onClick={addNovel}>
+              新增小说
+            </button>
+          </section>
+        ) : null}
+        {novels.length === 0 && activeView === "author" && (
+          <section className="section empty-state" data-tour="add-novel">
+            <Sparkles size={30} />
+            <h2>这里空空如也</h2>
+            <p>点击左侧下方的“新增小说”，创建你的第一个宇宙。</p>
+            <button type="button" className="primary-button compact-action" onClick={addNovel}>
+              新增小说
+            </button>
+          </section>
         )}
       </main>
+      <button type="button" className="privacy-float" onClick={() => setPrivacyBlur((current) => !current)} title="按 Esc 也可快速隐藏敏感内容">
+        <EyeOff size={16} />
+        {privacyBlur ? "恢复显示" : "隐私模糊"}
+      </button>
       {deleteCandidate && (
         <div className="modal-backdrop" role="presentation" onMouseDown={() => setDeleteCandidate(null)}>
           <section className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-novel-title" onMouseDown={(event) => event.stopPropagation()}>
@@ -259,6 +344,66 @@ export default function App() {
           </section>
         </div>
       )}
+      {tourStep !== null && (
+        <OnboardingTour
+          step={tourStep}
+          setStep={setTourStep}
+          onDone={finishTour}
+          onSelectDemo={() => selectView(novels[0]?.id ?? "author")}
+        />
+      )}
+    </div>
+  );
+}
+
+const TOUR_STEPS = [
+  {
+    title: "欢迎来到 Author Hub",
+    text: "系统已为你生成一本示例小说，方便快速熟悉星图、时间线、设定集和发布页跳转。",
+  },
+  {
+    title: "人物关系星图",
+    text: "点击人物星球可以编辑角色；点击两个人物之间的关系标签，可以直接修改关系文本。",
+  },
+  {
+    title: "个人中心与隐私",
+    text: "这里可以编辑作者信息、导出或清空数据、切换深色模式，也可以开启一键隐私模糊。",
+  },
+  {
+    title: "开始自己的作品",
+    text: "理解示例后，点击左侧“新增小说”，就能创建真正属于你的作品空间。",
+  },
+];
+
+function OnboardingTour({ step, setStep, onDone, onSelectDemo }) {
+  const current = TOUR_STEPS[step] ?? TOUR_STEPS[0];
+  const isLast = step >= TOUR_STEPS.length - 1;
+
+  function next() {
+    if (step === 0) onSelectDemo();
+    if (isLast) onDone();
+    else setStep(step + 1);
+  }
+
+  return (
+    <div className="tour-backdrop">
+      <section className="tour-card" role="dialog" aria-modal="true" aria-label="新手引导">
+        <button type="button" className="tour-close" onClick={onDone} aria-label="跳过引导">
+          <X size={16} />
+        </button>
+        <p className="eyebrow">Step {step + 1} / {TOUR_STEPS.length}</p>
+        <h2>{current.title}</h2>
+        <p>{current.text}</p>
+        <div className="tour-actions">
+          <button type="button" className="ghost-button" onClick={onDone}>
+            <SkipForward size={15} />
+            跳过引导
+          </button>
+          <button type="button" className="primary-button" onClick={next}>
+            {isLast ? "完成" : "下一步"}
+          </button>
+        </div>
+      </section>
     </div>
   );
 }

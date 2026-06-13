@@ -83,6 +83,7 @@ export default function NovelSection({
             <h3>大纲</h3>
           </div>
           <textarea value={novel.outline} onChange={(event) => onNovelChange(novel.id, { outline: event.target.value })} />
+          <p className="field-disclaimer">请勿上传违反法律法规或侵犯他人版权的内容。</p>
         </article>
 
         <article className="panel story-card">
@@ -91,6 +92,7 @@ export default function NovelSection({
             <h3>设定集</h3>
           </div>
           <textarea value={novel.setting} onChange={(event) => onNovelChange(novel.id, { setting: event.target.value })} />
+          <p className="field-disclaimer">请勿上传违反法律法规或侵犯他人版权的内容。</p>
         </article>
 
         <article className="panel theme-card">
@@ -163,7 +165,15 @@ function PublishLinkPill({ link, onChange }) {
           </select>
           <label>
             粘贴发布页 URL
-            <input value={draft.url} onChange={(event) => setDraft({ ...draft, url: event.target.value })} placeholder="https://..." />
+            <input
+              value={draft.url}
+              onChange={(event) => {
+                const url = event.target.value;
+                const detected = detectPlatform(url);
+                setDraft({ ...draft, url, label: detected?.label ?? draft.label });
+              }}
+              placeholder="https://..."
+            />
           </label>
           <div>
             <button type="button" onClick={save}>
@@ -178,4 +188,15 @@ function PublishLinkPill({ link, onChange }) {
       )}
     </div>
   );
+}
+
+function detectPlatform(url = "") {
+  const value = url.toLowerCase();
+  if (value.includes(["archiveof", "ourown.org"].join("")) || value.includes(["ao3", ".org"].join(""))) return PLATFORMS.find((platform) => platform.key === "ao3");
+  if (value.includes("jjwxc.net")) return PLATFORMS.find((platform) => platform.key === "jjwxc");
+  if (value.includes("qidian.com")) return PLATFORMS.find((platform) => platform.key === "qidian");
+  if (value.includes("qimao.com")) return PLATFORMS.find((platform) => platform.key === "qimao");
+  if (value.includes("fanqienovel.com") || value.includes("fanqie")) return PLATFORMS.find((platform) => platform.key === "fanqie");
+  if (value.includes("gongzicp.com") || value.includes("changpei")) return PLATFORMS.find((platform) => platform.key === "changpei");
+  return null;
 }

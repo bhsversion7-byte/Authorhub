@@ -22,6 +22,33 @@
   color: var(--ink);
 }
 
+body[data-theme="dark"] {
+  --bg: #171514;
+  --bg-deep: #26211d;
+  --card: #211e1b;
+  --card-soft: rgba(42, 37, 33, 0.84);
+  --ink: #f6eee6;
+  --muted: #c6b9ad;
+  --line: rgba(234, 223, 212, 0.16);
+  --shadow: 0 18px 54px rgba(0, 0, 0, 0.24);
+  background:
+    radial-gradient(circle at 8px 8px, rgba(245, 230, 211, 0.045) 1px, transparent 1px),
+    radial-gradient(circle at 18% 8%, rgba(245, 230, 211, 0.1), transparent 30%),
+    radial-gradient(circle at 86% 8%, rgba(139, 160, 156, 0.12), transparent 32%),
+    linear-gradient(135deg, #171514 0%, #211d1a 52%, #28221d 100%);
+}
+
+body[data-theme="dark"] input,
+body[data-theme="dark"] textarea,
+body[data-theme="dark"] select {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ink);
+}
+
+body[data-theme="dark"] .ambient-top {
+  background: linear-gradient(rgba(23, 21, 20, 0.92), rgba(23, 21, 20, 0));
+}
+
 * {
   box-sizing: border-box;
 }
@@ -604,6 +631,271 @@ a {
 .appearance-panel {
   margin-top: 18px;
   padding: 22px;
+}
+
+.user-center-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.account-panel,
+.donation-panel {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+}
+
+.account-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.account-form label,
+.qr-url-field {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.account-actions,
+.privacy-control-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.inline-confirm {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid rgba(157, 94, 86, 0.2);
+  border-radius: 16px;
+  background: rgba(157, 94, 86, 0.06);
+}
+
+.inline-confirm p,
+.donation-panel p,
+.compliance-note,
+.global-disclaimer,
+.field-disclaimer {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.inline-confirm div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.donation-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(234, 223, 212, 0.22);
+}
+
+.donation-tabs button,
+.toggle-pill {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.donation-tabs button.is-active,
+.toggle-pill.is-active {
+  background: #2c2a29;
+  color: #fff8ef;
+  box-shadow: 0 12px 30px rgba(44, 42, 41, 0.1);
+}
+
+body[data-theme="dark"] .donation-tabs button.is-active,
+body[data-theme="dark"] .toggle-pill.is-active {
+  background: #fff8ef;
+  color: #2c2a29;
+}
+
+.donation-qr {
+  display: grid;
+  min-height: 250px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px dashed rgba(108, 139, 136, 0.22);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 28% 18%, rgba(198, 212, 225, 0.14), transparent 34%),
+    rgba(255, 250, 244, 0.62);
+}
+
+.donation-qr img {
+  display: block;
+  width: min(230px, 82%);
+  max-height: 230px;
+  object-fit: contain;
+  border-radius: 18px;
+  box-shadow: var(--soft-shadow);
+}
+
+.donation-qr div {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  color: var(--muted);
+}
+
+.global-disclaimer {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(234, 223, 212, 0.72);
+  border-radius: 16px;
+  background: rgba(255, 250, 244, 0.64);
+}
+
+.field-disclaimer {
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.privacy-float {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 60;
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(44, 42, 41, 0.84);
+  color: #fff8ef;
+  box-shadow: 0 20px 44px rgba(44, 42, 41, 0.18);
+  backdrop-filter: blur(14px);
+}
+
+.privacy-blur .novel-title-input,
+.privacy-blur .novel-subtitle-input,
+.privacy-blur .story-card textarea,
+.privacy-blur .relation-svg text,
+.privacy-blur .inspector-card input,
+.privacy-blur .inspector-card textarea,
+.privacy-blur .timeline-panel input,
+.privacy-blur .timeline-panel textarea,
+.privacy-blur .novel-nav-title {
+  filter: blur(7px);
+  transition: filter 160ms var(--ease);
+}
+
+.privacy-blur .novel-title-input:hover,
+.privacy-blur .novel-subtitle-input:hover,
+.privacy-blur textarea:focus,
+.privacy-blur input:focus {
+  filter: none;
+}
+
+.empty-state {
+  display: grid;
+  max-width: 720px;
+  justify-items: center;
+  gap: 12px;
+  margin-top: 42px;
+  padding: 44px;
+  border: 1px dashed rgba(108, 139, 136, 0.28);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.62);
+  text-align: center;
+  box-shadow: var(--soft-shadow);
+}
+
+.empty-state h2 {
+  margin: 0;
+  font-family: Georgia, serif;
+  font-size: clamp(28px, 4vw, 48px);
+}
+
+.empty-state p {
+  max-width: 520px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.compact-action {
+  width: auto;
+  min-width: 160px;
+  padding: 0 18px;
+}
+
+.tour-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(44, 42, 41, 0.14);
+  backdrop-filter: blur(18px);
+}
+
+.tour-card {
+  position: relative;
+  display: grid;
+  width: min(520px, 100%);
+  gap: 14px;
+  padding: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.76);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 16% 4%, rgba(244, 213, 191, 0.26), transparent 36%),
+    rgba(255, 255, 255, 0.92);
+  box-shadow: 0 30px 90px rgba(44, 42, 41, 0.18);
+}
+
+.tour-card h2 {
+  margin: 0;
+  font-family: Georgia, serif;
+  font-size: 32px;
+}
+
+.tour-card > p:not(.eyebrow) {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.tour-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(234, 223, 212, 0.45);
+  color: var(--muted);
+}
+
+.tour-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 8px;
 }
 
 .appearance-controls {
@@ -2440,6 +2732,7 @@ a {
 
 @media (max-width: 1180px) {
   .dashboard-grid,
+  .user-center-grid,
   .event-editor,
   .universe-grid,
   .ai-handoff-card {
@@ -2464,7 +2757,8 @@ a {
   }
 
   .appearance-controls,
-  .character-editor-top {
+  .character-editor-top,
+  .account-form {
     grid-template-columns: 1fr;
   }
 }
@@ -2495,7 +2789,9 @@ a {
   .editable-grid,
   .book-progress-list,
   .story-grid,
-  .inspector-card {
+  .inspector-card,
+  .tour-actions,
+  .inline-confirm div {
     grid-template-columns: 1fr;
   }
 

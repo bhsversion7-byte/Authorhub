@@ -543,6 +543,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
                 <FocusTextarea label="背景故事" value={draft.background} onChange={(background) => setDraft({ ...draft, background })} />
                 <FocusTextarea label="隐藏设定" value={draft.secret} onChange={(secret) => setDraft({ ...draft, secret })} />
               </div>
+              <p className="field-disclaimer">请勿上传违反法律法规或侵犯他人版权的内容。</p>
               <button type="button" className="primary-button" onClick={handleSaveCharacter}>
                 <Save size={16} />
                 保存人物

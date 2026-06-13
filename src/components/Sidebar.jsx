@@ -196,7 +196,7 @@ export default function Sidebar({ novels, width, setWidth, activeView, onSelect,
       </div>
 
       <nav className="nav-stack" aria-label="全局导航">
-        <button type="button" onClick={() => onSelect("author")} className={`nav-item is-home ${activeView === "author" ? "is-active" : ""}`}>
+        <button type="button" data-tour="author-home" onClick={() => onSelect("author")} className={`nav-item is-home ${activeView === "author" ? "is-active" : ""}`}>
           <Home size={18} />
           <span>作者个人主页</span>
         </button>
@@ -225,7 +225,7 @@ export default function Sidebar({ novels, width, setWidth, activeView, onSelect,
             </button>
           </div>
         ))}
-        <button type="button" className="nav-item add-novel-button" onClick={onAddNovel}>
+        <button type="button" data-tour="add-novel" className="nav-item add-novel-button" onClick={onAddNovel}>
           <Plus size={18} />
           <span>新增小说</span>
         </button>

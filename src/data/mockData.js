@@ -2,14 +2,22 @@ export const mockAuthorHubData = {
   author: {
     pseudonym: "Demo Author",
     age: "保密",
+    username: "demo_writer",
+    email: "demo@authorhub.local",
+    hasCompletedTour: false,
     updateFrequency: "按自己的节奏更新",
     platform: "AO3 / 晋江 / 起点 / 长佩 / 本地草稿",
     studioNote: "这是一个隐私优先的小说创作中台示例。所有内容均为演示数据，可删除后创建自己的作品。",
+    donation: {
+      wechat: "",
+      alipay: "",
+    },
   },
   shimoFolders: [],
   appearance: {
     fontFamily: "sans",
     fontSize: 17,
+    darkMode: false,
   },
   novels: [
     {
