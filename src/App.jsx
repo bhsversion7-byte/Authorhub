@@ -260,7 +260,14 @@ export default function App() {
     }));
   }
 
-  if (authReady && !authUser) return <AuthGate onAuthed={handleAuthed} />;
+  if (authReady && !authUser) {
+    return (
+      <>
+        <AuthGate onAuthed={handleAuthed} />
+        <div className="paper-texture-overlay" aria-hidden="true" />
+      </>
+    );
+  }
 
   if (!data) {
     return (
@@ -361,6 +368,7 @@ export default function App() {
           onSelectDemo={() => selectView(novels[0]?.id ?? "author")}
         />
       )}
+      <div className="paper-texture-overlay" aria-hidden="true" />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Download, FileJson, FileText, KeyRound, LogOut, Mail, ShieldCheck, Trash2, WalletCards } from "lucide-react";
+import { Download, FileJson, FileText, KeyRound, LogOut, Mail, ShieldCheck, Trash2, UserX, WalletCards } from "lucide-react";
 import { hasSupabaseConfig, supabase } from "../lib/supabaseClient.js";
 
 export default function UserCenter({ authUser, author, onAuthorChange, onExportJson, onExportMarkdown, onClearData, onLogout }) {
@@ -7,6 +7,7 @@ export default function UserCenter({ authUser, author, onAuthorChange, onExportJ
   const [qrUnlocked, setQrUnlocked] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [confirmUnregister, setConfirmUnregister] = useState(false);
   const safeAuthor = useMemo(() => ({ donation: {}, ...author }), [author]);
   const username = authUser?.user_metadata?.username || safeAuthor.username || authUser?.email?.split("@")[0] || "writer";
   const email = authUser?.email || safeAuthor.email || "未绑定邮箱";
@@ -61,6 +62,10 @@ export default function UserCenter({ authUser, author, onAuthorChange, onExportJ
               <Trash2 size={15} />
               清空云端数据
             </button>
+            <button type="button" className="btn-unregister" onClick={() => setConfirmUnregister(true)}>
+              <UserX size={15} />
+              {"\u6ce8\u9500\u8d26\u53f7"}
+            </button>
             <button type="button" onClick={onLogout}>
               <LogOut size={15} />
               安全登出
@@ -89,6 +94,31 @@ export default function UserCenter({ authUser, author, onAuthorChange, onExportJ
                   }}
                 >
                   确定清空
+                </button>
+              </div>
+            </div>
+          )}
+          {confirmUnregister && (
+            <div className="inline-confirm compact-confirm unregister-confirm">
+              <strong>{"\u786e\u8ba4\u7533\u8bf7\u6ce8\u9500\u8d26\u53f7\uff1f"}</strong>
+              <p>{"\u524d\u7aef\u4e0d\u4f1a\u4fdd\u5b58\u7ba1\u7406\u5458\u5bc6\u94a5\u3002\u786e\u8ba4\u540e\u4f1a\u6807\u8bb0\u8d26\u53f7\u6ce8\u9500\u8bf7\u6c42\u3001\u6e05\u7a7a\u5f53\u524d\u521b\u4f5c\u7f13\u5b58\u5e76\u9000\u51fa\u767b\u5f55\uff1b\u6b63\u5f0f\u5220\u9664\u7528\u6237\u9700\u7531\u540e\u7aef\u5b89\u5168\u63a5\u53e3\u6216 Supabase \u7ba1\u7406\u7aef\u5b8c\u6210\u3002"}</p>
+              <div>
+                <button type="button" className="ghost-button" onClick={() => setConfirmUnregister(false)}>
+                  {"\u53d6\u6d88"}
+                </button>
+                <button
+                  type="button"
+                  className="btn-unregister"
+                  onClick={async () => {
+                    if (hasSupabaseConfig && supabase) {
+                      await supabase.auth.updateUser({ data: { account_deletion_requested: true } }).catch(() => {});
+                    }
+                    onClearData();
+                    setConfirmUnregister(false);
+                    onLogout();
+                  }}
+                >
+                  {"\u786e\u8ba4\u6ce8\u9500"}
                 </button>
               </div>
             </div>

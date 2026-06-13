@@ -102,8 +102,6 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
           <Link size={15} />
         </button>
       </div>
-
-      <p className="media-note">添加 2 张或更多图片后，可滑动查看。</p>
       {mediaError && <p className="media-error">{mediaError}</p>}
 
       <div
