@@ -16,7 +16,7 @@ export const mockAuthorHubData = {
   shimoFolders: [],
   appearance: {
     fontFamily: "sans",
-    fontSize: 17,
+    fontSize: 16,
     darkMode: false,
   },
   novels: [
@@ -24,7 +24,7 @@ export const mockAuthorHubData = {
       id: "demo-novel-1",
       title: "新手视界 / 示例小说",
       subtitle: "用一组虚构人物理解星图、时间线与设定集如何联动",
-      color: "#8BA09C",
+      color: "#4A6357",
       accent: "#DDA96A",
       genre: "原创示例 / 世界观搭建 / 关系图谱",
       currentWords: 12000,
@@ -33,9 +33,9 @@ export const mockAuthorHubData = {
       urls: { ao3: "", jjwxc: "", qidian: "", qimao: "", fanqie: "", changpei: "" },
       sourceLinks: [{ label: "AO3", url: "" }],
       outline:
-        "X 在一座临海城市发现旧档案中的异常记录，Y 负责守护这份秘密，Z 则试图把真相交给公众。三人之间的信任、对立与共同目标，构成这本示例小说的主线。",
+        "X 在一座临海城市发现旧档案中的异常记录，Y 负责守护这份秘密，Z 则试图把真相交给公众。三人之间的信任、对立与共同目标，构成本示例小说的主线。",
       setting:
-        "故事发生在一座拥有旧图书馆、海边灯塔与研究院的虚构城市。设定集中可以记录组织、地点、道具、历史背景、技术限制和人物秘密。",
+        "故事发生在一座拥有旧图书馆、海边灯塔与研究院的虚构城市。设定集可以记录组织、地点、道具、历史背景、技术限制和人物秘密。",
       themes: ["示例", "秘密档案", "临海城市", "信任", "对立"],
       characters: [
         {
@@ -100,7 +100,7 @@ export const mockAuthorHubData = {
         },
         {
           id: "demo-t2",
-          date: "第一幕",
+          date: "第一年",
           title: "灯塔线索出现",
           background: "Y 带 X 前往海边灯塔，说明研究院一直在寻找同类记录。",
           plot: "两人建立初步信任，但 Z 的介入让调查暴露在公众视线中。",
@@ -111,7 +111,7 @@ export const mockAuthorHubData = {
           date: "中段",
           title: "图书馆地下库房",
           background: "A 阻止三人进入地下库房，并销毁部分索引。",
-          plot: "X 意识到 A 的阻拦并非单纯恶意，城市旧案背后还有更大的风险。",
+          plot: "X 意识到 A 的阻拦并非单纯恶意，城市旧档背后还有更大的风险。",
           images: [],
         },
       ],

@@ -4,6 +4,7 @@ dist/
 .netlify/
 .env
 .env.*
+!.env.example
 *.local
 
 # Local private author data and exported drafts

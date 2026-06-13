@@ -1,6 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
 import { Check, Pencil } from "lucide-react";
-import { useState } from "react";
 
 export default function EditableField({ label, value, onChange, multiline = false }) {
   const [editing, setEditing] = useState(false);

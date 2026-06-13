@@ -19,10 +19,7 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent }) {
   const [selectedId, setSelectedId] = useState(novel.timeline[0]?.id);
   const [slideIndex, setSlideIndex] = useState(0);
   const [handoffState, setHandoffState] = useState("");
-  const selected = useMemo(
-    () => novel.timeline.find((event) => event.id === selectedId) ?? novel.timeline[0],
-    [novel.timeline, selectedId],
-  );
+  const selected = useMemo(() => novel.timeline.find((event) => event.id === selectedId) ?? novel.timeline[0], [novel.timeline, selectedId]);
   const [draft, setDraft] = useState(selected ?? null);
   const maxSlide = Math.max(0, novel.timeline.length - 5);
   const keywords = buildReferenceKeywords(draft, novel);
@@ -30,6 +27,11 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent }) {
   useEffect(() => {
     setSlideIndex((current) => Math.min(current, maxSlide));
   }, [maxSlide]);
+
+  useEffect(() => {
+    if (!selected) return;
+    setDraft({ ...selected });
+  }, [selected]);
 
   function openEvent(event) {
     setSelectedId(event.id);
@@ -45,6 +47,7 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent }) {
   }
 
   function saveEvent() {
+    if (!draft) return;
     onUpdateEvent(novel.id, draft.id, draft);
   }
 
@@ -59,7 +62,7 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent }) {
   }
 
   async function openAiTarget(target) {
-    const prompt = `我正在写《${novel.title}》的一个时间点：${draft.date} - ${draft.title}。\n\n我想补充这个时间点需要的时代、民俗、空间、行业或物件背景。请围绕这些关键词给我可考据、可转译成剧情细节的资料方向：\n${keywords}`;
+    const prompt = `我正在写《${novel.title}》的一个时间点：${draft?.date ?? ""} - ${draft?.title ?? ""}。\n\n我想补充这个时间点需要的时代、民俗、空间、行业或物件背景。请围绕这些关键词给我可考据、可转译成剧情细节的资料方向：\n${keywords}`;
     await copyPromptAndOpen(prompt, target);
     setHandoffState(target);
   }
@@ -122,7 +125,7 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent }) {
             </div>
             <FocusTextarea label="发生背景" value={draft.background} onChange={(background) => setDraft({ ...draft, background })} />
             <FocusTextarea label="具体剧情" value={draft.plot} onChange={(plot) => setDraft({ ...draft, plot })} />
-            <p className="field-disclaimer">请勿上传违反法律法规或侵犯他人版权的内容。</p>
+            <p className="field-disclaimer">请勿上传违法违规或侵犯他人版权的内容。</p>
             <MediaCarousel label="时间线参考图片" images={draft.images ?? []} onChange={(images) => setDraft({ ...draft, images })} />
             <div className="ai-nudge">
               <p>

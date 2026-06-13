@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+*.docx
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+author-hub-shimo-cache*
+localStorage*.json

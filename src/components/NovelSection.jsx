@@ -79,25 +79,25 @@ export default function NovelSection({
       <div className="story-grid">
         <article className="panel story-card">
           <div className="panel-title">
-            <FileText size={18} />
+            <FileText size={17} />
             <h3>大纲</h3>
           </div>
           <textarea value={novel.outline} onChange={(event) => onNovelChange(novel.id, { outline: event.target.value })} />
-          <p className="field-disclaimer">请勿上传违反法律法规或侵犯他人版权的内容。</p>
+          <p className="field-disclaimer">请勿上传违法违规或侵犯他人版权的内容。</p>
         </article>
 
         <article className="panel story-card">
           <div className="panel-title">
-            <Database size={18} />
+            <Database size={17} />
             <h3>设定集</h3>
           </div>
           <textarea value={novel.setting} onChange={(event) => onNovelChange(novel.id, { setting: event.target.value })} />
-          <p className="field-disclaimer">请勿上传违反法律法规或侵犯他人版权的内容。</p>
+          <p className="field-disclaimer">请勿上传违法违规或侵犯他人版权的内容。</p>
         </article>
 
         <article className="panel theme-card">
           <div className="panel-title">
-            <Tags size={18} />
+            <Tags size={17} />
             <h3>主题标签</h3>
           </div>
           <TagEditor tags={novel.themes} onChange={(themes) => onNovelChange(novel.id, { themes })} />
@@ -114,7 +114,7 @@ export default function NovelSection({
 
       <div className="timeline-shell">
         <div className="timeline-title">
-          <Network size={19} />
+          <Network size={18} />
           <div>
             <p className="eyebrow">Story causality</p>
             <h3>事件、背景与设定双向关联</h3>
@@ -192,7 +192,7 @@ function PublishLinkPill({ link, onChange }) {
 
 function detectPlatform(url = "") {
   const value = url.toLowerCase();
-  if (value.includes(["archiveof", "ourown.org"].join("")) || value.includes(["ao3", ".org"].join(""))) return PLATFORMS.find((platform) => platform.key === "ao3");
+  if (value.includes("archiveofourown.org") || value.includes("ao3.org")) return PLATFORMS.find((platform) => platform.key === "ao3");
   if (value.includes("jjwxc.net")) return PLATFORMS.find((platform) => platform.key === "jjwxc");
   if (value.includes("qidian.com")) return PLATFORMS.find((platform) => platform.key === "qidian");
   if (value.includes("qimao.com")) return PLATFORMS.find((platform) => platform.key === "qimao");

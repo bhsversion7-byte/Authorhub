@@ -1,10 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, ImagePlus, Link, Trash2 } from "lucide-react";
 
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
 export default function MediaCarousel({ images = [], onChange, label = "参考图片" }) {
   const [url, setUrl] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const [dragX, setDragX] = useState(0);
+  const [mediaError, setMediaError] = useState("");
   const dragStart = useRef(null);
   const safeImages = useMemo(() => images ?? [], [images]);
 
@@ -13,17 +16,19 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
       setActiveIndex(0);
       return;
     }
-    if (activeIndex > safeImages.length - 1) {
-      setActiveIndex(safeImages.length - 1);
-    }
+    if (activeIndex > safeImages.length - 1) setActiveIndex(safeImages.length - 1);
   }, [activeIndex, safeImages.length]);
 
   function addFiles(event) {
     const files = Array.from(event.target.files ?? []);
     if (!files.length) return;
 
+    const allowedFiles = files.filter((file) => file.size <= MAX_IMAGE_BYTES);
+    const rejectedCount = files.length - allowedFiles.length;
+    setMediaError(rejectedCount ? `已跳过 ${rejectedCount} 张超过 5MB 的图片。` : "");
+
     Promise.all(
-      files.map(
+      allowedFiles.map(
         (file) =>
           new Promise((resolve) => {
             const reader = new FileReader();
@@ -36,13 +41,16 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
             reader.readAsDataURL(file);
           }),
       ),
-    ).then((nextImages) => onChange([...safeImages, ...nextImages]));
+    ).then((nextImages) => {
+      if (nextImages.length) onChange([...safeImages, ...nextImages]);
+    });
     event.target.value = "";
   }
 
   function addUrl() {
     const trimmed = url.trim();
     if (!trimmed) return;
+    setMediaError("");
     onChange([...safeImages, { id: `${Date.now()}-${trimmed}`, src: trimmed, alt: label }]);
     setUrl("");
   }
@@ -96,6 +104,7 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
       </div>
 
       <p className="media-note">添加 2 张或更多图片后，可滑动查看。</p>
+      {mediaError && <p className="media-error">{mediaError}</p>}
 
       <div
         className={`imessage-stack ${safeImages.length ? "" : "is-empty"}`}

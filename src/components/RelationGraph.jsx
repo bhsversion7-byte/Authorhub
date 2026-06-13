@@ -444,7 +444,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
 
   return (
     <div ref={relationRef} className="relation-layout is-resizable" style={{ "--detail-pane": `${detailPane}%` }}>
-      <div className="graph-card">
+      <div className="graph-card" data-tour="relation-graph">
         <div className="graph-toolbar">
           <div>
             <p className="eyebrow">Relation graph</p>
