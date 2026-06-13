@@ -444,7 +444,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
 
   return (
     <div ref={relationRef} className="relation-layout is-resizable" style={{ "--detail-pane": `${detailPane}%` }}>
-      <div className="graph-card" data-tour="relation-graph">
+      <div className="graph-card relation-graph" data-tour="relation-graph">
         <div className="graph-toolbar">
           <div>
             <p className="eyebrow">Relation graph</p>
@@ -470,7 +470,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
       <aside className="inspector-card">
         {draft ? (
           <>
-            <div className="inspector-head">
+            <div className="inspector-head" data-tour="detail-panel-head">
               <Sparkles size={18} />
               <div>
                 <span>人物详情</span>
@@ -480,7 +480,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
             <div className="inspector-scroll">
               <div className="character-editor-top">
                 <MediaCarousel label="人物图片" images={draft.images ?? []} onChange={(images) => setDraft({ ...draft, images })} />
-                <div className="character-quick-fields">
+                <div className="character-quick-fields character-attribute-grid">
                   <label>
                     姓名
                     <input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} />

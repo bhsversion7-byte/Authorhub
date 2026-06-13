@@ -15,6 +15,7 @@ dist/
 *.jpeg
 *.webp
 *.gif
+!public/authorhub-logo.png
 *.sqlite
 *.db
 localStorage*.json

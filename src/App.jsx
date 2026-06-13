@@ -73,9 +73,13 @@ export default function App() {
 
   useEffect(() => {
     if (!data || !justRegistered) return;
-    const completed = data.author?.hasCompletedTour || localStorage.getItem("author-hub-tour-complete") === "true";
+    const completed =
+      data.author?.hasCompletedTour ||
+      authUser?.user_metadata?.has_completed_tour ||
+      localStorage.getItem("ah_tour") === "true" ||
+      localStorage.getItem("author-hub-tour-complete") === "true";
     if (!completed) setTourStep(0);
-  }, [data, justRegistered]);
+  }, [data, justRegistered, authUser]);
 
   useEffect(() => {
     function onKeyDown(event) {
@@ -206,8 +210,14 @@ export default function App() {
     downloadText(`author-hub-export-${new Date().toISOString().slice(0, 10)}.md`, markdown, "text/markdown;charset=utf-8");
   }
 
-  function finishTour() {
+  async function finishTour() {
+    localStorage.setItem("ah_tour", "true");
     localStorage.setItem("author-hub-tour-complete", "true");
+    if (hasSupabaseConfig && supabase) {
+      supabase.auth.updateUser({ data: { has_completed_tour: true } }).catch((error) => {
+        console.warn("Tour metadata sync failed", error);
+      });
+    }
     setData((current) => ({
       ...current,
       author: { ...current.author, hasCompletedTour: true },
@@ -344,7 +354,7 @@ export default function App() {
         </div>
       )}
       {tourStep !== null && (
-        <GlowingArrowTour
+        <TourProvider
           step={tourStep}
           setStep={setTourStep}
           onDone={finishTour}
@@ -357,47 +367,54 @@ export default function App() {
 
 const TOUR_STEPS = [
   {
-    title: "先看这里",
-    text: "这是示例小说入口，点开后可以看到星图、时间线和发布页配置。",
+    title: "\u5148\u770b\u8fd9\u91cc",
+    text: "\u4ece\u300a\u65b0\u624b\u89c6\u754c\u300b\u8fdb\u5165\u793a\u4f8b\u5c0f\u8bf4\uff0c\u5148\u719f\u6089\u661f\u56fe\u3001\u65f6\u95f4\u7ebf\u548c\u53d1\u5e03\u9875\u914d\u7f6e\u3002",
     target: "demo-novel",
     arrow: "left",
   },
   {
-    title: "人物星图",
-    text: "点击人物星球可编辑角色；点击关系文字可直接修改两人关系。",
+    title: "\u4eba\u7269\u661f\u56fe",
+    text: "\u70b9\u51fb\u8282\u70b9\u5373\u53ef\u5b9e\u65f6\u8fde\u7ebf\u4e92\u52a8",
     target: "relation-graph",
     arrow: "down",
   },
   {
-    title: "作者主页",
-    text: "这里只放作者信息、创作进度和阅读设置。",
-    target: "profile",
+    title: "\u4eba\u7269\u8be6\u60c5",
+    text: "\u9009\u4e2d\u661f\u7403\u540e\uff0c\u5728\u8fd9\u91cc\u7f16\u8f91\u4eba\u7269\u3001\u6807\u7b7e\u3001\u56fe\u7247\u548c\u5173\u7cfb\u3002",
+    target: "detail-panel-head",
     arrow: "right",
   },
   {
-    title: "用户中心",
-    text: "账号、导出、清空、登出和打赏都在独立用户中心。",
+    title: "\u7528\u6237\u4e2d\u5fc3",
+    text: "\u8d26\u53f7\u5b89\u5168\u3001\u5bfc\u51fa\u3001\u6e05\u7a7a\u3001\u767b\u51fa\u548c\u6253\u8d4f\u90fd\u6536\u5728\u8fd9\u91cc\u3002",
     target: "user-center-nav",
-    arrow: "left",
+    arrow: "up",
   },
 ];
 
-function GlowingArrowTour({ step, setStep, onDone, onSelectDemo }) {
+function TourProvider({ step, setStep, onDone, onSelectDemo }) {
   const current = TOUR_STEPS[step] ?? TOUR_STEPS[0];
   const isLast = step >= TOUR_STEPS.length - 1;
   const [rect, setRect] = useState(null);
 
   useEffect(() => {
-    const element = document.querySelector(`[data-tour="${current.target}"]`);
+    const selector = current.target === "relation-graph" ? ".relation-graph" : '[data-tour="' + current.target + '"]';
+    const element = document.querySelector(selector);
     if (!element) {
       setRect({ top: 120, left: 300, width: 220, height: 64 });
       return;
     }
-    element.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+
+    if (current.target === "relation-graph") {
+      document.querySelector(".relation-graph")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    } else {
+      element.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+    }
+
     const timer = window.setTimeout(() => {
       const box = element.getBoundingClientRect();
       setRect({ top: box.top, left: box.left, width: box.width, height: box.height });
-    }, 520);
+    }, 560);
     return () => window.clearTimeout(timer);
   }, [current.target, step]);
 
@@ -409,19 +426,28 @@ function GlowingArrowTour({ step, setStep, onDone, onSelectDemo }) {
 
   if (!rect) return null;
 
-  const left = Math.min(window.innerWidth - 292, Math.max(18, rect.left + rect.width + 22));
-  const top = Math.max(18, rect.top + rect.height / 2 - 30);
+  const bubbleWidth = 270;
+  const left =
+    current.arrow === "right"
+      ? Math.max(18, rect.left - bubbleWidth - 22)
+      : current.arrow === "down"
+        ? Math.min(window.innerWidth - bubbleWidth - 18, Math.max(18, rect.left + rect.width / 2 - bubbleWidth / 2))
+        : Math.min(window.innerWidth - bubbleWidth - 18, Math.max(18, rect.left + rect.width + 22));
+  const top =
+    current.arrow === "down"
+      ? Math.max(18, rect.top + rect.height / 2 - 42)
+      : Math.max(18, Math.min(window.innerHeight - 150, rect.top + rect.height / 2 - 44));
 
   return (
     <div className="glow-tour-layer" aria-live="polite">
-      <section className={`glow-tour-bubble arrow-${current.arrow ?? "right"}`} style={{ "--tour-top": `${top}px`, "--tour-left": `${left}px` }}>
+      <section className={"glow-tour-bubble tour-provider-bubble arrow-" + (current.arrow ?? "right")} style={{ "--tour-top": top + "px", "--tour-left": left + "px" }}>
         <span className="glow-arrow">{arrowSymbol(current.arrow)}</span>
         <div>
           <strong>{current.title}</strong>
           <p>{current.text}</p>
           <div className="glow-tour-actions">
-            <button type="button" onClick={onDone}>跳过</button>
-            <button type="button" onClick={next}>{isLast ? "完成" : "下一步"}</button>
+            <button type="button" onClick={onDone}>{"\u8df3\u8fc7 (Skip)"}</button>
+            <button type="button" onClick={next}>{isLast ? "\u5b8c\u6210" : "\u77e5\u9053\u4e86 (Next)"}</button>
           </div>
         </div>
       </section>
@@ -430,7 +456,7 @@ function GlowingArrowTour({ step, setStep, onDone, onSelectDemo }) {
 }
 
 function arrowSymbol(direction = "right") {
-  return { right: "→", down: "↓", left: "←", up: "↑" }[direction] ?? "→";
+  return { right: "\u2b05\ufe0f", down: "\u2b07\ufe0f", left: "\u27a1\ufe0f", up: "\u2b06\ufe0f" }[direction] ?? "\u27a1\ufe0f";
 }
 
 function createBlankNovel(id, index) {

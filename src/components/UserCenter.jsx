@@ -4,6 +4,7 @@ import { hasSupabaseConfig, supabase } from "../lib/supabaseClient.js";
 
 export default function UserCenter({ authUser, author, onAuthorChange, onExportJson, onExportMarkdown, onClearData, onLogout }) {
   const [donationTab, setDonationTab] = useState("wechat");
+  const [qrUnlocked, setQrUnlocked] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const safeAuthor = useMemo(() => ({ donation: {}, ...author }), [author]);
@@ -101,16 +102,19 @@ export default function UserCenter({ authUser, author, onAuthorChange, onExportJ
           </div>
           <p>如果你喜欢这个工具，欢迎请作者喝杯咖啡，支持用爱发电（^^）。</p>
           <div className="donation-tabs" role="tablist" aria-label="赞助方式">
-            <button type="button" className={donationTab === "wechat" ? "is-active" : ""} onClick={() => setDonationTab("wechat")}>
+            <button type="button" className={donationTab === "wechat" ? "is-active" : ""} onClick={() => { setDonationTab("wechat"); setQrUnlocked(false); }}>
               微信
             </button>
-            <button type="button" className={donationTab === "alipay" ? "is-active" : ""} onClick={() => setDonationTab("alipay")}>
+            <button type="button" className={donationTab === "alipay" ? "is-active" : ""} onClick={() => { setDonationTab("alipay"); setQrUnlocked(false); }}>
               支付宝
             </button>
           </div>
-          <div className="donation-qr">
+          <div className={`donation-qr donation-privacy-frame ${qrUnlocked ? "is-unlocked" : ""}`} onClick={() => safeAuthor.donation?.[donationTab] && setQrUnlocked((current) => !current)}>
             {safeAuthor.donation?.[donationTab] ? (
-              <img src={safeAuthor.donation[donationTab]} alt={donationTab === "wechat" ? "微信赞助二维码" : "支付宝赞助二维码"} />
+              <>
+                <img src={safeAuthor.donation[donationTab]} alt={donationTab === "wechat" ? "微信赞助二维码" : "支付宝赞助二维码"} />
+                {!qrUnlocked && <span className="donation-unlock-copy">{"\u2615 \u70b9\u51fb\u56fe\u7247\uff0c\u89e3\u9501\u8d5e\u52a9\u901a\u9053"}</span>}
+              </>
             ) : (
               <div>
                 <WalletCards size={28} />

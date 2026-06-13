@@ -8,5 +8,6 @@
 *.jpeg
 *.webp
 *.gif
+!public/authorhub-logo.png
 author-hub-shimo-cache*
 localStorage*.json

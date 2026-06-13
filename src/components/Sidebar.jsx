@@ -9,7 +9,7 @@ export default function Sidebar({ novels, width, activeView, onSelect, onAddNove
   return (
     <aside className="sidebar" style={{ width }}>
       <div className="brand">
-        <div className="brand-mark">A</div>
+        <img className="brand-logo" src="/authorhub-logo.png" alt="AuthorHub" />
         <div>
           <p>Author Hub</p>
           <span>小说创作中台</span>

@@ -3750,3 +3750,249 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+/* Midnight Jazz Cafe final material and tour polish */
+:root {
+  --ink: #2C2621;
+  --muted: #7A7267;
+  --paper-line: #EAE5DA;
+  --paper-hover: #C8BFB0;
+  --paper-shadow: 0 10px 40px rgba(61, 53, 46, 0.02), 0 2px 8px rgba(0, 0, 0, 0.01);
+  --paper-gradient: linear-gradient(135deg, rgba(253,251,247,1) 85%, rgba(120,139,156,0.12) 100%);
+}
+
+body {
+  background: linear-gradient(135deg, #FDFBF7 0%, #FAFAFA 50%, #F4F0E6 100%);
+  color: var(--ink);
+}
+
+.app-shell,
+.content-shell {
+  background: transparent;
+}
+
+.panel,
+.graph-card,
+.inspector-card,
+.timeline-panel,
+.story-card,
+.theme-card,
+.novel-hero,
+.profile-panel,
+.progress-panel,
+.appearance-panel,
+.account-panel,
+.donation-panel,
+.confirm-modal,
+.auth-card {
+  background: var(--paper-gradient);
+  border: 1px solid var(--paper-line);
+  box-shadow: var(--paper-shadow);
+  color: var(--ink);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.35s ease;
+}
+
+.panel:hover,
+.graph-card:hover,
+.inspector-card:hover,
+.timeline-panel:hover,
+.story-card:hover,
+.theme-card:hover,
+.novel-hero:hover,
+.profile-panel:hover,
+.progress-panel:hover,
+.appearance-panel:hover,
+.account-panel:hover,
+.donation-panel:hover {
+  border-color: var(--paper-hover);
+}
+
+.section-heading p,
+.panel-title span,
+.field-disclaimer,
+.graph-hint,
+.timeline-hint,
+.brand span {
+  color: var(--muted);
+}
+
+.brand-logo {
+  height: 32px;
+  width: auto;
+  aspect-ratio: auto;
+  object-fit: contain;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  filter: grayscale(1) contrast(1.08) brightness(0.82);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.brand:hover .brand-logo {
+  transform: scale(1.02);
+  filter: grayscale(1) contrast(1.12) brightness(0.72);
+}
+
+.brand-mark {
+  display: none;
+}
+
+.relation-graph,
+.inspector-head {
+  scroll-margin: 90px;
+}
+
+.character-editor-top {
+  display: grid;
+  grid-template-columns: minmax(170px, 0.72fr) minmax(0, 1.28fr);
+  align-items: start;
+  gap: 16px;
+}
+
+.media-carousel {
+  border-color: #EAE5DA;
+}
+
+.character-attribute-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.character-attribute-grid label,
+.character-attribute-grid .tag-composer {
+  min-width: 0;
+}
+
+.character-attribute-grid input,
+.character-attribute-grid select,
+.character-attribute-grid textarea {
+  min-width: 0;
+  width: 100%;
+  text-overflow: ellipsis;
+}
+
+.node-color-picker.is-wide {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(234, 229, 218, 0.86);
+  border-radius: 14px;
+  background: rgba(253, 251, 247, 0.6);
+}
+
+.node-color-picker.is-wide > span {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 850;
+}
+
+.node-color-picker.is-wide > span::before {
+  content: "【";
+}
+
+.node-color-picker.is-wide > span::after {
+  content: "】";
+}
+
+.node-color-picker.is-wide > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.node-color-picker.is-wide button {
+  flex: 0 0 auto;
+}
+
+.tour-provider-bubble {
+  background: #FDFBF7;
+  border: 1px solid #3D352E;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  border-radius: 8px;
+  font-size: 12px;
+  color: #3D352E;
+  width: 270px;
+}
+
+.tour-provider-bubble .glow-arrow {
+  animation: tourArrowBreath 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 4px 14px rgba(61, 53, 46, 0.16));
+}
+
+.tour-provider-bubble.arrow-down .glow-arrow {
+  left: 50%;
+  top: -28px;
+  transform: translateX(-50%);
+}
+
+.tour-provider-bubble.arrow-up .glow-arrow {
+  left: 50%;
+  bottom: -28px;
+  top: auto;
+  transform: translateX(-50%);
+}
+
+.glow-tour-actions button:first-child {
+  color: #8C8275;
+  background: transparent;
+}
+
+.glow-tour-actions button:last-child {
+  color: #FDFBF7;
+  background: #3D352E;
+}
+
+@keyframes tourArrowBreath {
+  0%, 100% {
+    opacity: 0.6;
+    scale: 1;
+  }
+  50% {
+    opacity: 1;
+    scale: 1.15;
+  }
+}
+
+.donation-privacy-frame {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.donation-privacy-frame img {
+  filter: blur(16px);
+  transform: scale(1.01);
+  transition: filter 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.donation-privacy-frame.is-unlocked img {
+  filter: blur(0);
+  transform: scale(1);
+}
+
+.donation-unlock-copy {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  color: #7A7267;
+  font-size: 12px;
+  font-weight: 850;
+  text-align: center;
+  background: rgba(253, 251, 247, 0.18);
+  pointer-events: none;
+}
+
+.donation-privacy-frame.is-unlocked .donation-unlock-copy {
+  opacity: 0;
+}
+
+@media (max-width: 1180px) {
+  .character-editor-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
