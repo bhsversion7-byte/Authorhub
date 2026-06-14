@@ -5859,3 +5859,382 @@ body[data-theme="dark"] .user-center-section .user-donation-panel {
     inset 0 -1px 2px rgba(0, 0, 0, 0.18),
     0 4px 20px rgba(0, 0, 0, 0.24) !important;
 }
+
+/* =======================================================================
+   AuthorHub Jazz Cafe Material Pass
+   Clean material hierarchy after paper-bite experiment:
+   - Logo preview is a true viewport modal.
+   - Text inputs remain clean and readable.
+   - Paper texture is confined to card pseudo layers.
+   ======================================================================= */
+
+:root {
+  --jazz-ink: #2c2a29;
+  --jazz-muted: #7a7267;
+  --jazz-line: rgba(201, 190, 172, 0.38);
+  --jazz-foam: rgba(251, 249, 246, 0.96);
+  --jazz-roast: rgba(240, 235, 228, 0.95);
+  --jazz-moss: rgba(220, 224, 218, 0.95);
+  --jazz-coldbrew: rgba(225, 229, 232, 0.88);
+  --jazz-distant-blue: #728481;
+  --jazz-card-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.94),
+    inset 0 -1px 2px rgba(44, 36, 24, 0.025),
+    0 14px 34px rgba(44, 36, 24, 0.042),
+    0 4px 16px rgba(44, 36, 24, 0.032);
+}
+
+body {
+  color: var(--jazz-ink);
+  background:
+    radial-gradient(circle at 72% 12%, rgba(196, 176, 142, 0.12), transparent 34%),
+    linear-gradient(135deg, #fdfbf7 0%, #fafafa 48%, #f4f0e6 100%) !important;
+}
+
+.brand,
+.brand *,
+.logo-wrapper,
+.brand-mark,
+.brand-text {
+  position: relative !important;
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+}
+
+.brand {
+  cursor: default !important;
+}
+
+.logo-wrapper {
+  cursor: zoom-in !important;
+}
+
+.logo-preview-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  min-width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: clamp(18px, 5vw, 56px) !important;
+  z-index: 2147483000 !important;
+  overflow: auto !important;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(253, 251, 247, 0.88), rgba(238, 229, 214, 0.68) 44%, rgba(44, 36, 24, 0.16) 100%) !important;
+  backdrop-filter: blur(18px) saturate(0.92) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(0.92) !important;
+}
+
+.logo-preview-dialog {
+  position: relative !important;
+  width: min(640px, calc(100vw - 36px)) !important;
+  min-width: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: clamp(26px, 5vw, 52px) !important;
+  border-radius: 28px !important;
+  background:
+    linear-gradient(135deg, rgba(253, 251, 247, 0.96), rgba(240, 235, 226, 0.9)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.025),
+    0 28px 80px rgba(44, 36, 24, 0.14),
+    0 4px 20px rgba(44, 36, 24, 0.06) !important;
+}
+
+.logo-preview-close {
+  position: absolute !important;
+  top: 14px !important;
+  right: 14px !important;
+  width: 34px !important;
+  height: 34px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  color: var(--jazz-ink) !important;
+  background: rgba(255, 253, 248, 0.86) !important;
+  box-shadow: 0 8px 24px rgba(44, 36, 24, 0.08) !important;
+  cursor: pointer !important;
+}
+
+.logo-image-zoomed {
+  width: min(430px, 72vw) !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: 72dvh !important;
+  object-fit: contain !important;
+}
+
+/* Legacy overlay fallback. The current component uses .logo-preview-modal. */
+.logo-lightbox-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  z-index: 2147483000 !important;
+}
+
+.story-card,
+.graph-card,
+.relationship-star-chart,
+.timeline-panel,
+.card-outline,
+.manuscript-editor-zone,
+.inspector-card,
+.card-timeline,
+.panel.progress-panel,
+.progress-panel,
+.user-account-panel,
+.user-center-card,
+.panel.appearance-panel,
+.appearance-panel,
+.user-center-section .user-donation-panel {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  color: var(--jazz-ink) !important;
+  text-shadow: 0 0.5px 0.5px rgba(255, 255, 255, 0.46) !important;
+  box-shadow: var(--jazz-card-shadow) !important;
+}
+
+.story-card > *,
+.graph-card > *,
+.relationship-star-chart > *,
+.timeline-panel > *,
+.card-outline > *,
+.manuscript-editor-zone > *,
+.inspector-card > *,
+.card-timeline > *,
+.panel.progress-panel > *,
+.progress-panel > *,
+.user-account-panel > *,
+.user-center-card > *,
+.panel.appearance-panel > *,
+.appearance-panel > *,
+.user-center-section .user-donation-panel > * {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.card-outline,
+.manuscript-editor-zone,
+.inspector-card {
+  background:
+    linear-gradient(135deg, rgba(251, 249, 246, 0.98), rgba(246, 242, 234, 0.94)) !important;
+}
+
+.card-outline::before,
+.manuscript-editor-zone::before,
+.inspector-card::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  border-radius: inherit !important;
+  background:
+    radial-gradient(circle, transparent 66%, rgba(251, 249, 246, 0.98) 100%),
+    url("/texture-card-3.jpg") !important;
+  background-size: 100% 100%, 218px 218px !important;
+  background-repeat: no-repeat, repeat !important;
+  background-position: center !important;
+  opacity: 0.5 !important;
+  filter: contrast(0.56) brightness(1.18) saturate(0.32) !important;
+  mix-blend-mode: color-burn !important;
+}
+
+.story-card,
+.graph-card,
+.relationship-star-chart {
+  background:
+    linear-gradient(135deg, rgba(242, 238, 230, 0.96), rgba(232, 225, 215, 0.92)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.94),
+    inset 0 -1px 2px rgba(44, 36, 24, 0.025),
+    inset 0 0 40px rgba(215, 185, 142, 0.11),
+    0 14px 34px rgba(44, 36, 24, 0.042),
+    0 4px 16px rgba(44, 36, 24, 0.032) !important;
+}
+
+.story-card::before,
+.graph-card::before,
+.relationship-star-chart::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  border-radius: inherit !important;
+  background:
+    radial-gradient(circle, transparent 68%, rgba(240, 235, 228, 0.94) 100%),
+    url("/texture-card-2.jpg") !important;
+  background-size: 100% 100%, 100% 100% !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-position: center !important;
+  opacity: 0.34 !important;
+  filter: contrast(0.7) brightness(1.14) saturate(0.48) !important;
+  mix-blend-mode: multiply !important;
+}
+
+.timeline-panel,
+.card-timeline,
+.panel.progress-panel,
+.progress-panel {
+  background:
+    linear-gradient(135deg, rgba(224, 227, 221, 0.96), rgba(214, 218, 211, 0.9)) !important;
+}
+
+.timeline-panel::before,
+.card-timeline::before,
+.panel.progress-panel::before,
+.progress-panel::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  border-radius: inherit !important;
+  background:
+    radial-gradient(circle, transparent 65%, rgba(220, 224, 218, 0.94) 100%),
+    url("/texture-card-1.jpg") !important;
+  background-size: 100% 100%, 168px 168px !important;
+  background-repeat: no-repeat, repeat !important;
+  background-position: center !important;
+  opacity: 0.4 !important;
+  filter: contrast(0.62) brightness(1.1) saturate(0.42) !important;
+  mix-blend-mode: multiply !important;
+}
+
+.user-account-panel,
+.user-center-card,
+.panel.appearance-panel,
+.appearance-panel,
+.user-center-section .user-donation-panel {
+  background:
+    linear-gradient(135deg, rgba(232, 235, 236, 0.88), rgba(218, 224, 224, 0.78)) !important;
+  backdrop-filter: blur(12px) saturate(0.86) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(0.86) !important;
+}
+
+.story-card::after,
+.graph-card::after,
+.relationship-star-chart::after,
+.timeline-panel::after,
+.card-outline::after,
+.manuscript-editor-zone::after,
+.inspector-card::after,
+.card-timeline::after,
+.panel.progress-panel::after,
+.progress-panel::after,
+.user-account-panel::after,
+.user-center-card::after,
+.panel.appearance-panel::after,
+.appearance-panel::after,
+.user-center-section .user-donation-panel::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+  border-radius: inherit !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.36), transparent 16%, transparent 82%, rgba(44, 36, 24, 0.028)),
+    radial-gradient(circle at 16% 8%, rgba(255, 255, 255, 0.2), transparent 28%),
+    radial-gradient(circle at 92% 86%, rgba(139, 119, 86, 0.055), transparent 34%) !important;
+  opacity: 0.78 !important;
+  mix-blend-mode: soft-light !important;
+}
+
+input,
+select,
+textarea,
+.editable-control,
+.font-preview,
+.platform-modal input,
+.platform-modal select,
+.story-card textarea,
+.timeline-panel textarea,
+.timeline-panel input,
+.timeline-panel select,
+.inspector-card input,
+.inspector-card select,
+.inspector-card textarea,
+.character-panel input,
+.character-panel select,
+.character-panel textarea {
+  position: relative !important;
+  z-index: 3 !important;
+  color: var(--jazz-ink) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 253, 249, 0.88), rgba(249, 245, 237, 0.78)) !important;
+  border: 0.5px solid rgba(204, 191, 170, 0.44) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 1px 0 rgba(255, 255, 255, 0.32) !important;
+  mix-blend-mode: normal !important;
+  filter: none !important;
+}
+
+textarea::before,
+input::before,
+select::before {
+  content: none !important;
+}
+
+.timeline-node:hover,
+.timeline-node.is-active,
+.timeline-node.selected {
+  border-color: rgba(114, 132, 129, 0.42) !important;
+  background:
+    linear-gradient(135deg, rgba(248, 248, 244, 0.9), rgba(232, 237, 232, 0.78)) !important;
+  box-shadow: 0 0 14px rgba(114, 132, 129, 0.4) !important;
+}
+
+.timeline-node:hover::before,
+.timeline-node.is-active::before,
+.timeline-node.selected::before,
+.timeline-node:hover .timeline-dot,
+.timeline-node.is-active .timeline-dot,
+.timeline-node.selected .timeline-dot {
+  background: #2c2a29 !important;
+  border-color: rgba(255, 255, 255, 0.88) !important;
+}
+
+body[data-theme="dark"] .story-card::before,
+body[data-theme="dark"] .graph-card::before,
+body[data-theme="dark"] .relationship-star-chart::before,
+body[data-theme="dark"] .timeline-panel::before,
+body[data-theme="dark"] .card-outline::before,
+body[data-theme="dark"] .manuscript-editor-zone::before,
+body[data-theme="dark"] .inspector-card::before,
+body[data-theme="dark"] .card-timeline::before,
+body[data-theme="dark"] .panel.progress-panel::before,
+body[data-theme="dark"] .progress-panel::before,
+body[data-theme="dark"] .user-account-panel::before,
+body[data-theme="dark"] .user-center-card::before,
+body[data-theme="dark"] .panel.appearance-panel::before,
+body[data-theme="dark"] .appearance-panel::before,
+body[data-theme="dark"] .user-center-section .user-donation-panel::before,
+body[data-theme="dark"] .story-card::after,
+body[data-theme="dark"] .graph-card::after,
+body[data-theme="dark"] .relationship-star-chart::after,
+body[data-theme="dark"] .timeline-panel::after,
+body[data-theme="dark"] .card-outline::after,
+body[data-theme="dark"] .manuscript-editor-zone::after,
+body[data-theme="dark"] .inspector-card::after,
+body[data-theme="dark"] .card-timeline::after,
+body[data-theme="dark"] .panel.progress-panel::after,
+body[data-theme="dark"] .progress-panel::after,
+body[data-theme="dark"] .user-account-panel::after,
+body[data-theme="dark"] .user-center-card::after,
+body[data-theme="dark"] .panel.appearance-panel::after,
+body[data-theme="dark"] .appearance-panel::after,
+body[data-theme="dark"] .user-center-section .user-donation-panel::after {
+  opacity: 0.15 !important;
+  filter: contrast(0.72) brightness(0.9) saturate(0.32) !important;
+  mix-blend-mode: overlay !important;
+}

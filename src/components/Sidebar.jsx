@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { BookOpen, Home, Plus, UserRound, X } from "lucide-react";
 
 const BOOK_ICON_COLORS = ["#4A6357", "#7A3E3E", "#2E4C6D", "#8C6239", "#6C5E7A", "#6F7D5E"];
@@ -13,20 +14,24 @@ export default function Sidebar({ novels, width, activeView, onSelect, onAddNove
         <button type="button" className="logo-wrapper" onClick={() => setLogoOpen(true)} aria-label="放大查看 AuthorHub Logo">
           <img className="brand-logo logo-image" src="/authorhub-logo.png" alt="AuthorHub" />
         </button>
-        <div>
+        <div className="brand-text">
           <p>Author Hub</p>
           <span>小说创作中台</span>
         </div>
       </div>
 
-      {logoOpen && (
-        <button type="button" className="logo-lightbox-overlay" onClick={() => setLogoOpen(false)} aria-label="收起 AuthorHub Logo">
-          <span className="lightbox-content">
-            <img className="logo-image-zoomed" src="/authorhub-logo.png" alt="AuthorHub Logo enlarged" />
-            <span className="lightbox-hint">点击任意位置收起</span>
-          </span>
-        </button>
-      )}
+      {logoOpen &&
+        createPortal(
+          <div className="logo-preview-modal" role="dialog" aria-modal="true" aria-label="AuthorHub Logo 预览" onMouseDown={() => setLogoOpen(false)}>
+            <div className="logo-preview-dialog" onMouseDown={(event) => event.stopPropagation()}>
+              <button type="button" className="logo-preview-close" onClick={() => setLogoOpen(false)} aria-label="关闭 Logo 预览">
+                <X size={16} />
+              </button>
+              <img className="logo-image-zoomed" src="/authorhub-logo.png" alt="AuthorHub Logo enlarged" />
+            </div>
+          </div>,
+          document.body,
+        )}
 
       <nav className="nav-stack" aria-label="全局导航">
         <button type="button" data-tour="author-home" onClick={() => onSelect("author")} className={`nav-item is-home ${activeView === "author" ? "is-active" : ""}`}>
