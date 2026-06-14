@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { CaseSensitive, EyeOff, Feather, Library, Moon, PenLine, Type } from "lucide-react";
 import EditableField from "./EditableField.jsx";
 
@@ -15,13 +15,38 @@ export default function AuthorDashboard({
   const totalTarget = novels.reduce((sum, novel) => sum + Number(novel.targetWords || 0), 0);
   const totalProgress = totalTarget ? Math.round((totalCurrent / totalTarget) * 100) : 0;
   const safeAuthor = useMemo(() => ({ ...author }), [author]);
+  const sectionRef = useRef(null);
+  const [topLift, setTopLift] = useState(0);
+
+  useLayoutEffect(() => {
+    function alignAuthorSection() {
+      const section = sectionRef.current;
+      if (!section) return;
+
+      section.style.setProperty("--author-top-lift", "0px");
+      const desiredTop = window.innerWidth <= 680 ? 12 : 18;
+      const currentTop = section.getBoundingClientRect().top;
+      const nextLift = Math.max(0, Math.min(280, Math.round(currentTop - desiredTop)));
+      section.style.setProperty("--author-top-lift", `${nextLift}px`);
+      setTopLift(nextLift);
+    }
+
+    const frame = window.requestAnimationFrame(alignAuthorSection);
+    window.addEventListener("resize", alignAuthorSection);
+    window.addEventListener("orientationchange", alignAuthorSection);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", alignAuthorSection);
+      window.removeEventListener("orientationchange", alignAuthorSection);
+    };
+  }, []);
 
   function patchAuthor(patch) {
     onAuthorChange({ ...safeAuthor, ...patch });
   }
 
   return (
-    <section id="author" className="section author-section">
+    <section id="author" ref={sectionRef} className="section author-section" style={{ "--author-top-lift": `${topLift}px` }}>
       <div className="section-heading">
         <p className="eyebrow">Author profile</p>
         <h1>作者个人主页</h1>
