@@ -4768,6 +4768,65 @@ button[type="submit"],
   object-fit: cover;
 }
 
+/* Bugfix pass: keep the floating player visible, sync calm hover states, and keep tour above every layer. */
+.floating-music {
+  position: fixed !important;
+  left: 0;
+  top: 0;
+  z-index: 14000 !important;
+  transform: none !important;
+  will-change: left, top;
+}
+
+.paper-texture-overlay {
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+
+.app-shell > .sidebar,
+.app-shell > .content-shell,
+.privacy-float {
+  position: relative;
+  z-index: 1;
+}
+
+.inspector-card,
+.inspector-card:hover,
+.inspector-card:focus-within,
+.card-character,
+.card-character:hover,
+.card-character:focus-within {
+  background: linear-gradient(135deg, rgba(253, 251, 247, 0.98), rgba(246, 241, 231, 0.76)) !important;
+  border-color: #E6DED0 !important;
+}
+
+.timeline-panel,
+.timeline-panel:hover,
+.card-timeline,
+.card-timeline:hover,
+.timeline-node,
+.timeline-node:hover,
+.timeline-node:hover:not(.is-active) {
+  background: #EDF3F6 !important;
+  border-color: #D8E3E8 !important;
+}
+
+.timeline-node.is-active,
+.timeline-node.selected {
+  background: #EDF3F6 !important;
+  border-color: #8FA9B4 !important;
+  box-shadow: 0 18px 34px rgba(94, 122, 132, 0.08) !important;
+}
+
+.glow-tour-layer {
+  z-index: 15000 !important;
+  pointer-events: none;
+}
+
+.glow-tour-bubble {
+  pointer-events: auto;
+}
+
 @media (max-width: 680px) {
   .captcha-row {
     grid-template-columns: 1fr;

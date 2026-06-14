@@ -73,11 +73,7 @@ export default function App() {
 
   useEffect(() => {
     if (!data || !justRegistered) return;
-    const completed =
-      data.author?.hasCompletedTour ||
-      authUser?.user_metadata?.has_completed_tour ||
-      localStorage.getItem("ah_tour") === "true" ||
-      localStorage.getItem("author-hub-tour-complete") === "true";
+    const completed = Boolean(authUser?.user_metadata?.has_completed_tour);
     if (!completed) setTourStep(0);
   }, [data, justRegistered, authUser]);
 
@@ -94,6 +90,10 @@ export default function App() {
   const appearance = data?.appearance ?? { fontFamily: "sans", fontSize: 14 };
 
   function handleAuthed(user, meta = {}) {
+    if (meta.isNew) {
+      localStorage.removeItem("ah_tour");
+      localStorage.removeItem("author-hub-tour-complete");
+    }
     setJustRegistered(Boolean(meta.isNew));
     setAuthUser(user);
   }
@@ -407,27 +407,54 @@ function TourProvider({ step, setStep, onDone, onSelectDemo }) {
 
   useEffect(() => {
     const selector = current.target === "relation-graph" ? ".relation-graph" : '[data-tour="' + current.target + '"]';
-    const element = document.querySelector(selector);
-    if (!element) {
-      setRect({ top: 120, left: 300, width: 220, height: 64 });
-      return;
-    }
+    let attempts = 0;
+    let timer;
 
-    if (current.target === "relation-graph") {
-      document.querySelector(".relation-graph")?.scrollIntoView({ behavior: "smooth", block: "center" });
-    } else {
+    function locate() {
+      const element = document.querySelector(selector);
+      if (!element && attempts < 12) {
+        attempts += 1;
+        timer = window.setTimeout(locate, 180);
+        return;
+      }
+      if (!element) {
+        setRect({ top: 120, left: 300, width: 220, height: 64 });
+        return;
+      }
+
       element.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+      timer = window.setTimeout(() => {
+        const box = element.getBoundingClientRect();
+        setRect({ top: box.top, left: box.left, width: box.width, height: box.height });
+      }, 560);
     }
 
-    const timer = window.setTimeout(() => {
-      const box = element.getBoundingClientRect();
-      setRect({ top: box.top, left: box.left, width: box.width, height: box.height });
-    }, 560);
+    locate();
     return () => window.clearTimeout(timer);
   }, [current.target, step]);
 
+  useEffect(() => {
+    function updateRect() {
+      const selector = current.target === "relation-graph" ? ".relation-graph" : '[data-tour="' + current.target + '"]';
+      const element = document.querySelector(selector);
+      if (!element) return;
+      const box = element.getBoundingClientRect();
+      setRect({ top: box.top, left: box.left, width: box.width, height: box.height });
+    }
+    window.addEventListener("resize", updateRect);
+    window.addEventListener("scroll", updateRect, true);
+    return () => {
+      window.removeEventListener("resize", updateRect);
+      window.removeEventListener("scroll", updateRect, true);
+    };
+  }, [current.target, step]);
+
   function next() {
-    if (step === 0) onSelectDemo();
+    if (step === 0) {
+      onSelectDemo();
+      window.setTimeout(() => setStep(step + 1), 240);
+      return;
+    }
     if (isLast) onDone();
     else setStep(step + 1);
   }

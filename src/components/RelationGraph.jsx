@@ -65,6 +65,11 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     selectedRelationshipIndex !== null && novel.relationships?.[selectedRelationshipIndex]
       ? relationshipKey(novel.relationships[selectedRelationshipIndex], selectedRelationshipIndex)
       : "";
+  const previewRelationship =
+    connectFrom && connectTo && connectFrom !== connectTo && selectedRelationshipIndex === null
+      ? { source: connectFrom, target: connectTo, label: connectLabel || "关系", index: "__preview", isPreview: true }
+      : null;
+  const previewRelationshipKey = previewRelationship ? relationshipKey(previewRelationship, "__preview") : "";
   const focusId = activeRelationshipKey ? "" : hoverId || selectedId || "";
   const selected = useMemo(
     () => novel.characters.find((character) => character.id === selectedId) ?? novel.characters[0],
@@ -127,10 +132,18 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
 
     const graphLayer = svg.append("g").attr("class", "graph-layer");
     const links = (novel.relationships ?? []).map((relationship, index) => ({
-      ...relationship,
+      ...(index === selectedRelationshipIndex && connectFrom && connectTo
+        ? { ...relationship, source: connectFrom, target: connectTo, label: connectLabel || "关系", isPreview: true }
+        : relationship),
       index,
       key: relationshipKey(relationship, index),
     }));
+    if (previewRelationship) {
+      links.push({
+        ...previewRelationship,
+        key: previewRelationshipKey,
+      });
+    }
     const nodes = (novel.characters ?? []).map((character, index) => {
       const tag = getCharacterTag(character);
       return {
@@ -153,10 +166,10 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
       .selectAll("path")
       .data(links)
       .join("path")
-      .attr("stroke", novel.color)
-      .attr("stroke-width", (relationship) => (isCoreRelationship(relationship, nodes) ? 1.7 : 1.25))
-      .attr("stroke-dasharray", "5 7")
-      .attr("stroke-opacity", 0.48)
+      .attr("stroke", (relationship) => (relationship.isPreview ? "#7E9A9A" : novel.color))
+      .attr("stroke-width", (relationship) => (relationship.isPreview ? 2.2 : isCoreRelationship(relationship, nodes) ? 1.7 : 1.25))
+      .attr("stroke-dasharray", (relationship) => (relationship.isPreview ? "3 5" : "5 7"))
+      .attr("stroke-opacity", (relationship) => (relationship.isPreview ? 0.82 : 0.48))
       .attr("fill", "none")
       .attr("filter", `url(#ink-${novel.id})`)
       .on("mouseenter", (_, relationship) => setHoverLinkKey(relationship.key))
@@ -299,7 +312,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     linkSelectionRef.current = link;
     labelSelectionRef.current = label;
     return () => simulation.stop();
-  }, [novel.id, novel.characters, novel.relationships, novel.color, novel.accent, detailPane, pendingNodeId]);
+  }, [novel.id, novel.characters, novel.relationships, novel.color, novel.accent, detailPane, pendingNodeId, connectFrom, connectTo, connectLabel, selectedRelationshipIndex]);
 
   useEffect(() => {
     const node = nodeSelectionRef.current;
@@ -307,7 +320,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     const label = labelSelectionRef.current;
     if (!node || !link || !label) return;
 
-    const edgeFocusKey = activeRelationshipKey || hoverLinkKey;
+    const edgeFocusKey = activeRelationshipKey || previewRelationshipKey || hoverLinkKey;
     const focus = getFocusSets(linksRef.current, focusId, edgeFocusKey);
     const hasFocus = Boolean(focusId || edgeFocusKey);
     node
@@ -322,7 +335,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
       .attr("stroke-opacity", (relationship) => (hasFocus ? (focus.linkKeys.has(relationship.key) ? 0.8 : 0.08) : 0.48))
       .attr("stroke-width", (relationship) => (activeRelationshipKey && relationship.key === activeRelationshipKey ? 2.6 : 1.35));
     label.transition().duration(160).attr("opacity", (relationship) => (focus.linkKeys.has(relationship.key) ? 1 : 0));
-  }, [focusId, hoverLinkKey, selectedId, activeRelationshipKey]);
+  }, [focusId, hoverLinkKey, selectedId, activeRelationshipKey, previewRelationshipKey]);
 
   function handleAddCharacter() {
     const character = emptyCharacter(novel.id);
@@ -407,9 +420,24 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     setConnectFrom(next.source);
     setConnectTo(next.target);
     setConnectLabel(next.label);
-    if (selectedRelationshipIndex !== null && next.source && next.target && next.source !== next.target) {
-      onUpdateRelationship(novel.id, selectedRelationshipIndex, next);
+    if (selectedRelationshipIndex === null && next.source && next.target && next.source !== next.target) {
+      const existingIndex = findRelationshipIndex(next.source, next.target);
+      if (existingIndex >= 0) {
+        const existing = novel.relationships[existingIndex];
+        setSelectedRelationshipIndex(existingIndex);
+        setConnectLabel(existing.label || next.label || "");
+        setHoverLinkKey(relationshipKey(existing, existingIndex));
+        return;
+      }
     }
+  }
+
+  function findRelationshipIndex(sourceId, targetId) {
+    return (novel.relationships ?? []).findIndex((relationship) => {
+      const source = getNodeId(relationship.source);
+      const target = getNodeId(relationship.target);
+      return (source === sourceId && target === targetId) || (source === targetId && target === sourceId);
+    });
   }
 
   function clearRelationshipSelection() {
@@ -440,6 +468,13 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     event.stopPropagation();
     setCustomTags((current) => current.filter((item) => item !== tag));
     if (draft?.tag === tag) chooseTag("主要配角");
+  }
+
+  function chooseNodeColor(color) {
+    if (!draft) return;
+    const nextDraft = { ...draft, color };
+    setDraft(nextDraft);
+    onUpdateCharacter(novel.id, nextDraft.id, { color });
   }
 
   return (
@@ -532,7 +567,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
                       key={color}
                       className={draft.color === color ? "is-selected" : ""}
                       style={{ "--swatch": color }}
-                      onClick={() => setDraft({ ...draft, color })}
+                      onClick={() => chooseNodeColor(color)}
                       aria-label={`选择颜色 ${color}`}
                     />
                   ))}

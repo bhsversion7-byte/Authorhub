@@ -54,6 +54,22 @@ export default function FloatingMusicPlayer() {
   }, [position]);
 
   useEffect(() => {
+    function clampIntoViewport() {
+      setPosition((current) => ({
+        x: Math.max(8, Math.min(window.innerWidth - (collapsed ? 72 : 304), current.x)),
+        y: Math.max(8, Math.min(window.innerHeight - 82, current.y)),
+      }));
+    }
+    clampIntoViewport();
+    window.addEventListener("resize", clampIntoViewport);
+    window.addEventListener("orientationchange", clampIntoViewport);
+    return () => {
+      window.removeEventListener("resize", clampIntoViewport);
+      window.removeEventListener("orientationchange", clampIntoViewport);
+    };
+  }, [collapsed]);
+
+  useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
     audio.volume = 0.22;
@@ -109,7 +125,7 @@ export default function FloatingMusicPlayer() {
   return (
     <div
       className={`floating-music ${playing ? "is-playing" : ""} ${collapsed ? "is-collapsed" : ""}`}
-      style={{ transform: `translate3d(${position.x}px, ${position.y}px, 0)` }}
+      style={{ left: `${position.x}px`, top: `${position.y}px` }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
