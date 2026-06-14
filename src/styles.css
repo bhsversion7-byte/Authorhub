@@ -5425,3 +5425,247 @@ body[data-theme="dark"] .user-center-section .user-account-panel {
 body[data-theme="dark"] .timeline-panel {
   background: linear-gradient(135deg, #252823 0%, #30352B 100%) !important;
 }
+
+/* =======================================================================
+   AuthorHub Refined Paperism 3.0
+   Physical paper substrate, editorial UI hierarchy, and interaction fixes.
+   ======================================================================= */
+
+:root {
+  --ah-ink: #2c2a29;
+  --ah-muted-ink: #7a7267;
+  --ah-paper-edge: rgba(206, 194, 176, 0.42);
+  --ah-paper-hi: rgba(255, 255, 255, 0.95);
+  --ah-paper-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 0 40px rgba(215, 185, 142, 0.12),
+    0 18px 46px rgba(44, 36, 24, 0.04),
+    0 7px 18px rgba(44, 36, 24, 0.03),
+    0 1px 2px rgba(44, 36, 24, 0.025);
+  --ah-paper-shadow-hover:
+    inset 0 1px 0 rgba(255, 255, 255, 0.98),
+    inset 0 0 46px rgba(215, 185, 142, 0.15),
+    0 22px 54px rgba(44, 36, 24, 0.052),
+    0 9px 22px rgba(44, 36, 24, 0.038),
+    0 1px 2px rgba(44, 36, 24, 0.03);
+  --ah-timeline-ink-blue: #728481;
+}
+
+.sidebar .brand,
+.sidebar .brand *,
+.brand,
+.brand-mark,
+.brand-text,
+.brand-logo,
+.logo-wrapper {
+  position: relative !important;
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+}
+
+.sidebar .brand,
+.brand,
+.brand-mark,
+.brand-text,
+.brand-logo,
+.logo-wrapper {
+  cursor: pointer !important;
+}
+
+.ambient-top,
+.paper-texture-overlay {
+  pointer-events: none !important;
+}
+
+.timeline-panel,
+.timeline-panel:hover,
+.card-timeline,
+.card-timeline:hover {
+  background:
+    linear-gradient(135deg, rgba(246, 243, 235, 0.86), rgba(233, 231, 219, 0.78)) !important;
+  border: 0.5px solid rgba(206, 194, 176, 0.34) !important;
+  box-shadow: var(--ah-paper-shadow) !important;
+}
+
+.timeline-node,
+.timeline-node:hover,
+.timeline-node:hover:not(.is-active),
+.timeline-node.selected,
+.timeline-node.is-active {
+  background:
+    linear-gradient(135deg, rgba(255, 253, 248, 0.86), rgba(238, 235, 225, 0.78)) !important;
+  border: 0.5px solid rgba(114, 132, 129, 0.24) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.86),
+    0 9px 24px rgba(44, 36, 24, 0.035) !important;
+  transition:
+    background 260ms var(--ease),
+    border-color 260ms var(--ease),
+    box-shadow 260ms var(--ease),
+    transform 220ms var(--ease) !important;
+}
+
+.timeline-node:hover,
+.timeline-node.is-active,
+.timeline-node.selected {
+  border-color: rgba(114, 132, 129, 0.55) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 0 14px rgba(114, 132, 129, 0.4),
+    0 12px 30px rgba(44, 36, 24, 0.04) !important;
+}
+
+.timeline-node::before {
+  background: var(--ah-ink) !important;
+  border: 5px solid rgba(114, 132, 129, 0.18) !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.86),
+    0 0 14px rgba(114, 132, 129, 0.16) !important;
+}
+
+.timeline-node.is-active::before,
+.timeline-node.selected::before,
+.timeline-node:hover::before {
+  background: var(--ah-ink) !important;
+  border-color: rgba(114, 132, 129, 0.32) !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.92),
+    0 0 14px rgba(114, 132, 129, 0.4) !important;
+}
+
+.story-card,
+.graph-card,
+.relationship-star-chart,
+.user-center-section .user-donation-panel,
+.timeline-panel {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  border: 0.5px solid var(--ah-paper-edge) !important;
+  box-shadow: var(--ah-paper-shadow) !important;
+  color: var(--ah-ink) !important;
+}
+
+.story-card:hover,
+.graph-card:hover,
+.relationship-star-chart:hover,
+.user-center-section .user-donation-panel:hover,
+.timeline-panel:hover {
+  border-color: rgba(190, 174, 148, 0.48) !important;
+  box-shadow: var(--ah-paper-shadow-hover) !important;
+}
+
+.story-card::before,
+.graph-card::before,
+.relationship-star-chart::before,
+.user-center-section .user-donation-panel::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: -2 !important;
+  pointer-events: none !important;
+  border-radius: inherit !important;
+  background:
+    linear-gradient(135deg, rgba(253, 250, 243, 0.74), rgba(239, 232, 220, 0.64)),
+    url("/texture-card-2.jpg") !important;
+  background-size: 100% 100%, 100% 100% !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-position: center !important;
+  opacity: 0.42 !important;
+  mix-blend-mode: multiply !important;
+  -webkit-mask-image: radial-gradient(circle, #000 62%, rgba(0, 0, 0, 0.68) 82%, transparent 100%) !important;
+  mask-image: radial-gradient(circle, #000 62%, rgba(0, 0, 0, 0.68) 82%, transparent 100%) !important;
+}
+
+.story-card::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: -1 !important;
+  pointer-events: none !important;
+  border-radius: inherit !important;
+  background:
+    radial-gradient(circle, transparent 65%, rgba(246, 240, 228, 0.94) 100%),
+    url("/texture-card-3.jpg") !important;
+  background-size: 100% 100%, 188px 188px !important;
+  background-repeat: no-repeat, repeat !important;
+  background-position: center !important;
+  opacity: 0.22 !important;
+  mix-blend-mode: multiply !important;
+}
+
+.timeline-panel::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: -2 !important;
+  pointer-events: none !important;
+  border-radius: inherit !important;
+  background:
+    radial-gradient(circle, transparent 65%, rgba(237, 235, 226, 0.95) 100%),
+    url("/texture-card-1.jpg") !important;
+  background-size: 100% 100%, 176px 176px !important;
+  background-repeat: no-repeat, repeat !important;
+  background-position: center !important;
+  opacity: 0.24 !important;
+  mix-blend-mode: multiply !important;
+}
+
+.timeline-panel::after,
+.graph-card::after,
+.relationship-star-chart::after,
+.user-center-section .user-donation-panel::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: -1 !important;
+  pointer-events: none !important;
+  border-radius: inherit !important;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.45), transparent 36%),
+    radial-gradient(circle at 82% 86%, rgba(177, 152, 118, 0.08), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 28%) !important;
+  opacity: 0.74 !important;
+}
+
+.story-card textarea,
+.timeline-panel textarea,
+.timeline-panel input,
+.timeline-panel select {
+  background:
+    linear-gradient(135deg, rgba(255, 253, 248, 0.7), rgba(246, 241, 231, 0.58)) !important;
+  border: 0.5px solid rgba(204, 191, 170, 0.44) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    inset 0 0 22px rgba(215, 185, 142, 0.055) !important;
+}
+
+body[data-theme="dark"] .story-card::before,
+body[data-theme="dark"] .graph-card::before,
+body[data-theme="dark"] .relationship-star-chart::before,
+body[data-theme="dark"] .user-center-section .user-donation-panel::before,
+body[data-theme="dark"] .story-card::after,
+body[data-theme="dark"] .timeline-panel::before {
+  opacity: 0.15 !important;
+  mix-blend-mode: overlay !important;
+}
+
+body[data-theme="dark"] .timeline-panel,
+body[data-theme="dark"] .story-card,
+body[data-theme="dark"] .graph-card,
+body[data-theme="dark"] .relationship-star-chart,
+body[data-theme="dark"] .user-center-section .user-donation-panel {
+  border-color: rgba(226, 210, 186, 0.12) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 0 40px rgba(215, 185, 142, 0.05),
+    0 18px 46px rgba(0, 0, 0, 0.18),
+    0 7px 18px rgba(0, 0, 0, 0.12) !important;
+}
+
+body[data-theme="dark"] .timeline-node,
+body[data-theme="dark"] .timeline-node:hover,
+body[data-theme="dark"] .timeline-node.is-active {
+  background: linear-gradient(135deg, rgba(46, 45, 40, 0.88), rgba(36, 39, 35, 0.82)) !important;
+  border-color: rgba(114, 132, 129, 0.24) !important;
+}
