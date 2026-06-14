@@ -18,6 +18,9 @@ dist/
 !public/authorhub-logo.png
 !public/texture-1.png
 !public/texture-3.jpg
+!public/texture-card-1.jpg
+!public/texture-card-2.jpg
+!public/texture-card-3.jpg
 !public/donation-wechat.png
 !public/donation-alipay.jpg
 *.sqlite
