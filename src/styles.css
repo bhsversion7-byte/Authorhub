@@ -4882,34 +4882,34 @@ button[type="submit"],
 }
 
 /* =======================================================================
-   终极修复：彻底根除顶部大空白与外边距穿透 Bug
+   重磅核弹级修复：全量强制清空顶部死空白
    ======================================================================= */
 
-/* 1. 重新规范内容外壳，使用 grid 彻底物理断绝外边距塌陷 */
-.content-shell {
-  background: transparent !important;
-  background-image: none !important;
-  display: grid !important;           /* 改用 grid 完美锁死内部子元素的 margin 穿透 */
-  padding-top: 0px !important;        /* 彻底清空顶部多余的垫高距离 */
+/* 1. 暴力抹平所有大容器的顶部 padding 堆叠 */
+.app-container,
+.main-scroller,
+.creative-dashboard-wrapper {
+  padding-top: 0px !important;    /* 强制归零，不给任何无理留白机会 */
   margin-top: 0px !important;
 }
 
-/* 2. 精准订正主滚动容器的顶部间距 */
-.main-scroller,
-.app-container,
-.creative-dashboard-wrapper {
-  padding-top: 16px !important;       /* 给予完美的 16px 呼吸感顶距，绝不多留白 */
+/* 2. 彻底接管并重新规范内容外壳 */
+.content-shell {
+  display: block !important;
+  padding-top: 20px !important;   /* 仅允许留下 20px 的精致舒适呼吸感，贴近上方 */
+  margin-top: 0px !important;
+  height: auto !important;        /* 防止被强行撑开 100vh 导致整体下移 */
 }
 
-/* 3. 清理第一个子模块可能带有的恶性外边距 */
-.content-shell > .section:first-child,
-.content-shell > .novel-section:first-child,
-.content-shell > div:first-child {
-  margin-top: 0 !important;           /* 剥离首个组件的顶部门禁 */
+/* 3. 拦截第一个子元素，防止其向外顶出 margin */
+.content-shell > *:first-child,
+.novel-section,
+.author-dashboard-grid {
+  margin-top: 0px !important;
+  padding-top: 0px !important;
 }
 
-/* 4. 确保小说视图等子模块本身不溢出顶部 */
-.novel-section {
-  padding-top: 0 !important;
-  margin-top: 0 !important;
+/* 4. 如果上方依然存在空白，排查是否由于导航栏绝对定位留下的占位符 */
+header, .top-nav, .header-bar {
+  margin-bottom: 0px !important;
 }
