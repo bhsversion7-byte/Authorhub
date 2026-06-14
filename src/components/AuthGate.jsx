@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
 import { hasSupabaseConfig, makeLocalUser, setLocalAuthUser, supabase } from "../lib/supabaseClient.js";
 
@@ -13,6 +13,8 @@ export default function AuthGate({ onAuthed }) {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [captcha, setCaptcha] = useState(null);
+  const [captchaAnswer, setCaptchaAnswer] = useState("");
 
   const emailValid = EMAIL_PATTERN.test(email.trim());
   const passwordValid = password.length >= 6;
@@ -25,12 +27,51 @@ export default function AuthGate({ onAuthed }) {
     return score;
   }, [password]);
 
+  useEffect(() => {
+    if (mode === "register") loadCaptcha();
+  }, [mode]);
+
+  async function loadCaptcha() {
+    setCaptchaAnswer("");
+    try {
+      const response = await fetch(`/api/captcha?ts=${Date.now()}`, { cache: "no-store" });
+      if (!response.ok) throw new Error("captcha api unavailable");
+      setCaptcha(await response.json());
+    } catch {
+      setCaptcha(makeLocalCaptcha());
+    }
+  }
+
+  async function verifyCaptcha() {
+    if (!captchaAnswer.trim()) {
+      setMessage("请输入图片验证码。");
+      return false;
+    }
+    if (captcha?.token?.startsWith("local:")) {
+      return captchaAnswer.trim() === captcha.token.slice(6);
+    }
+    try {
+      const response = await fetch("/api/verify-captcha", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: captcha?.token, answer: captchaAnswer.trim() }),
+      });
+      if (!response.ok) throw new Error("验证码错误");
+      return true;
+    } catch {
+      setMessage("验证码不正确，请重新输入。");
+      loadCaptcha();
+      return false;
+    }
+  }
+
   async function submit(event) {
     event.preventDefault();
     setMessage("");
     if (!emailValid) return setMessage("请输入有效邮箱。");
     if (!passwordValid) return setMessage("密码至少需要 6 位。");
     if (mode === "register" && !accepted) return setMessage("请先阅读并接受服务条款与隐私政策。");
+    if (mode === "register" && !(await verifyCaptcha())) return;
 
     setBusy(true);
     try {
@@ -53,7 +94,10 @@ export default function AuthGate({ onAuthed }) {
         onAuthed(user, { isNew: mode === "register" });
       }
     } catch (error) {
-      setMessage(error.message || "认证失败，请稍后再试。");
+      const raw = error.message || "";
+      const duplicate = /already|registered|exists/i.test(raw);
+      setMessage(duplicate ? "该邮箱已被注册，请直接登录。" : raw || "认证失败，请稍后再试。");
+      if (mode === "register") loadCaptcha();
     } finally {
       setBusy(false);
     }
@@ -62,6 +106,7 @@ export default function AuthGate({ onAuthed }) {
   function switchMode(nextMode) {
     setMode(nextMode);
     setMessage("");
+    setCaptchaAnswer("");
   }
 
   return (
@@ -98,12 +143,26 @@ export default function AuthGate({ onAuthed }) {
         </label>
 
         {mode === "register" && (
-          <div className="password-meter" data-score={passwordScore}>
-            <span />
-            <span />
-            <span />
-            <small>{passwordValid ? "密码强度可用" : "至少 6 位"}</small>
-          </div>
+          <>
+            <div className="password-meter" data-score={passwordScore}>
+              <span />
+              <span />
+              <span />
+              <small>{passwordValid ? "密码强度可用" : "至少 6 位"}</small>
+            </div>
+            <div className="captcha-row">
+              <input
+                value={captchaAnswer}
+                onChange={(event) => setCaptchaAnswer(event.target.value.replace(/\D/g, "").slice(0, 4))}
+                placeholder="输入右侧数字"
+                inputMode="numeric"
+                maxLength={4}
+              />
+              <button type="button" className="captcha-image-button" onClick={loadCaptcha} aria-label="刷新验证码">
+                {captcha?.image ? <img src={captcha.image} alt="数字验证码" /> : <span>刷新</span>}
+              </button>
+            </div>
+          </>
         )}
 
         <div className="auth-row">
@@ -137,4 +196,17 @@ export default function AuthGate({ onAuthed }) {
       </form>
     </div>
   );
+}
+
+function makeLocalCaptcha() {
+  const answer = String(Math.floor(1000 + Math.random() * 9000));
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="132" height="42" viewBox="0 0 132 42">
+    <rect width="132" height="42" rx="10" fill="#EAE5DC"/>
+    <path d="M8 30 C34 8, 72 44, 124 12" stroke="rgba(92,74,52,.28)" fill="none"/>
+    <text x="18" y="30" fill="#2C2418" font-family="Georgia,serif" font-size="24" font-weight="700" letter-spacing="5">${answer}</text>
+  </svg>`;
+  return {
+    image: `data:image/svg+xml;base64,${window.btoa(unescape(encodeURIComponent(svg)))}`,
+    token: `local:${answer}`,
+  };
 }

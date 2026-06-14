@@ -1,20 +1,32 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { BookOpen, Home, Plus, UserRound, X } from "lucide-react";
 
 const BOOK_ICON_COLORS = ["#4A6357", "#7A3E3E", "#2E4C6D", "#8C6239", "#6C5E7A", "#6F7D5E"];
 
 export default function Sidebar({ novels, width, activeView, onSelect, onAddNovel, onDeleteNovel }) {
+  const [logoOpen, setLogoOpen] = useState(false);
   const novelCountLabel = useMemo(() => `${toChineseCount(novels.length)}本小说`, [novels.length]);
 
   return (
     <aside className="sidebar" style={{ width }}>
       <div className="brand">
-        <img className="brand-logo" src="/authorhub-logo.png" alt="AuthorHub" />
+        <button type="button" className="logo-wrapper" onClick={() => setLogoOpen(true)} aria-label="放大查看 AuthorHub Logo">
+          <img className="brand-logo logo-image" src="/authorhub-logo.png" alt="AuthorHub" />
+        </button>
         <div>
           <p>Author Hub</p>
           <span>小说创作中台</span>
         </div>
       </div>
+
+      {logoOpen && (
+        <button type="button" className="logo-lightbox-overlay" onClick={() => setLogoOpen(false)} aria-label="收起 AuthorHub Logo">
+          <span className="lightbox-content">
+            <img className="logo-image-zoomed" src="/authorhub-logo.png" alt="AuthorHub Logo enlarged" />
+            <span className="lightbox-hint">点击任意位置收起</span>
+          </span>
+        </button>
+      )}
 
       <nav className="nav-stack" aria-label="全局导航">
         <button type="button" data-tour="author-home" onClick={() => onSelect("author")} className={`nav-item is-home ${activeView === "author" ? "is-active" : ""}`}>
@@ -77,7 +89,7 @@ export default function Sidebar({ novels, width, activeView, onSelect, onAddNove
 function toChineseCount(value) {
   const digits = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
   if (value <= 10) return value === 10 ? "十" : digits[value] ?? String(value);
-  if (value < 20) return `十${digits[value % 10]}`;
+  if (value < 20) return `十${value % 10 ? digits[value % 10] : ""}`;
   if (value < 100) {
     const ten = Math.floor(value / 10);
     const unit = value % 10;

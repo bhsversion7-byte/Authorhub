@@ -1,27 +1,37 @@
 import React, { useMemo, useState } from "react";
-import { Download, FileJson, FileText, KeyRound, LogOut, Mail, ShieldCheck, Trash2, UserX, WalletCards } from "lucide-react";
+import { FileJson, FileText, KeyRound, LogOut, Mail, ShieldCheck, Trash2, UserX, WalletCards } from "lucide-react";
 import { hasSupabaseConfig, supabase } from "../lib/supabaseClient.js";
 
-export default function UserCenter({ authUser, author, onAuthorChange, onExportJson, onExportMarkdown, onClearData, onLogout }) {
+const DONATION_QR = {
+  wechat: "/donation-wechat.png",
+  alipay: "/donation-alipay.jpg",
+};
+
+export default function UserCenter({
+  authUser,
+  author,
+  onAuthorChange,
+  onExportJson,
+  onExportMarkdown,
+  onClearData,
+  onLogout,
+}) {
   const [donationTab, setDonationTab] = useState("wechat");
   const [qrUnlocked, setQrUnlocked] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [confirmUnregister, setConfirmUnregister] = useState(false);
+
   const safeAuthor = useMemo(() => ({ donation: {}, ...author }), [author]);
   const username = authUser?.user_metadata?.username || safeAuthor.username || authUser?.email?.split("@")[0] || "writer";
   const email = authUser?.email || safeAuthor.email || "未绑定邮箱";
-
-  function patchDonation(patch) {
-    onAuthorChange({ ...safeAuthor, donation: { ...(safeAuthor.donation ?? {}), ...patch } });
-  }
 
   return (
     <section className="section user-center-section">
       <div className="section-heading user-center-heading">
         <p className="eyebrow">User center</p>
         <h1>用户中心</h1>
-        <p>管理账号、安全、数据导出与打赏信息。创作内容默认隐私优先，云端同步失败时会自动回落到本地缓存。</p>
+        <p>管理账号、安全、数据导出与纯净打赏。创作内容隐私优先；云端同步失败时会自动回落到本地缓存。</p>
       </div>
 
       <div className="user-center-page-grid">
@@ -64,7 +74,7 @@ export default function UserCenter({ authUser, author, onAuthorChange, onExportJ
             </button>
             <button type="button" className="btn-unregister" onClick={() => setConfirmUnregister(true)}>
               <UserX size={15} />
-              {"\u6ce8\u9500\u8d26\u53f7"}
+              注销账号
             </button>
             <button type="button" onClick={onLogout}>
               <LogOut size={15} />
@@ -80,7 +90,7 @@ export default function UserCenter({ authUser, author, onAuthorChange, onExportJ
           {confirmClear && (
             <div className="inline-confirm compact-confirm">
               <strong>确定清空全部小说信息？</strong>
-              <p>这会清空当前账号下的作品、人物、星图、时间线和设定集。若云端暂不可用，本地缓存也会同步清空。</p>
+              <p>这会清空当前账号下的作品、人物、星图、时间线和设定集。本地缓存也会同步清空。</p>
               <div>
                 <button type="button" className="ghost-button" onClick={() => setConfirmClear(false)}>
                   取消
@@ -98,13 +108,13 @@ export default function UserCenter({ authUser, author, onAuthorChange, onExportJ
               </div>
             </div>
           )}
+
           {confirmUnregister && (
             <div className="inline-confirm compact-confirm unregister-confirm">
-              <strong>{"\u786e\u8ba4\u7533\u8bf7\u6ce8\u9500\u8d26\u53f7\uff1f"}</strong>
-              <p>{"\u524d\u7aef\u4e0d\u4f1a\u4fdd\u5b58\u7ba1\u7406\u5458\u5bc6\u94a5\u3002\u786e\u8ba4\u540e\u4f1a\u6807\u8bb0\u8d26\u53f7\u6ce8\u9500\u8bf7\u6c42\u3001\u6e05\u7a7a\u5f53\u524d\u521b\u4f5c\u7f13\u5b58\u5e76\u9000\u51fa\u767b\u5f55\uff1b\u6b63\u5f0f\u5220\u9664\u7528\u6237\u9700\u7531\u540e\u7aef\u5b89\u5168\u63a5\u53e3\u6216 Supabase \u7ba1\u7406\u7aef\u5b8c\u6210\u3002"}</p>
+              <strong>确认申请注销账号？</strong>
               <div>
                 <button type="button" className="ghost-button" onClick={() => setConfirmUnregister(false)}>
-                  {"\u53d6\u6d88"}
+                  取消
                 </button>
                 <button
                   type="button"
@@ -118,7 +128,7 @@ export default function UserCenter({ authUser, author, onAuthorChange, onExportJ
                     onLogout();
                   }}
                 >
-                  {"\u786e\u8ba4\u6ce8\u9500"}
+                  确认注销
                 </button>
               </div>
             </div>
@@ -132,30 +142,36 @@ export default function UserCenter({ authUser, author, onAuthorChange, onExportJ
           </div>
           <p>如果你喜欢这个工具，欢迎请作者喝杯咖啡，支持用爱发电（^^）。</p>
           <div className="donation-tabs" role="tablist" aria-label="赞助方式">
-            <button type="button" className={donationTab === "wechat" ? "is-active" : ""} onClick={() => { setDonationTab("wechat"); setQrUnlocked(false); }}>
+            <button
+              type="button"
+              className={donationTab === "wechat" ? "is-active" : ""}
+              onClick={() => {
+                setDonationTab("wechat");
+                setQrUnlocked(false);
+              }}
+            >
               微信
             </button>
-            <button type="button" className={donationTab === "alipay" ? "is-active" : ""} onClick={() => { setDonationTab("alipay"); setQrUnlocked(false); }}>
+            <button
+              type="button"
+              className={donationTab === "alipay" ? "is-active" : ""}
+              onClick={() => {
+                setDonationTab("alipay");
+                setQrUnlocked(false);
+              }}
+            >
               支付宝
             </button>
           </div>
-          <div className={`donation-qr donation-privacy-frame ${qrUnlocked ? "is-unlocked" : ""}`} onClick={() => safeAuthor.donation?.[donationTab] && setQrUnlocked((current) => !current)}>
-            {safeAuthor.donation?.[donationTab] ? (
-              <>
-                <img src={safeAuthor.donation[donationTab]} alt={donationTab === "wechat" ? "微信赞助二维码" : "支付宝赞助二维码"} />
-                {!qrUnlocked && <span className="donation-unlock-copy">{"\u2615 \u70b9\u51fb\u56fe\u7247\uff0c\u89e3\u9501\u8d5e\u52a9\u901a\u9053"}</span>}
-              </>
-            ) : (
-              <div>
-                <WalletCards size={28} />
-                <span>粘贴二维码图片 URL 后显示</span>
-              </div>
-            )}
-          </div>
-          <label className="qr-url-field">
-            二维码图片 URL
-            <input value={safeAuthor.donation?.[donationTab] ?? ""} onChange={(event) => patchDonation({ [donationTab]: event.target.value })} placeholder="https://..." />
-          </label>
+          <button
+            type="button"
+            className={`donation-qr donation-privacy-frame ${qrUnlocked ? "is-unlocked" : ""}`}
+            onClick={() => setQrUnlocked((current) => !current)}
+            aria-label={qrUnlocked ? "重新模糊打赏二维码" : "解锁查看打赏二维码"}
+          >
+            <img src={DONATION_QR[donationTab]} alt={donationTab === "wechat" ? "微信打赏二维码" : "支付宝打赏二维码"} />
+            {!qrUnlocked && <span className="donation-unlock-copy">☕ 点击图片，解锁赞助通道</span>}
+          </button>
         </article>
       </div>
 

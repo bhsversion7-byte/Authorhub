@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Disc3, Pause, Play, SkipForward } from "lucide-react";
+import { ChevronLeft, ChevronRight, Disc3, Pause, Play, SkipBack, SkipForward } from "lucide-react";
 
 const TRACKS = [
   {
@@ -80,6 +80,12 @@ export default function FloatingMusicPlayer() {
     setPlaying(true);
   }
 
+  function previousTrack(event) {
+    event?.stopPropagation();
+    setTrackIndex((current) => (current - 1 + TRACKS.length) % TRACKS.length);
+    setPlaying(true);
+  }
+
   function onPointerDown(event) {
     if (event.target.closest("button")) return;
     dragRef.current = { startX: event.clientX, startY: event.clientY, originX: position.x, originY: position.y };
@@ -120,6 +126,9 @@ export default function FloatingMusicPlayer() {
             <small>{track.artist}</small>
           </div>
           <div className="player-controls">
+            <button type="button" onClick={previousTrack} aria-label="上一首">
+              <SkipBack size={13} />
+            </button>
             <button type="button" onClick={togglePlay} aria-label={playing ? "暂停" : "播放"}>
               {playing ? <Pause size={13} /> : <Play size={13} />}
             </button>

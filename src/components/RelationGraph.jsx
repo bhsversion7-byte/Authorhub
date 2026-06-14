@@ -462,7 +462,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
           </div>
         </div>
         <svg ref={svgRef} className="relation-svg" aria-label={`${novel.title} 人物关系图谱`} />
-        <div className="graph-hint">点击关系线文字可编辑；拖动中间细线可调整星图和人物详情占比。</div>
+        <div className="graph-hint">在右侧“编辑关系”处可随时输入或修改羁绊描述；拖动中间细线可调整星图和人物详情占比。</div>
       </div>
 
       <div className="relation-split-handle" onMouseDown={() => setResizing(true)} role="separator" aria-orientation="vertical" aria-label="调整星图和人物详情宽度" />
