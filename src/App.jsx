@@ -292,7 +292,6 @@ export default function App() {
         className={`content-shell font-${appearance.fontFamily ?? "sans"}`}
         style={{ marginLeft: sidebarWidth, "--editor-font-size": `${appearance.fontSize ?? 14}px` }}
       >
-        <div className="ambient-top" />
         {activeView === "author" && (
           <AuthorDashboard
             author={data.author}
@@ -343,6 +342,7 @@ export default function App() {
         {privacyBlur ? "恢复显示" : "隐私模糊"}
       </button>
       <FloatingMusicPlayer />
+      <div className="ambient-top" aria-hidden="true" />
       {deleteCandidate && (
         <div className="modal-backdrop" role="presentation" onMouseDown={() => setDeleteCandidate(null)}>
           <section className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-novel-title" onMouseDown={(event) => event.stopPropagation()}>

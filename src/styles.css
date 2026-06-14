@@ -4827,6 +4827,50 @@ button[type="submit"],
   pointer-events: auto;
 }
 
+/* Final regression fix: paper texture belongs to the page substrate, not the scroll content plane. */
+.content-shell {
+  background: transparent !important;
+  background-image: none !important;
+  display: flow-root !important;
+  padding-top: 12px !important;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background-color: #F5F1E8 !important;
+  background-image:
+    url("/texture-1.png"),
+    url("/texture-3.jpg"),
+    linear-gradient(135deg, #FDFBF7 0%, #FAFAFA 50%, #F4F0E6 100%) !important;
+  background-repeat: repeat, repeat, no-repeat !important;
+  background-size: 200px 200px, 1000px auto, cover !important;
+  background-attachment: fixed, scroll, fixed !important;
+  background-blend-mode: color-burn, multiply, normal !important;
+}
+
+.paper-texture-overlay {
+  display: none !important;
+}
+
+.novel-section {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+.content-shell > .section:first-child,
+.content-shell > .novel-section:first-child {
+  margin-top: 0 !important;
+}
+
+.ambient-top {
+  position: fixed !important;
+  inset: 0 0 auto 0 !important;
+  height: 82px !important;
+  z-index: 0 !important;
+  background: linear-gradient(rgba(251, 249, 246, 0.34), rgba(251, 249, 246, 0)) !important;
+  pointer-events: none !important;
+}
+
 @media (max-width: 680px) {
   .captcha-row {
     grid-template-columns: 1fr;

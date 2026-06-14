@@ -61,16 +61,20 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
   const [resizing, setResizing] = useState(false);
 
   const allTags = useMemo(() => [...ROLE_TAGS, ...customTags.filter((tag) => !ROLE_TAGS.includes(tag))], [customTags]);
+  const draftRelationshipKey =
+    connectFrom && connectTo && connectFrom !== connectTo
+      ? relationshipKey({ source: connectFrom, target: connectTo }, selectedRelationshipIndex ?? "__preview")
+      : "";
   const activeRelationshipKey =
     selectedRelationshipIndex !== null && novel.relationships?.[selectedRelationshipIndex]
-      ? relationshipKey(novel.relationships[selectedRelationshipIndex], selectedRelationshipIndex)
+      ? draftRelationshipKey || relationshipKey(novel.relationships[selectedRelationshipIndex], selectedRelationshipIndex)
       : "";
   const previewRelationship =
     connectFrom && connectTo && connectFrom !== connectTo && selectedRelationshipIndex === null
       ? { source: connectFrom, target: connectTo, label: connectLabel || "关系", index: "__preview", isPreview: true }
       : null;
-  const previewRelationshipKey = previewRelationship ? relationshipKey(previewRelationship, "__preview") : "";
-  const focusId = activeRelationshipKey ? "" : hoverId || selectedId || "";
+  const previewRelationshipKey = previewRelationship ? draftRelationshipKey : "";
+  const focusId = activeRelationshipKey || previewRelationshipKey ? "" : hoverId || selectedId || "";
   const selected = useMemo(
     () => novel.characters.find((character) => character.id === selectedId) ?? novel.characters[0],
     [novel.characters, selectedId],
@@ -131,13 +135,17 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     ink.append("feDisplacementMap").attr("in", "SourceGraphic").attr("in2", "noise").attr("scale", "1.2");
 
     const graphLayer = svg.append("g").attr("class", "graph-layer");
-    const links = (novel.relationships ?? []).map((relationship, index) => ({
-      ...(index === selectedRelationshipIndex && connectFrom && connectTo
-        ? { ...relationship, source: connectFrom, target: connectTo, label: connectLabel || "关系", isPreview: true }
-        : relationship),
-      index,
-      key: relationshipKey(relationship, index),
-    }));
+    const links = (novel.relationships ?? []).map((relationship, index) => {
+      const displayRelationship =
+        index === selectedRelationshipIndex && connectFrom && connectTo
+          ? { ...relationship, source: connectFrom, target: connectTo, label: connectLabel || "关系", isPreview: true }
+          : relationship;
+      return {
+        ...displayRelationship,
+        index,
+        key: relationshipKey(displayRelationship, index),
+      };
+    });
     if (previewRelationship) {
       links.push({
         ...previewRelationship,
@@ -182,7 +190,9 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
       .selectAll("g")
       .data(links)
       .join("g")
-      .attr("opacity", 0)
+      .attr("opacity", (relationship) =>
+        relationship.key === activeRelationshipKey || relationship.key === previewRelationshipKey ? 1 : 0,
+      )
       .on("mouseenter", (_, relationship) => setHoverLinkKey(relationship.key))
       .on("mouseleave", () => setHoverLinkKey(""))
       .on("click", selectRelationship);
@@ -312,7 +322,21 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     linkSelectionRef.current = link;
     labelSelectionRef.current = label;
     return () => simulation.stop();
-  }, [novel.id, novel.characters, novel.relationships, novel.color, novel.accent, detailPane, pendingNodeId, connectFrom, connectTo, connectLabel, selectedRelationshipIndex]);
+  }, [
+    novel.id,
+    novel.characters,
+    novel.relationships,
+    novel.color,
+    novel.accent,
+    detailPane,
+    pendingNodeId,
+    connectFrom,
+    connectTo,
+    connectLabel,
+    selectedRelationshipIndex,
+    activeRelationshipKey,
+    previewRelationshipKey,
+  ]);
 
   useEffect(() => {
     const node = nodeSelectionRef.current;
@@ -332,10 +356,10 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     link
       .transition()
       .duration(160)
-      .attr("stroke-opacity", (relationship) => (hasFocus ? (focus.linkKeys.has(relationship.key) ? 0.8 : 0.08) : 0.48))
-      .attr("stroke-width", (relationship) => (activeRelationshipKey && relationship.key === activeRelationshipKey ? 2.6 : 1.35));
+      .attr("stroke-opacity", (relationship) => (hasFocus ? (focus.linkKeys.has(relationship.key) ? 0.84 : 0.08) : relationship.isPreview ? 0.82 : 0.48))
+      .attr("stroke-width", (relationship) => ((activeRelationshipKey || previewRelationshipKey) && focus.linkKeys.has(relationship.key) ? 2.7 : relationship.isPreview ? 2.2 : 1.35));
     label.transition().duration(160).attr("opacity", (relationship) => (focus.linkKeys.has(relationship.key) ? 1 : 0));
-  }, [focusId, hoverLinkKey, selectedId, activeRelationshipKey, previewRelationshipKey]);
+  }, [focusId, hoverLinkKey, selectedId, activeRelationshipKey, previewRelationshipKey, connectFrom, connectTo, connectLabel]);
 
   function handleAddCharacter() {
     const character = emptyCharacter(novel.id);
@@ -354,8 +378,11 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
       onUpdateRelationship(novel.id, selectedRelationshipIndex, relationship);
       setHoverLinkKey(relationshipKey(relationship, selectedRelationshipIndex));
     } else {
+      const nextIndex = novel.relationships?.length ?? 0;
       onAddRelationship(novel.id, relationship);
-      clearRelationshipSelection();
+      setSelectedRelationshipIndex(nextIndex);
+      setHoverLinkKey(relationshipKey(relationship, nextIndex));
+      setPendingNodeId("");
     }
   }
 
