@@ -5669,3 +5669,193 @@ body[data-theme="dark"] .timeline-node.is-active {
   background: linear-gradient(135deg, rgba(46, 45, 40, 0.88), rgba(36, 39, 35, 0.82)) !important;
   border-color: rgba(114, 132, 129, 0.24) !important;
 }
+
+/* =======================================================================
+   AuthorHub Emergency Layout + Paper Bite Pass
+   - Logo preview is viewport-owned, never sidebar-owned.
+   - Paper fibers sit above the card base and bite into color physically.
+   ======================================================================= */
+
+.logo-lightbox-overlay,
+.sidebar .logo-lightbox-overlay,
+.app-shell .logo-lightbox-overlay,
+body > .logo-lightbox-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  min-width: 100vw !important;
+  max-width: none !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  max-height: none !important;
+  flex: 1 1 100% !important;
+  margin: 0 !important;
+  padding: clamp(20px, 5vw, 56px) !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: auto !important;
+  transform: none !important;
+  translate: none !important;
+  z-index: 2147483000 !important;
+  pointer-events: auto !important;
+  cursor: zoom-out !important;
+  background:
+    radial-gradient(circle at 50% 36%, rgba(253, 251, 247, 0.84), rgba(242, 235, 224, 0.62) 42%, rgba(44, 36, 24, 0.18) 100%) !important;
+  backdrop-filter: blur(18px) saturate(0.94) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(0.94) !important;
+}
+
+.logo-lightbox-overlay .lightbox-content,
+.sidebar .logo-lightbox-overlay .lightbox-content {
+  width: min(820px, calc(100vw - 40px)) !important;
+  max-width: min(820px, calc(100vw - 40px)) !important;
+  min-width: 0 !important;
+  margin: auto !important;
+  display: grid !important;
+  justify-items: center !important;
+  gap: 16px !important;
+  border-radius: 28px !important;
+  background:
+    linear-gradient(135deg, rgba(253, 251, 247, 0.92), rgba(239, 232, 220, 0.84)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.03),
+    0 28px 80px rgba(44, 36, 24, 0.12),
+    0 4px 20px rgba(44, 36, 24, 0.05) !important;
+}
+
+.logo-lightbox-overlay .logo-image-zoomed {
+  width: min(62vw, 520px) !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: 72dvh !important;
+  object-fit: contain !important;
+}
+
+.story-card,
+.graph-card,
+.relationship-star-chart,
+.timeline-panel,
+.user-center-section .user-donation-panel {
+  background:
+    linear-gradient(135deg, rgba(253, 250, 242, 0.95), rgba(235, 226, 212, 0.88)) !important;
+  border: 0 !important;
+  box-shadow:
+    inset 0 1px 0px rgba(255, 255, 255, 0.9),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.03),
+    0 4px 20px rgba(44, 36, 24, 0.05),
+    0 20px 58px rgba(44, 36, 24, 0.045) !important;
+}
+
+.story-card > *,
+.graph-card > *,
+.relationship-star-chart > *,
+.timeline-panel > *,
+.user-center-section .user-donation-panel > * {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.story-card::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  border-radius: inherit !important;
+  background:
+    radial-gradient(circle, transparent 62%, rgba(246, 240, 228, 0.72) 100%),
+    url("/texture-card-3.jpg") !important;
+  background-size: 100% 100%, 182px 182px !important;
+  background-repeat: no-repeat, repeat !important;
+  background-position: center !important;
+  opacity: 0.58 !important;
+  mix-blend-mode: color-burn !important;
+}
+
+.timeline-panel::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  border-radius: inherit !important;
+  background:
+    radial-gradient(circle, transparent 62%, rgba(237, 235, 226, 0.76) 100%),
+    url("/texture-card-1.jpg") !important;
+  background-size: 100% 100%, 168px 168px !important;
+  background-repeat: no-repeat, repeat !important;
+  background-position: center !important;
+  opacity: 0.56 !important;
+  mix-blend-mode: multiply !important;
+}
+
+.graph-card::before,
+.relationship-star-chart::before,
+.user-center-section .user-donation-panel::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  border-radius: inherit !important;
+  background:
+    radial-gradient(circle, transparent 62%, rgba(245, 238, 225, 0.76) 100%),
+    url("/texture-card-2.jpg") !important;
+  background-size: 100% 100%, 100% 100% !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-position: center !important;
+  opacity: 0.55 !important;
+  mix-blend-mode: multiply !important;
+}
+
+.story-card::after,
+.graph-card::after,
+.relationship-star-chart::after,
+.timeline-panel::after,
+.user-center-section .user-donation-panel::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+  border-radius: inherit !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent 18%, transparent 78%, rgba(44, 36, 24, 0.035)),
+    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.28), transparent 28%),
+    radial-gradient(circle at 84% 84%, rgba(120, 92, 58, 0.08), transparent 36%) !important;
+  opacity: 0.9 !important;
+  mix-blend-mode: soft-light !important;
+}
+
+body[data-theme="dark"] .story-card::before,
+body[data-theme="dark"] .graph-card::before,
+body[data-theme="dark"] .relationship-star-chart::before,
+body[data-theme="dark"] .timeline-panel::before,
+body[data-theme="dark"] .user-center-section .user-donation-panel::before,
+body[data-theme="dark"] .story-card::after,
+body[data-theme="dark"] .graph-card::after,
+body[data-theme="dark"] .relationship-star-chart::after,
+body[data-theme="dark"] .timeline-panel::after,
+body[data-theme="dark"] .user-center-section .user-donation-panel::after {
+  opacity: 0.15 !important;
+  mix-blend-mode: overlay !important;
+}
+
+body[data-theme="dark"] .story-card,
+body[data-theme="dark"] .graph-card,
+body[data-theme="dark"] .relationship-star-chart,
+body[data-theme="dark"] .timeline-panel,
+body[data-theme="dark"] .user-center-section .user-donation-panel {
+  background: linear-gradient(135deg, rgba(40, 36, 31, 0.96), rgba(30, 32, 29, 0.92)) !important;
+  box-shadow:
+    inset 0 1px 0px rgba(255, 255, 255, 0.08),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.18),
+    0 4px 20px rgba(0, 0, 0, 0.24) !important;
+}
