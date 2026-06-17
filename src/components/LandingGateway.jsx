@@ -4,6 +4,7 @@ import "../landing-font-local.css";
 import "../landing.css";
 import "../landing-tuning.css";
 import "../landing-quote-refine.css";
+import "../landing-debug.css";
 
 const cinematicBookModules = import.meta.glob("./CinematicBookOpener.jsx");
 const cinematicBookImporter = Object.values(cinematicBookModules)[0];
@@ -13,6 +14,7 @@ const BOOK_PROGRESS_MIN = 0.035;
 const BOOK_PROGRESS_MAX = 0.46;
 const BOOK_AUTOPLAY_SPEED = 0.000095;
 const BOOK_PAGE_JUMP = (BOOK_PROGRESS_MAX - BOOK_PROGRESS_MIN) / 4.8;
+const ASSET_DEBUG_VERSION = "landing-asset-debug-1";
 
 function shouldSkipLanding() {
   try {
@@ -201,10 +203,52 @@ export default function LandingGateway({ children }) {
         )}
       </section>
 
+      <LandingAssetDebug />
+
       <section className="landing-auth-panel" aria-hidden={!isAuthVisible}>
         {isAuthVisible ? children : null}
       </section>
     </main>
+  );
+}
+
+function LandingAssetDebug() {
+  const [status, setStatus] = useState({ cover: "loading", inside: "loading" });
+  const [dimensions, setDimensions] = useState({ cover: "", inside: "" });
+
+  function handleLoad(key, event) {
+    const { naturalWidth, naturalHeight } = event.currentTarget;
+    setStatus((current) => ({ ...current, [key]: "loaded" }));
+    setDimensions((current) => ({ ...current, [key]: `${naturalWidth}×${naturalHeight}` }));
+  }
+
+  function handleError(key) {
+    setStatus((current) => ({ ...current, [key]: "error" }));
+    setDimensions((current) => ({ ...current, [key]: "failed" }));
+  }
+
+  return (
+    <aside className="landing-asset-debug" data-ai-target="landing-asset-debug" aria-label="Landing image asset debug panel">
+      <strong>asset debug</strong>
+      <figure className={`asset-debug-item is-${status.cover}`}>
+        <img
+          src={`/bookcover.png?v=${ASSET_DEBUG_VERSION}`}
+          alt="bookcover debug preview"
+          onLoad={(event) => handleLoad("cover", event)}
+          onError={() => handleError("cover")}
+        />
+        <figcaption>bookcover.png · {status.cover} · {dimensions.cover}</figcaption>
+      </figure>
+      <figure className={`asset-debug-item is-${status.inside}`}>
+        <img
+          src={`/bookinside.png?v=${ASSET_DEBUG_VERSION}`}
+          alt="bookinside debug preview"
+          onLoad={(event) => handleLoad("inside", event)}
+          onError={() => handleError("inside")}
+        />
+        <figcaption>bookinside.png · {status.inside} · {dimensions.inside}</figcaption>
+      </figure>
+    </aside>
   );
 }
 
