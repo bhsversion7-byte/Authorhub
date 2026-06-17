@@ -101,6 +101,31 @@
   z-index: 2;
 }
 
+.landing-control-zone {
+  width: min(244px, calc(100vw - 48px));
+  gap: 8px;
+}
+
+.landing-enter-button {
+  min-width: min(218px, calc(100vw - 48px));
+  padding: 10px 16px 9px;
+}
+
+.landing-enter-button span {
+  font-size: 0.82rem;
+  letter-spacing: 0.17em;
+}
+
+.landing-enter-button small {
+  font-size: 0.57rem;
+  letter-spacing: 0.15em;
+}
+
+.landing-remember-check {
+  font-size: 10.5px;
+  padding: 5px 9px;
+}
+
 @media (max-width: 1120px) {
   .landing-quote-track:nth-child(n + 8) {
     display: none;
@@ -118,5 +143,13 @@
 
   .quote-text-zh {
     font-size: clamp(0.6rem, 1.8vw, 0.74rem);
+  }
+
+  .landing-control-zone {
+    width: min(244px, calc(100vw - 48px));
+  }
+
+  .landing-enter-button {
+    padding: 10px 16px 9px;
   }
 }
