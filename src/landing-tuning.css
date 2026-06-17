@@ -16,7 +16,7 @@
   min-height: min(64vh, 620px);
   cursor: pointer;
   pointer-events: auto;
-  transform: translateX(7vw) scale(0.92);
+  transform: translateX(-8vw) scale(0.92);
   outline: none;
 }
 
@@ -45,12 +45,12 @@
 }
 
 .mode-folding .landing-book-stage {
-  transform: translateX(10vw) scale(0.84);
+  transform: translateX(-2vw) scale(0.84);
 }
 
 .mode-auth .landing-book-stage {
   opacity: 0.12;
-  transform: translateX(12vw) scale(0.74);
+  transform: translateX(2vw) scale(0.74);
 }
 
 .landing-control-zone {
@@ -60,8 +60,8 @@
   bottom: clamp(22px, 4.6vh, 46px);
   display: grid;
   justify-items: center;
-  gap: 12px;
-  width: min(360px, calc(100vw - 48px));
+  gap: 10px;
+  width: min(330px, calc(100vw - 48px));
   transform: translateX(-50%);
   transition:
     opacity 760ms ease,
@@ -74,11 +74,12 @@
   left: auto;
   right: auto;
   bottom: auto;
-  min-width: min(330px, calc(100vw - 48px));
+  min-width: min(300px, calc(100vw - 48px));
   width: 100%;
   justify-items: center;
   text-align: center;
   transform: none;
+  padding: 15px 23px 14px;
 }
 
 .landing-enter-button:hover {
@@ -87,6 +88,16 @@
 
 .landing-enter-button:active {
   transform: translateY(0);
+}
+
+.landing-enter-button span {
+  font-size: 0.99rem;
+  letter-spacing: 0.2em;
+}
+
+.landing-enter-button small {
+  font-size: 0.69rem;
+  letter-spacing: 0.18em;
 }
 
 .mode-folding .landing-control-zone,
@@ -147,7 +158,7 @@
   }
 
   .landing-book-stage {
-    transform: translateX(5vw) scale(0.92);
+    transform: translateX(-5vw) scale(0.92);
   }
 
   .landing-book-stage .cinematic-book-opener {
@@ -188,6 +199,7 @@
     width: 100%;
     min-width: 0;
     transform: none;
+    padding: 14px 22px 13px;
   }
 
   .landing-enter-button:hover,
