@@ -3,6 +3,7 @@
   src:
     local("Xiangcui-Kesong"),
     local("香萃刻宋"),
+    url("/fonts/香萃刻宋.woff2") format("woff2"),
     url("/fonts/Xiangcui-Kesong.woff2") format("woff2");
   font-display: swap;
   font-weight: 400;
@@ -13,6 +14,7 @@
   font-family: "Victoria Typewriter Regular";
   src:
     local("Victoria Typewriter Regular"),
+    url("/fonts/Victoria Typewriter Regular.woff2") format("woff2"),
     url("/fonts/Victoria-Typewriter.woff2") format("woff2");
   font-display: swap;
   font-weight: 400;
@@ -23,8 +25,9 @@
   font-family: "Bozhen-Typewriter";
   src:
     local("Bozhen-Typewriter"),
+    local("迫真打字油印体"),
     local("迫真打字油印體"),
-    local("迫真 打字油印体"),
+    url("/fonts/迫真打字油印体.woff2") format("woff2"),
     url("/fonts/Bozhen-Typewriter.woff2") format("woff2");
   font-display: swap;
   font-weight: 400;
