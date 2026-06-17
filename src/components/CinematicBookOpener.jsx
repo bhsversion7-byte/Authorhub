@@ -66,8 +66,7 @@ function useWindowScrollProgress(enabled) {
   return progress;
 }
 
-function makeCanvasTexture(canvas, gl) {
-  const texture = new THREE.CanvasTexture(canvas);
+function prepareTexture(texture, gl) {
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = Math.min(8, gl.capabilities.getMaxAnisotropy?.() ?? 1);
   texture.wrapS = THREE.ClampToEdgeWrapping;
@@ -92,13 +91,8 @@ function useImageTexture(url) {
           nextTexture.dispose();
           return;
         }
-        loadedTexture = nextTexture;
-        nextTexture.colorSpace = THREE.SRGBColorSpace;
-        nextTexture.anisotropy = Math.min(8, gl.capabilities.getMaxAnisotropy?.() ?? 1);
-        nextTexture.wrapS = THREE.ClampToEdgeWrapping;
-        nextTexture.wrapT = THREE.ClampToEdgeWrapping;
-        nextTexture.needsUpdate = true;
-        setTexture(nextTexture);
+        loadedTexture = prepareTexture(nextTexture, gl);
+        setTexture(loadedTexture);
       },
       undefined,
       () => {
@@ -109,98 +103,6 @@ function useImageTexture(url) {
     return () => {
       alive = false;
       loadedTexture?.dispose();
-    };
-  }, [url, gl]);
-
-  return texture;
-}
-
-function useProcessedPaperTexture(url) {
-  const { gl } = useThree();
-  const [texture, setTexture] = useState(null);
-
-  useEffect(() => {
-    let alive = true;
-    let generatedTexture = null;
-    const image = new Image();
-
-    image.onload = () => {
-      if (!alive) return;
-      const canvas = document.createElement("canvas");
-      canvas.width = 1024;
-      canvas.height = 1536;
-      const ctx = canvas.getContext("2d");
-      ctx.fillStyle = "#f3eee5";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.filter = "contrast(1.42) saturate(0.82) brightness(1.04)";
-      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-      ctx.filter = "none";
-      ctx.globalAlpha = 0.16;
-      ctx.fillStyle = "#a88967";
-      for (let i = 0; i < 1800; i += 1) {
-        const x = Math.random() * canvas.width;
-        const y = Math.random() * canvas.height;
-        const length = 2 + Math.random() * 18;
-        ctx.fillRect(x, y, length, Math.random() > 0.8 ? 1.1 : 0.45);
-      }
-      generatedTexture = makeCanvasTexture(canvas, gl);
-      setTexture(generatedTexture);
-    };
-
-    image.onerror = () => {
-      if (alive) setTexture(null);
-    };
-
-    image.src = url;
-
-    return () => {
-      alive = false;
-      generatedTexture?.dispose();
-    };
-  }, [url, gl]);
-
-  return texture;
-}
-
-function useSpineFromCoverTexture(url) {
-  const { gl } = useThree();
-  const [texture, setTexture] = useState(null);
-
-  useEffect(() => {
-    let alive = true;
-    let generatedTexture = null;
-    const image = new Image();
-
-    image.onload = () => {
-      if (!alive) return;
-      const canvas = document.createElement("canvas");
-      canvas.width = 256;
-      canvas.height = 1024;
-      const ctx = canvas.getContext("2d");
-      const cropWidth = image.naturalWidth * 0.24;
-      ctx.drawImage(image, 0, 0, cropWidth, image.naturalHeight, 0, 0, canvas.width, canvas.height);
-      ctx.globalCompositeOperation = "multiply";
-      ctx.globalAlpha = 0.16;
-      ctx.fillStyle = "#d8d0c4";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.globalCompositeOperation = "source-over";
-      ctx.globalAlpha = 0.22;
-      ctx.fillStyle = "#070707";
-      ctx.fillRect(0, 0, 12, canvas.height);
-      ctx.fillRect(canvas.width - 14, 0, 14, canvas.height);
-      generatedTexture = makeCanvasTexture(canvas, gl);
-      setTexture(generatedTexture);
-    };
-
-    image.onerror = () => {
-      if (alive) setTexture(null);
-    };
-
-    image.src = url;
-
-    return () => {
-      alive = false;
-      generatedTexture?.dispose();
     };
   }, [url, gl]);
 
@@ -238,6 +140,30 @@ function CinematicCameraRig({ motion, triggerGateway }) {
   return null;
 }
 
+function CoverSurfaceMaterial({ texture }) {
+  if (!texture) {
+    return <meshBasicMaterial color="#f6f0e6" side={THREE.DoubleSide} />;
+  }
+
+  return <meshBasicMaterial map={texture} side={THREE.DoubleSide} transparent={false} toneMapped={false} />;
+}
+
+function PaperMaterial({ texture, bumpScale = 0.16, opacity = 1 }) {
+  return (
+    <meshStandardMaterial
+      map={texture}
+      bumpMap={texture}
+      bumpScale={bumpScale}
+      color="#ffffff"
+      roughness={1}
+      metalness={0}
+      side={THREE.DoubleSide}
+      transparent={opacity < 1}
+      opacity={opacity}
+    />
+  );
+}
+
 function FrontCover({ motion, coverGeometry, coverTexture, insideTexture }) {
   const pivotRef = useRef(null);
 
@@ -250,34 +176,26 @@ function FrontCover({ motion, coverGeometry, coverTexture, insideTexture }) {
     }
   });
 
-  const coverMaterialProps = {
-    map: coverTexture,
-    bumpMap: coverTexture,
-    bumpScale: 0.025,
-    roughness: 0.9,
-    metalness: 0,
-    side: THREE.DoubleSide,
-    transparent: false,
-  };
-
   return (
-    <group ref={pivotRef} position={[0, 0, 0.075]}>
+    <group ref={pivotRef} position={[0, 0, 0.16]}>
       <mesh castShadow receiveShadow position={[PAGE_WIDTH / 2, 0, 0]}>
         <primitive attach="geometry" object={coverGeometry} />
-        <meshStandardMaterial attach="material-0" color="#ece6da" roughness={0.95} bumpMap={insideTexture} bumpScale={0.022} />
-        <meshStandardMaterial attach="material-1" color="#d8d0c4" roughness={0.95} bumpMap={insideTexture} bumpScale={0.022} />
-        <meshStandardMaterial attach="material-2" color="#f0e9dd" roughness={0.96} bumpMap={insideTexture} bumpScale={0.02} />
-        <meshStandardMaterial attach="material-3" color="#cec4b7" roughness={0.96} bumpMap={insideTexture} bumpScale={0.02} />
-        <meshStandardMaterial attach="material-4" {...coverMaterialProps} />
-        <meshStandardMaterial attach="material-5" {...coverMaterialProps} />
+        <meshStandardMaterial attach="material-0" color="#15120f" roughness={0.96} />
+        <meshStandardMaterial attach="material-1" color="#15120f" roughness={0.96} />
+        <meshStandardMaterial attach="material-2" color="#eee8dd" roughness={0.98} bumpMap={insideTexture} bumpScale={0.05} />
+        <meshStandardMaterial attach="material-3" color="#d5cabd" roughness={0.98} bumpMap={insideTexture} bumpScale={0.05} />
+        <meshBasicMaterial attach="material-4" map={coverTexture} side={THREE.DoubleSide} toneMapped={false} />
+        <meshBasicMaterial attach="material-5" map={coverTexture} side={THREE.DoubleSide} toneMapped={false} />
       </mesh>
-      <mesh position={[PAGE_WIDTH / 2, 0, COVER_THICKNESS / 2 + 0.006]} castShadow receiveShadow>
-        <planeGeometry args={[PAGE_WIDTH + 0.18, PAGE_HEIGHT + 0.2, 1, 1]} />
-        <meshStandardMaterial {...coverMaterialProps} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
+
+      <mesh position={[PAGE_WIDTH / 2, 0, COVER_THICKNESS / 2 + 0.12]} castShadow receiveShadow renderOrder={20}>
+        <planeGeometry args={[PAGE_WIDTH + 0.2, PAGE_HEIGHT + 0.22, 1, 1]} />
+        <CoverSurfaceMaterial texture={coverTexture} />
       </mesh>
-      <mesh position={[PAGE_WIDTH / 2, 0, -COVER_THICKNESS / 2 - 0.006]} rotation={[0, Math.PI, 0]} castShadow receiveShadow>
-        <planeGeometry args={[PAGE_WIDTH + 0.18, PAGE_HEIGHT + 0.2, 1, 1]} />
-        <meshStandardMaterial {...coverMaterialProps} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
+
+      <mesh position={[PAGE_WIDTH / 2, 0, -COVER_THICKNESS / 2 - 0.12]} rotation={[0, Math.PI, 0]} castShadow receiveShadow renderOrder={20}>
+        <planeGeometry args={[PAGE_WIDTH + 0.2, PAGE_HEIGHT + 0.22, 1, 1]} />
+        <CoverSurfaceMaterial texture={coverTexture} />
       </mesh>
     </group>
   );
@@ -287,17 +205,17 @@ function BackCover({ coverGeometry, insideTexture }) {
   return (
     <mesh castShadow receiveShadow position={[PAGE_WIDTH / 2, 0, -0.115]}>
       <primitive attach="geometry" object={coverGeometry} />
-      <meshStandardMaterial attach="material-0" color="#ded6c9" map={insideTexture} roughness={0.98} bumpMap={insideTexture} bumpScale={0.05} />
-      <meshStandardMaterial attach="material-1" color="#d5cabd" map={insideTexture} roughness={0.98} bumpMap={insideTexture} bumpScale={0.05} />
-      <meshStandardMaterial attach="material-2" color="#eee5d9" map={insideTexture} roughness={0.98} bumpMap={insideTexture} bumpScale={0.045} />
-      <meshStandardMaterial attach="material-3" color="#d6cabd" map={insideTexture} roughness={0.98} bumpMap={insideTexture} bumpScale={0.045} />
-      <meshStandardMaterial attach="material-4" color="#fffaf1" map={insideTexture} bumpMap={insideTexture} bumpScale={0.065} roughness={0.99} />
-      <meshStandardMaterial attach="material-5" color="#fffaf1" map={insideTexture} bumpMap={insideTexture} bumpScale={0.065} roughness={0.99} />
+      <meshStandardMaterial attach="material-0" color="#ded6c9" map={insideTexture} roughness={0.99} bumpMap={insideTexture} bumpScale={0.12} />
+      <meshStandardMaterial attach="material-1" color="#d5cabd" map={insideTexture} roughness={0.99} bumpMap={insideTexture} bumpScale={0.12} />
+      <meshStandardMaterial attach="material-2" color="#eee5d9" map={insideTexture} roughness={0.99} bumpMap={insideTexture} bumpScale={0.1} />
+      <meshStandardMaterial attach="material-3" color="#d6cabd" map={insideTexture} roughness={0.99} bumpMap={insideTexture} bumpScale={0.1} />
+      <meshStandardMaterial attach="material-4" color="#ffffff" map={insideTexture} bumpMap={insideTexture} bumpScale={0.16} roughness={1} />
+      <meshStandardMaterial attach="material-5" color="#ffffff" map={insideTexture} bumpMap={insideTexture} bumpScale={0.16} roughness={1} />
     </mesh>
   );
 }
 
-function Spine({ spineTexture, insideTexture }) {
+function Spine() {
   const spineRef = useRef(null);
   const spineGeometry = useMemo(() => new THREE.BoxGeometry(0.25, PAGE_HEIGHT + 0.24, STACK_THICKNESS + 0.24, 6, 20, 6), []);
 
@@ -312,12 +230,7 @@ function Spine({ spineTexture, insideTexture }) {
   return (
     <mesh ref={spineRef} castShadow receiveShadow position={[-0.12, 0, -0.015]}>
       <primitive attach="geometry" object={spineGeometry} />
-      <meshStandardMaterial attach="material-0" map={spineTexture} bumpMap={insideTexture} bumpScale={0.04} roughness={0.97} />
-      <meshStandardMaterial attach="material-1" map={spineTexture} bumpMap={insideTexture} bumpScale={0.04} roughness={0.97} />
-      <meshStandardMaterial attach="material-2" color="#f0ebe1" map={insideTexture} bumpMap={insideTexture} bumpScale={0.05} roughness={0.98} />
-      <meshStandardMaterial attach="material-3" color="#d9d0c4" map={insideTexture} bumpMap={insideTexture} bumpScale={0.05} roughness={0.98} />
-      <meshStandardMaterial attach="material-4" map={spineTexture} bumpMap={insideTexture} bumpScale={0.04} roughness={0.97} />
-      <meshStandardMaterial attach="material-5" map={spineTexture} bumpMap={insideTexture} bumpScale={0.04} roughness={0.97} />
+      <meshStandardMaterial color="#050505" roughness={0.88} metalness={0.02} />
     </mesh>
   );
 }
@@ -349,17 +262,7 @@ function TurningSheet({ index, total, motion, pageGeometry, insideTexture }) {
     <group ref={pivotRef} position={[xJitter, yJitter, zOffset]}>
       <mesh castShadow receiveShadow position={[PAGE_WIDTH / 2 - pageInset, 0, 0]}>
         <primitive attach="geometry" object={pageGeometry} />
-        <meshStandardMaterial
-          map={insideTexture}
-          bumpMap={insideTexture}
-          bumpScale={0.07}
-          color="#fffdf7"
-          roughness={0.99}
-          metalness={0}
-          side={THREE.DoubleSide}
-          transparent
-          opacity={0.992}
-        />
+        <PaperMaterial texture={insideTexture} opacity={0.995} />
       </mesh>
     </group>
   );
@@ -381,7 +284,7 @@ function PageBlockEdges({ motion, insideTexture }) {
   return (
     <mesh ref={edgeRef} castShadow receiveShadow position={[PAGE_WIDTH / 2 - 0.03, 0, -0.052]}>
       <primitive attach="geometry" object={edgeGeometry} />
-      <meshStandardMaterial map={insideTexture} bumpMap={insideTexture} bumpScale={0.045} color="#fff8ee" roughness={0.99} />
+      <meshStandardMaterial map={insideTexture} bumpMap={insideTexture} bumpScale={0.12} color="#ffffff" roughness={1} />
     </mesh>
   );
 }
@@ -389,8 +292,7 @@ function PageBlockEdges({ motion, insideTexture }) {
 function BookModel({ motion, scrollProgress, autoOpen }) {
   const groupRef = useRef(null);
   const coverTexture = useImageTexture(BOOK_ASSETS.cover);
-  const insideTexture = useProcessedPaperTexture(BOOK_ASSETS.inside);
-  const spineTexture = useSpineFromCoverTexture(BOOK_ASSETS.cover);
+  const insideTexture = useImageTexture(BOOK_ASSETS.inside);
 
   const pageGeometry = useMemo(() => new THREE.PlaneGeometry(PAGE_WIDTH - 0.11, PAGE_HEIGHT - 0.14, PAGE_SEGMENTS, PAGE_SEGMENTS), []);
   const coverGeometry = useMemo(() => new THREE.BoxGeometry(PAGE_WIDTH + 0.18, PAGE_HEIGHT + 0.2, COVER_THICKNESS, 8, 20, 4), []);
@@ -440,7 +342,7 @@ function BookModel({ motion, scrollProgress, autoOpen }) {
 
   return (
     <group ref={groupRef} position={[2, 0, 0]} rotation={[-0.34, -0.58, 0.12]}>
-      <Spine spineTexture={spineTexture} insideTexture={insideTexture} />
+      <Spine />
       <BackCover coverGeometry={coverGeometry} insideTexture={insideTexture} />
       <PageBlockEdges motion={motion} insideTexture={insideTexture} />
       {sheets.map((index) => (
