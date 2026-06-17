@@ -1,3 +1,4 @@
+import CinematicBookOpener from "./CinematicBookOpener.jsx";
 import React, { useEffect, useMemo, useState } from "react";
 import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
 import { hasSupabaseConfig, makeLocalUser, setLocalAuthUser, supabase } from "../lib/supabaseClient.js";
@@ -111,6 +112,14 @@ export default function AuthGate({ onAuthed }) {
 
   return (
     <div className="auth-wall" aria-live="polite">
+      <CinematicBookOpener
+        height="100vh"
+        scrollDriven={false}
+        autoOpen={true}
+        triggerGateway={false}
+        title="AuthorHub"
+        subtitle="把灵感、人物关系、章节大纲和设定集，收束进一张会呼吸的文学宇宙工作台。"
+        />
       <form className={`auth-card ${mode === "register" ? "is-register" : "is-login"}`} onSubmit={submit}>
         <div className="auth-mark">
           <ShieldCheck size={20} />
