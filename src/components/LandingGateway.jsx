@@ -14,7 +14,7 @@ const BOOK_PROGRESS_MIN = 0.035;
 const BOOK_PROGRESS_MAX = 0.46;
 const BOOK_AUTOPLAY_SPEED = 0.000095;
 const BOOK_PAGE_JUMP = (BOOK_PROGRESS_MAX - BOOK_PROGRESS_MIN) / 4.8;
-const ASSET_DEBUG_VERSION = "landing-asset-debug-1";
+const ASSET_DEBUG_VERSION = "book-assets-20260618-0255";
 
 function shouldSkipLanding() {
   try {
