@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import LandingQuoteOrbit from "./LandingQuoteOrbit.jsx";
+import "../landing-font-local.css";
 import "../landing.css";
 import "../landing-tuning.css";
+import "../landing-quote-refine.css";
 
 const cinematicBookModules = import.meta.glob("./CinematicBookOpener.jsx");
 const cinematicBookImporter = Object.values(cinematicBookModules)[0];
