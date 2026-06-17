@@ -1,0 +1,129 @@
+.landing-gateway {
+  height: 100svh;
+  min-height: 100svh;
+  overflow: hidden;
+}
+
+.landing-stage {
+  min-height: 100svh;
+  height: 100svh;
+  grid-template-columns: minmax(260px, 0.82fr) minmax(320px, 1.08fr);
+  align-items: center;
+  padding: clamp(20px, 3.2vw, 46px) clamp(24px, 4.6vw, 68px) clamp(100px, 12vh, 138px);
+}
+
+.landing-book-stage {
+  min-height: min(64vh, 620px);
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translateX(-2vw) scale(0.92);
+  outline: none;
+}
+
+.landing-book-stage:focus-visible {
+  filter: drop-shadow(0 0 26px rgba(215, 137, 142, 0.22));
+}
+
+.landing-book-stage .cinematic-book-opener {
+  width: min(58vw, 900px);
+  min-height: min(64vh, 620px);
+  padding: 0 !important;
+  overflow: visible;
+  background: transparent !important;
+  cursor: pointer;
+}
+
+.landing-book-stage .cinematic-book-opener::before,
+.landing-book-stage .cinematic-book-opener::after,
+.landing-book-stage .cinematic-book-copy,
+.landing-book-stage .book-gateway-grid {
+  display: none !important;
+}
+
+.landing-book-stage .cinematic-book-canvas-wrap {
+  inset: -3% -5%;
+}
+
+.mode-folding .landing-book-stage {
+  transform: translateX(4vw) scale(0.84);
+}
+
+.mode-auth .landing-book-stage {
+  opacity: 0.12;
+  transform: translateX(8vw) scale(0.74);
+}
+
+.landing-enter-button {
+  left: 50%;
+  right: auto;
+  bottom: clamp(24px, 4.8vh, 46px);
+  min-width: min(330px, calc(100vw - 48px));
+  justify-items: center;
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+.landing-enter-button:hover {
+  transform: translateX(-50%) translateY(-2px);
+}
+
+.landing-enter-button:active {
+  transform: translateX(-50%) translateY(0);
+}
+
+.mode-folding .landing-enter-button,
+.mode-auth .landing-enter-button {
+  transform: translateX(-50%) translateY(10px);
+}
+
+@media (max-width: 1120px) {
+  .landing-stage {
+    grid-template-columns: minmax(250px, 0.88fr) minmax(300px, 1fr);
+  }
+
+  .landing-copy h1 {
+    font-size: clamp(3.6rem, 7.4vw, 6.4rem);
+  }
+
+  .landing-book-stage .cinematic-book-opener {
+    width: min(56vw, 760px);
+  }
+}
+
+@media (max-width: 860px) {
+  .landing-gateway,
+  .landing-stage {
+    min-height: 100svh;
+    height: 100svh;
+  }
+
+  .landing-stage {
+    padding: 26px 24px 104px;
+  }
+
+  .landing-book-stage {
+    min-height: 32vh;
+    transform: scale(0.9);
+  }
+
+  .landing-book-stage .cinematic-book-opener {
+    width: min(88vw, 520px);
+    min-height: 34vh;
+  }
+
+  .landing-enter-button {
+    left: 24px;
+    right: 24px;
+    bottom: 22px;
+    width: auto;
+    min-width: 0;
+    transform: none;
+  }
+
+  .landing-enter-button:hover,
+  .landing-enter-button:active,
+  .mode-folding .landing-enter-button,
+  .mode-auth .landing-enter-button {
+    transform: none;
+  }
+}
