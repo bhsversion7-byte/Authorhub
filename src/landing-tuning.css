@@ -9,14 +9,14 @@
   height: 100svh;
   grid-template-columns: minmax(260px, 0.82fr) minmax(320px, 1.08fr);
   align-items: center;
-  padding: clamp(20px, 3.2vw, 46px) clamp(24px, 4.6vw, 68px) clamp(100px, 12vh, 138px);
+  padding: clamp(20px, 3.2vw, 46px) clamp(24px, 4.6vw, 68px) clamp(124px, 15vh, 168px);
 }
 
 .landing-book-stage {
   min-height: min(64vh, 620px);
   cursor: pointer;
   pointer-events: auto;
-  transform: translateX(-2vw) scale(0.92);
+  transform: translateX(7vw) scale(0.92);
   outline: none;
 }
 
@@ -45,35 +45,96 @@
 }
 
 .mode-folding .landing-book-stage {
-  transform: translateX(4vw) scale(0.84);
+  transform: translateX(10vw) scale(0.84);
 }
 
 .mode-auth .landing-book-stage {
   opacity: 0.12;
-  transform: translateX(8vw) scale(0.74);
+  transform: translateX(12vw) scale(0.74);
+}
+
+.landing-control-zone {
+  position: absolute;
+  z-index: 6;
+  left: 50%;
+  bottom: clamp(22px, 4.6vh, 46px);
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: min(360px, calc(100vw - 48px));
+  transform: translateX(-50%);
+  transition:
+    opacity 760ms ease,
+    filter 760ms ease,
+    transform 760ms ease;
 }
 
 .landing-enter-button {
-  left: 50%;
+  position: static;
+  left: auto;
   right: auto;
-  bottom: clamp(24px, 4.8vh, 46px);
+  bottom: auto;
   min-width: min(330px, calc(100vw - 48px));
+  width: 100%;
   justify-items: center;
   text-align: center;
-  transform: translateX(-50%);
+  transform: none;
 }
 
 .landing-enter-button:hover {
-  transform: translateX(-50%) translateY(-2px);
+  transform: translateY(-2px);
 }
 
 .landing-enter-button:active {
-  transform: translateX(-50%) translateY(0);
+  transform: translateY(0);
+}
+
+.mode-folding .landing-control-zone,
+.mode-auth .landing-control-zone {
+  opacity: 0;
+  filter: blur(8px);
+  pointer-events: none;
+  transform: translateX(-50%) translateY(10px);
 }
 
 .mode-folding .landing-enter-button,
 .mode-auth .landing-enter-button {
-  transform: translateX(-50%) translateY(10px);
+  opacity: 1;
+  filter: none;
+  pointer-events: none;
+  transform: none;
+}
+
+.landing-remember-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border: 1px solid rgba(255, 248, 239, 0.08);
+  border-radius: 999px;
+  color: rgba(255, 248, 239, 0.48);
+  font-family: "Xiangcui-Kesong", "Noto Serif SC", "Songti SC", serif;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  background: rgba(18, 22, 26, 0.24);
+  backdrop-filter: blur(12px);
+  user-select: none;
+}
+
+.landing-remember-check input {
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  margin: 0;
+  padding: 0;
+  accent-color: #c77e7e;
+}
+
+.landing-remember-check:focus-within {
+  border-color: rgba(215, 137, 142, 0.34);
+  color: rgba(255, 248, 239, 0.72);
+  box-shadow: 0 0 0 3px rgba(215, 137, 142, 0.08);
 }
 
 @media (max-width: 1120px) {
@@ -83,6 +144,10 @@
 
   .landing-copy h1 {
     font-size: clamp(3.6rem, 7.4vw, 6.4rem);
+  }
+
+  .landing-book-stage {
+    transform: translateX(5vw) scale(0.92);
   }
 
   .landing-book-stage .cinematic-book-opener {
@@ -98,7 +163,7 @@
   }
 
   .landing-stage {
-    padding: 26px 24px 104px;
+    padding: 26px 24px 126px;
   }
 
   .landing-book-stage {
@@ -111,19 +176,24 @@
     min-height: 34vh;
   }
 
-  .landing-enter-button {
+  .landing-control-zone {
     left: 24px;
     right: 24px;
-    bottom: 22px;
+    bottom: 18px;
     width: auto;
+    transform: none;
+  }
+
+  .landing-enter-button {
+    width: 100%;
     min-width: 0;
     transform: none;
   }
 
   .landing-enter-button:hover,
   .landing-enter-button:active,
-  .mode-folding .landing-enter-button,
-  .mode-auth .landing-enter-button {
+  .mode-folding .landing-control-zone,
+  .mode-auth .landing-control-zone {
     transform: none;
   }
 }
