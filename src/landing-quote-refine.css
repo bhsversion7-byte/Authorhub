@@ -1,0 +1,74 @@
+.floating-typewriter-quote {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  text-shadow: 0 8px 28px rgba(0, 0, 0, 0.24);
+}
+
+.quote-layer-foreground {
+  opacity: 0.52;
+}
+
+.quote-layer-mid {
+  opacity: 0.34;
+}
+
+.quote-layer-background {
+  opacity: 0.2;
+}
+
+.quote-text-en {
+  color: rgba(202, 161, 49, 0.58);
+  font-family: "Victoria Typewriter Regular", Georgia, serif;
+  font-size: clamp(0.68rem, 0.98vw, 0.88rem);
+  letter-spacing: 0.105em;
+}
+
+.quote-text-zh {
+  color: rgba(215, 137, 142, 0.42);
+  font-family: "Xiangcui-Kesong", "Noto Serif SC", "Songti SC", serif;
+  font-size: clamp(0.64rem, 0.86vw, 0.8rem);
+  letter-spacing: 0.16em;
+}
+
+.quote-author {
+  color: rgba(255, 248, 239, 0.26);
+  font-family: "Victoria Typewriter Regular", Georgia, serif;
+  font-size: 0.57rem;
+  letter-spacing: 0.22em;
+}
+
+.landing-copy {
+  z-index: 8;
+}
+
+.landing-book-stage {
+  z-index: 4;
+}
+
+.landing-quote-orbit {
+  z-index: 2;
+  opacity: 0.72;
+}
+
+.landing-quote-track {
+  mix-blend-mode: screen;
+}
+
+@media (max-width: 860px) {
+  .landing-quote-orbit {
+    opacity: 0.55;
+  }
+
+  .quote-text-en {
+    font-size: clamp(0.64rem, 2vw, 0.78rem);
+  }
+
+  .quote-text-zh {
+    font-size: clamp(0.6rem, 1.8vw, 0.74rem);
+  }
+}
