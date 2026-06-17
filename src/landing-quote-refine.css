@@ -6,40 +6,73 @@
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  text-shadow: 0 8px 28px rgba(0, 0, 0, 0.24);
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.28),
+    0 10px 30px rgba(0, 0, 0, 0.3),
+    0 0 18px rgba(242, 153, 74, 0.08);
 }
 
 .quote-layer-foreground {
-  opacity: 0.52;
+  opacity: 0.78;
 }
 
 .quote-layer-mid {
-  opacity: 0.34;
+  opacity: 0.52;
 }
 
 .quote-layer-background {
-  opacity: 0.2;
+  opacity: 0.34;
+}
+
+.quote-zone-middle .quote-layer-mid,
+.quote-zone-middle .quote-layer-background,
+.quote-zone-middle .quote-layer-foreground {
+  opacity: 0.24;
+}
+
+.quote-zone-bottom .quote-layer-foreground {
+  opacity: 0.62;
+}
+
+.quote-zone-bottom .quote-layer-mid {
+  opacity: 0.42;
+}
+
+.quote-zone-bottom .quote-layer-background {
+  opacity: 0.28;
 }
 
 .quote-text-en {
-  color: rgba(202, 161, 49, 0.58);
+  color: rgba(238, 196, 128, 0.82);
   font-family: "Victoria Typewriter Regular", Georgia, serif;
   font-size: clamp(0.68rem, 0.98vw, 0.88rem);
   letter-spacing: 0.105em;
 }
 
 .quote-text-zh {
-  color: rgba(215, 137, 142, 0.42);
+  color: rgba(230, 158, 144, 0.68);
   font-family: "Xiangcui-Kesong", "Noto Serif SC", "Songti SC", serif;
   font-size: clamp(0.64rem, 0.86vw, 0.8rem);
   letter-spacing: 0.16em;
 }
 
 .quote-author {
-  color: rgba(255, 248, 239, 0.26);
+  color: rgba(255, 248, 239, 0.38);
   font-family: "Victoria Typewriter Regular", Georgia, serif;
   font-size: 0.57rem;
   letter-spacing: 0.22em;
+}
+
+.quote-zone-middle .quote-text-en {
+  color: rgba(202, 161, 49, 0.5);
+}
+
+.quote-zone-middle .quote-text-zh {
+  color: rgba(215, 137, 142, 0.38);
+}
+
+.quote-zone-middle .quote-author {
+  color: rgba(255, 248, 239, 0.2);
 }
 
 .landing-copy {
@@ -52,16 +85,31 @@
 
 .landing-quote-orbit {
   z-index: 2;
-  opacity: 0.72;
+  opacity: 0.86;
 }
 
 .landing-quote-track {
   mix-blend-mode: screen;
 }
 
+.quote-zone-middle {
+  z-index: 1;
+}
+
+.quote-zone-top,
+.quote-zone-bottom {
+  z-index: 2;
+}
+
+@media (max-width: 1120px) {
+  .landing-quote-track:nth-child(n + 8) {
+    display: none;
+  }
+}
+
 @media (max-width: 860px) {
   .landing-quote-orbit {
-    opacity: 0.55;
+    opacity: 0.62;
   }
 
   .quote-text-en {
