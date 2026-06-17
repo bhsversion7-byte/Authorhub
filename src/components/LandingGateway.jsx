@@ -4,14 +4,30 @@ import "../landing-tuning.css";
 
 const cinematicBookModules = import.meta.glob("./CinematicBookOpener.jsx");
 const cinematicBookImporter = Object.values(cinematicBookModules)[0];
-const BOOK_PROGRESS_MIN = 0.02;
-const BOOK_PROGRESS_MAX = 0.42;
-const BOOK_PAGE_JUMP = (BOOK_PROGRESS_MAX - BOOK_PROGRESS_MIN) / 8;
+const LANDING_HIDDEN_UNTIL_KEY = "author-hub-landing-hidden-until";
+const LANDING_SKIP_MS = 30 * 24 * 60 * 60 * 1000;
+const BOOK_PROGRESS_MIN = 0.035;
+const BOOK_PROGRESS_MAX = 0.46;
+const BOOK_AUTOPLAY_SPEED = 0.000095;
+const BOOK_PAGE_JUMP = (BOOK_PROGRESS_MAX - BOOK_PROGRESS_MIN) / 4.8;
+
+function shouldSkipLanding() {
+  try {
+    const rawValue = window.localStorage.getItem(LANDING_HIDDEN_UNTIL_KEY);
+    const hiddenUntil = Number(rawValue);
+    if (Number.isFinite(hiddenUntil) && hiddenUntil > Date.now()) return true;
+    if (rawValue) window.localStorage.removeItem(LANDING_HIDDEN_UNTIL_KEY);
+  } catch {
+    return false;
+  }
+  return false;
+}
 
 export default function LandingGateway({ children }) {
-  const [landingMode, setLandingMode] = useState("FULL");
+  const [landingMode, setLandingMode] = useState(() => (shouldSkipLanding() ? "AUTH" : "FULL"));
   const [CinematicBook, setCinematicBook] = useState(null);
-  const [bookProgress, setBookProgress] = useState(BOOK_PROGRESS_MIN);
+  const [bookProgress, setBookProgress] = useState(BOOK_PROGRESS_MIN + 0.035);
+  const [rememberLanding, setRememberLanding] = useState(false);
   const transitionTimer = useRef(null);
   const bookProgressDirection = useRef(1);
   const manualBookHoldUntil = useRef(0);
@@ -52,7 +68,7 @@ export default function LandingGateway({ children }) {
 
       if (now >= manualBookHoldUntil.current) {
         setBookProgress((current) => {
-          let next = current + bookProgressDirection.current * delta * 0.000045;
+          let next = current + bookProgressDirection.current * delta * BOOK_AUTOPLAY_SPEED;
           if (next >= BOOK_PROGRESS_MAX) {
             next = BOOK_PROGRESS_MAX;
             bookProgressDirection.current = -1;
@@ -85,9 +101,19 @@ export default function LandingGateway({ children }) {
     [bookProgress, isFolding],
   );
 
+  function rememberLandingPreference() {
+    if (!rememberLanding) return;
+    try {
+      window.localStorage.setItem(LANDING_HIDDEN_UNTIL_KEY, String(Date.now() + LANDING_SKIP_MS));
+    } catch {
+      // Landing memory is progressive enhancement only.
+    }
+  }
+
   function enterManuscript(event) {
     event.preventDefault();
     if (landingMode !== "FULL") return;
+    rememberLandingPreference();
     setLandingMode("FOLDING");
     window.clearTimeout(transitionTimer.current);
     transitionTimer.current = window.setTimeout(() => setLandingMode("AUTH"), 1180);
@@ -98,7 +124,7 @@ export default function LandingGateway({ children }) {
     event.stopPropagation();
     if (landingMode !== "FULL") return;
 
-    manualBookHoldUntil.current = performance.now() + 880;
+    manualBookHoldUntil.current = performance.now() + 360;
     setBookProgress((current) => {
       let next = current + bookProgressDirection.current * BOOK_PAGE_JUMP;
       if (next >= BOOK_PROGRESS_MAX) {
@@ -145,16 +171,28 @@ export default function LandingGateway({ children }) {
         </div>
 
         {!isAuthVisible && (
-          <button
-            type="button"
-            className="landing-enter-button"
-            data-ai-target="landing-gate-arrow"
-            aria-label="Enter AuthorHub desk platform"
-            onClick={enterManuscript}
-          >
-            <span>开始落墨</span>
-            <small>Open the manuscript</small>
-          </button>
+          <div className="landing-control-zone">
+            <button
+              type="button"
+              className="landing-enter-button"
+              data-ai-target="landing-gate-arrow"
+              aria-label="Enter AuthorHub desk platform"
+              onClick={enterManuscript}
+            >
+              <span>开始落墨</span>
+              <small>Open the manuscript</small>
+            </button>
+            <label className="landing-remember-check">
+              <input
+                type="checkbox"
+                data-ai-target="remember-landing-checkbox"
+                aria-label="Remember landing preference for 30 days"
+                checked={rememberLanding}
+                onChange={(event) => setRememberLanding(event.target.checked)}
+              />
+              <span>30 天内不再显示开场</span>
+            </label>
+          </div>
         )}
       </section>
 
