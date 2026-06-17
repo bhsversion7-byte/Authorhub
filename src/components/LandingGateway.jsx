@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import LandingQuoteOrbit from "./LandingQuoteOrbit.jsx";
 import "../landing.css";
 import "../landing-tuning.css";
 
@@ -151,6 +152,8 @@ export default function LandingGateway({ children }) {
       <div className="landing-aura" aria-hidden="true" />
 
       <section className="landing-stage" aria-label="AuthorHub manuscript landing gateway">
+        {!isAuthVisible && <LandingQuoteOrbit />}
+
         <div className="landing-copy" aria-hidden={isAuthVisible}>
           <p className="landing-eyebrow">A private atlas for unfinished worlds</p>
           <h1>AuthorHub.</h1>
