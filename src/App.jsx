@@ -3,6 +3,7 @@ import { EyeOff, Sparkles, X } from "lucide-react";
 import AuthGate from "./components/AuthGate.jsx";
 import AuthorDashboard from "./components/AuthorDashboard.jsx";
 import FloatingMusicPlayer from "./components/FloatingMusicPlayer.jsx";
+import LandingGateway from "./components/LandingGateway.jsx";
 import NovelSection from "./components/NovelSection.jsx";
 import Sidebar from "./components/Sidebar.jsx";
 import UserCenter from "./components/UserCenter.jsx";
@@ -262,10 +263,9 @@ export default function App() {
 
   if (authReady && !authUser) {
     return (
-      <>
+      <LandingGateway>
         <AuthGate onAuthed={handleAuthed} />
-        <div className="paper-texture-overlay" aria-hidden="true" />
-      </>
+      </LandingGateway>
     );
   }
 
@@ -375,26 +375,26 @@ export default function App() {
 
 const TOUR_STEPS = [
   {
-    title: "\u5148\u770b\u8fd9\u91cc",
-    text: "\u4ece\u300a\u65b0\u624b\u89c6\u754c\u300b\u8fdb\u5165\u793a\u4f8b\u5c0f\u8bf4\uff0c\u5148\u719f\u6089\u661f\u56fe\u3001\u65f6\u95f4\u7ebf\u548c\u53d1\u5e03\u9875\u914d\u7f6e\u3002",
+    title: "先看这里",
+    text: "从《新手视界》进入示例小说，先熟悉星图、时间线和发布页配置。",
     target: "demo-novel",
     arrow: "left",
   },
   {
-    title: "\u4eba\u7269\u661f\u56fe",
-    text: "\u70b9\u51fb\u8282\u70b9\u5373\u53ef\u5b9e\u65f6\u8fde\u7ebf\u4e92\u52a8",
+    title: "人物星图",
+    text: "点击节点即可实时连线互动",
     target: "relation-graph",
     arrow: "down",
   },
   {
-    title: "\u4eba\u7269\u8be6\u60c5",
-    text: "\u9009\u4e2d\u661f\u7403\u540e\uff0c\u5728\u8fd9\u91cc\u7f16\u8f91\u4eba\u7269\u3001\u6807\u7b7e\u3001\u56fe\u7247\u548c\u5173\u7cfb\u3002",
+    title: "人物详情",
+    text: "选中星球后，在这里编辑人物、标签、图片和关系。",
     target: "detail-panel-head",
     arrow: "right",
   },
   {
-    title: "\u7528\u6237\u4e2d\u5fc3",
-    text: "\u8d26\u53f7\u5b89\u5168\u3001\u5bfc\u51fa\u3001\u6e05\u7a7a\u3001\u767b\u51fa\u548c\u6253\u8d4f\u90fd\u6536\u5728\u8fd9\u91cc\u3002",
+    title: "用户中心",
+    text: "账号安全、导出、清空、登出和打赏都收在这里。",
     target: "user-center-nav",
     arrow: "up",
   },
@@ -481,8 +481,8 @@ function TourProvider({ step, setStep, onDone, onSelectDemo }) {
           <strong>{current.title}</strong>
           <p>{current.text}</p>
           <div className="glow-tour-actions">
-            <button type="button" onClick={onDone}>{"\u8df3\u8fc7 (Skip)"}</button>
-            <button type="button" onClick={next}>{isLast ? "\u5b8c\u6210" : "\u77e5\u9053\u4e86 (Next)"}</button>
+            <button type="button" onClick={onDone}>跳过 (Skip)</button>
+            <button type="button" onClick={next}>{isLast ? "完成" : "知道了 (Next)"}</button>
           </div>
         </div>
       </section>
@@ -491,7 +491,7 @@ function TourProvider({ step, setStep, onDone, onSelectDemo }) {
 }
 
 function arrowSymbol(direction = "right") {
-  return { right: "\u2b05\ufe0f", down: "\u2b07\ufe0f", left: "\u27a1\ufe0f", up: "\u2b06\ufe0f" }[direction] ?? "\u27a1\ufe0f";
+  return { right: "⬅️", down: "⬇️", left: "➡️", up: "⬆️" }[direction] ?? "➡️";
 }
 
 function createBlankNovel(id, index) {
