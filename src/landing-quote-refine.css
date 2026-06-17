@@ -101,6 +101,13 @@
   z-index: 2;
 }
 
+.landing-signature {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", serif;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  color: rgba(255, 248, 239, 0.36);
+}
+
 .landing-control-zone {
   width: min(244px, calc(100vw - 48px));
   gap: 8px;
@@ -112,13 +119,23 @@
 }
 
 .landing-enter-button span {
+  font-family: "Bozhen-Typewriter", "Xiangcui-Kesong", "Songti SC", serif;
   font-size: 0.82rem;
-  letter-spacing: 0.17em;
+  font-weight: 400;
+  font-synthesis: none;
+  letter-spacing: 0.18em;
+  text-shadow:
+    0 1px 0 rgba(255, 248, 239, 0.16),
+    0 9px 18px rgba(0, 0, 0, 0.24);
+  transform: scaleX(1.04);
 }
 
 .landing-enter-button small {
+  font-family: "Victoria Typewriter Regular", "Bozhen-Typewriter", Georgia, serif;
   font-size: 0.57rem;
+  font-synthesis: none;
   letter-spacing: 0.15em;
+  text-shadow: 0 7px 15px rgba(0, 0, 0, 0.22);
 }
 
 .landing-remember-check {
