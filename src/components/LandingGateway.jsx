@@ -160,7 +160,7 @@ export default function LandingGateway({ children }) {
           <p className="landing-eyebrow">A private atlas for unfinished worlds</p>
           <h1>AuthorHub.</h1>
           <p className="landing-subtitle">去创造吧，把你的名字编织进无序的星图。</p>
-          <p className="landing-signature">试炼的终点是花开万里。—— BTS 闵玧其</p>
+          <p className="landing-signature">试炼的终点是花开万里 —— BTS 闵玧其</p>
         </div>
 
         <div
