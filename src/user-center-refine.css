@@ -7,9 +7,9 @@
     radial-gradient(circle at 10% 0%, rgba(255, 255, 255, 0.54), transparent 32%),
     linear-gradient(135deg, #f0efeb 0%, #e5e3dc 50%, #dcd9d0 100%);
   --uc-donation-surface:
-    radial-gradient(circle at 22% 8%, rgba(255, 255, 255, 0.58), transparent 34%),
-    radial-gradient(circle at 82% 86%, rgba(174, 128, 82, 0.075), transparent 36%),
-    linear-gradient(135deg, #f5eee4 0%, #e9ddce 54%, #e1d3c2 100%);
+    radial-gradient(circle at 20% 6%, rgba(255, 255, 255, 0.62), transparent 34%),
+    radial-gradient(circle at 86% 88%, rgba(174, 128, 82, 0.09), transparent 38%),
+    linear-gradient(135deg, #f8f0e4 0%, #efe1cf 54%, #e4d2bd 100%);
   --uc-danger-surface: linear-gradient(135deg, #a36a61 0%, #8f5e57 100%);
 }
 
@@ -22,9 +22,13 @@
 }
 
 .user-center-section .user-donation-panel,
-.user-center-section .user-donation-panel:hover {
+.user-center-section .user-donation-panel:hover,
+.user-center-section .panel.user-donation-panel,
+.user-center-section .panel.user-donation-panel:hover,
+.user-center-section .panel.donation-panel.user-donation-panel,
+.user-center-section .panel.donation-panel.user-donation-panel:hover {
   background: var(--uc-donation-surface) !important;
-  border-color: rgba(139, 105, 72, 0.1) !important;
+  border-color: rgba(139, 105, 72, 0.12) !important;
 }
 
 .user-center-section .user-account-panel,
