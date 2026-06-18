@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Database, ExternalLink, FileText, Network, Tags, X } from "lucide-react";
 import RelationGraph from "./RelationGraph.jsx";
 import TagEditor from "./TagEditor.jsx";
@@ -129,10 +129,40 @@ export default function NovelSection({
 function PublishLinkPill({ link, onChange }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState({ label: link.label || "AO3", url: link.url || "" });
+  const buttonRef = useRef(null);
+  const popoverRef = useRef(null);
 
   useEffect(() => {
     setDraft({ label: link.label || "AO3", url: link.url || "" });
   }, [link.label, link.url]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function closePopover() {
+      setOpen(false);
+      window.setTimeout(() => buttonRef.current?.focus?.(), 0);
+    }
+
+    function onKeyDown(event) {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopPropagation();
+      closePopover();
+    }
+
+    function onPointerDown(event) {
+      if (popoverRef.current?.contains(event.target) || buttonRef.current?.contains(event.target)) return;
+      closePopover();
+    }
+
+    window.addEventListener("keydown", onKeyDown, true);
+    window.addEventListener("pointerdown", onPointerDown, true);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown, true);
+      window.removeEventListener("pointerdown", onPointerDown, true);
+    };
+  }, [open]);
 
   function save() {
     onChange({ label: draft.label || "AO3", url: draft.url.trim() });
@@ -147,11 +177,17 @@ function PublishLinkPill({ link, onChange }) {
 
   return (
     <div className="publish-link">
-      <button type="button" className={`publish-pill ${link.url ? "is-configured" : ""}`} onClick={() => setOpen(true)} title={link.url ? "已配置发布页，点击可修改或打开" : "配置小说发布页"}>
+      <button
+        ref={buttonRef}
+        type="button"
+        className={`publish-pill ${link.url ? "is-configured" : ""}`}
+        onClick={() => setOpen(true)}
+        title={link.url ? "已配置发布页，点击可修改或打开" : "配置小说发布页"}
+      >
         {draft.label || "AO3"}
       </button>
       {open && (
-        <div className="publish-popover">
+        <div ref={popoverRef} className="publish-popover">
           <button type="button" className="publish-close" onClick={() => setOpen(false)} aria-label="关闭">
             <X size={14} />
           </button>
@@ -171,6 +207,12 @@ function PublishLinkPill({ link, onChange }) {
                 const url = event.target.value;
                 const detected = detectPlatform(url);
                 setDraft({ ...draft, url, label: detected?.label ?? draft.label });
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  save();
+                }
               }}
               placeholder="https://..."
             />
