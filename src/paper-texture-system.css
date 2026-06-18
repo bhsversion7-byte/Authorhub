@@ -1,0 +1,167 @@
+/*
+  AuthorHub paper texture system
+  Goal: deterministic paper surfaces; no external image assets, no hover-time background swap.
+
+  Texture set:
+  1. sketch paper        -> author profile, novel cover/meta, outline
+  2. handmade gold paper -> theme/tag cards
+  3. rough grass paper   -> progress and timeline surfaces
+  4. watercolor paper    -> setting/detail writing surfaces
+  5. embossed paper      -> reading settings / utility panels
+
+  Exclusions by design: relation graph cards and user-center cards stay clean, without paper texture overlays.
+*/
+
+.author-section .profile-panel,
+.author-section .progress-panel,
+.author-section .appearance-panel,
+.novel-section .novel-hero,
+.novel-section .story-card,
+.novel-section .theme-card,
+.novel-section .timeline-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transform: none !important;
+  transition:
+    border-color 170ms var(--ease),
+    box-shadow 170ms var(--ease) !important;
+}
+
+.author-section .profile-panel > *,
+.author-section .progress-panel > *,
+.author-section .appearance-panel > *,
+.novel-section .novel-hero > *,
+.novel-section .story-card > *,
+.novel-section .theme-card > *,
+.novel-section .timeline-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.author-section .profile-panel::before,
+.author-section .progress-panel::before,
+.author-section .appearance-panel::before,
+.novel-section .novel-hero::before,
+.novel-section .story-card::before,
+.novel-section .theme-card::before,
+.novel-section .timeline-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: var(--paper-texture-opacity, 0.45);
+  background-image: var(--paper-texture);
+  background-size: var(--paper-texture-size, auto);
+  mix-blend-mode: multiply;
+}
+
+.author-section .profile-panel,
+.novel-section .novel-hero,
+.novel-section .story-grid .story-card:nth-child(1) {
+  --paper-bg: #f2eadc;
+  --paper-texture-opacity: 0.34;
+  --paper-texture-size: 18px 18px, 56px 56px, auto;
+  --paper-texture:
+    repeating-linear-gradient(0deg, rgba(91, 73, 52, 0.025) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, rgba(91, 73, 52, 0.018) 0 1px, transparent 1px 11px),
+    radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.55), transparent 24%);
+  background-color: var(--paper-bg) !important;
+  background-image: linear-gradient(135deg, rgba(255, 253, 248, 0.66), rgba(242, 234, 220, 0.92)) !important;
+}
+
+.author-section .progress-panel,
+.novel-section .timeline-panel {
+  --paper-bg: #e5eadf;
+  --paper-texture-opacity: 0.42;
+  --paper-texture-size: 42px 42px, 17px 17px, auto;
+  --paper-texture:
+    repeating-linear-gradient(105deg, rgba(92, 122, 90, 0.05) 0 1px, transparent 1px 12px),
+    radial-gradient(circle at 16% 32%, rgba(92, 122, 90, 0.05) 0 1px, transparent 1.6px),
+    linear-gradient(145deg, rgba(255, 253, 248, 0.5), rgba(229, 234, 223, 0.82));
+  background-color: var(--paper-bg) !important;
+  background-image: linear-gradient(145deg, rgba(239, 244, 235, 0.72), rgba(229, 234, 223, 0.94)) !important;
+}
+
+.novel-section .story-grid .story-card:nth-child(2) {
+  --paper-bg: #ece8dd;
+  --paper-texture-opacity: 0.38;
+  --paper-texture-size: 140px 90px, 90px 120px, auto;
+  --paper-texture:
+    radial-gradient(ellipse at 14% 22%, rgba(255, 255, 255, 0.5), transparent 45%),
+    radial-gradient(ellipse at 72% 68%, rgba(126, 154, 154, 0.08), transparent 48%),
+    linear-gradient(120deg, rgba(255, 253, 248, 0.42), rgba(236, 232, 221, 0.8));
+  background-color: var(--paper-bg) !important;
+  background-image: linear-gradient(140deg, rgba(250, 247, 240, 0.78), rgba(236, 232, 221, 0.94)) !important;
+}
+
+.novel-section .theme-card {
+  --paper-bg: #ede4df;
+  --paper-texture-opacity: 0.5;
+  --paper-texture-size: 130px 130px, 44px 44px, 19px 19px;
+  --paper-texture:
+    radial-gradient(circle at 13% 22%, rgba(164, 122, 50, 0.18) 0 1.1px, transparent 1.7px),
+    radial-gradient(circle at 72% 64%, rgba(123, 92, 60, 0.07) 0 1px, transparent 1.6px),
+    repeating-linear-gradient(35deg, rgba(123, 92, 60, 0.026) 0 1px, transparent 1px 12px);
+  background-color: var(--paper-bg) !important;
+  background-image: linear-gradient(145deg, rgba(248, 241, 235, 0.82), rgba(237, 228, 223, 0.96)) !important;
+}
+
+.author-section .appearance-panel {
+  --paper-bg: #e9ece8;
+  --paper-texture-opacity: 0.32;
+  --paper-texture-size: 24px 24px, 24px 24px, auto;
+  --paper-texture:
+    linear-gradient(90deg, rgba(44, 38, 33, 0.018) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.35) 1px, transparent 1px),
+    radial-gradient(circle at 24% 18%, rgba(255, 255, 255, 0.42), transparent 30%);
+  background-color: var(--paper-bg) !important;
+  background-image: linear-gradient(145deg, rgba(245, 248, 247, 0.68), rgba(233, 236, 232, 0.94)) !important;
+}
+
+.author-section .profile-panel:hover,
+.author-section .progress-panel:hover,
+.author-section .appearance-panel:hover,
+.novel-section .novel-hero:hover,
+.novel-section .story-card:hover,
+.novel-section .theme-card:hover,
+.novel-section .timeline-panel:hover {
+  transform: none !important;
+  background-color: var(--paper-bg) !important;
+  border-color: rgba(108, 139, 136, 0.28) !important;
+  box-shadow: 0 0 0 2px rgba(108, 139, 136, 0.08) !important;
+}
+
+.author-section .profile-panel:hover,
+.novel-section .novel-hero:hover,
+.novel-section .story-grid .story-card:nth-child(1):hover {
+  background-image: linear-gradient(135deg, rgba(255, 253, 248, 0.66), rgba(242, 234, 220, 0.92)) !important;
+}
+
+.author-section .progress-panel:hover,
+.novel-section .timeline-panel:hover {
+  background-image: linear-gradient(145deg, rgba(239, 244, 235, 0.72), rgba(229, 234, 223, 0.94)) !important;
+}
+
+.novel-section .story-grid .story-card:nth-child(2):hover {
+  background-image: linear-gradient(140deg, rgba(250, 247, 240, 0.78), rgba(236, 232, 221, 0.94)) !important;
+}
+
+.novel-section .theme-card:hover {
+  background-image: linear-gradient(145deg, rgba(248, 241, 235, 0.82), rgba(237, 228, 223, 0.96)) !important;
+}
+
+.author-section .appearance-panel:hover {
+  background-image: linear-gradient(145deg, rgba(245, 248, 247, 0.68), rgba(233, 236, 232, 0.94)) !important;
+}
+
+.graph-card,
+.inspector-card,
+.relation-graph,
+.user-account-panel,
+.user-donation-panel,
+.account-panel,
+.donation-panel {
+  --paper-texture: none;
+}
