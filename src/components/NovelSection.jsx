@@ -11,6 +11,7 @@ const PLATFORMS = [
   { label: "七猫", key: "qimao" },
   { label: "番茄", key: "fanqie" },
   { label: "长佩", key: "changpei" },
+  { label: "其他", key: "other" },
 ];
 
 export default function NovelSection({
