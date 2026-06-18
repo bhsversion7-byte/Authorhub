@@ -4,6 +4,7 @@ import App from "./App.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import "./styles.css";
 import "./internal-polish.css";
+import "./novel-section-restore.css";
 import "./relation-graph-polish.css";
 import "./relation-graph-runtime-fix.js";
 
