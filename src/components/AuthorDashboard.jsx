@@ -103,7 +103,7 @@ export default function AuthorDashboard({
             字号
             <input
               type="range"
-              min="12"
+              min="10"
               max="20"
               value={appearance.fontSize ?? 14}
               onChange={(event) => onAppearanceChange({ fontSize: Number(event.target.value) })}
@@ -116,6 +116,8 @@ export default function AuthorDashboard({
               <option value="sans">清爽无衬线</option>
               <option value="serif">阅读衬线</option>
               <option value="mono">设定文档等宽</option>
+              <option value="yahei">系统雅黑</option>
+              <option value="songti">传统宋体</option>
             </select>
           </label>
           <div className="privacy-control-row">
@@ -135,7 +137,7 @@ export default function AuthorDashboard({
         </div>
       </div>
 
-      <p className="global-disclaimer">请尊重法律、版权与他人权益；AuthorHub 用于辅助梳理创作结构，具体内容由用户自行负责。</p>
+      <p className="global-disclaimer">请让创作保有边界与尊重：留意法律、版权和他人权益；AuthorHub 负责帮你梳理结构，具体内容由你安心掌握。</p>
     </section>
   );
 }
