@@ -4,12 +4,13 @@ import { BookOpen, Home, Plus, UserRound, X } from "lucide-react";
 
 const BOOK_ICON_COLORS = ["#4A6357", "#7A3E3E", "#2E4C6D", "#8C6239", "#6C5E7A", "#6F7D5E"];
 
-export default function Sidebar({ novels, width, activeView, onSelect, onAddNovel, onDeleteNovel }) {
+export default function Sidebar({ novels, width, activeView, appearance, onSelect, onAddNovel, onDeleteNovel }) {
   const [logoOpen, setLogoOpen] = useState(false);
-  const novelCountLabel = useMemo(() => `手稿索引 · ${toChineseCount(novels.length)}本`, [novels.length]);
+  const novelCountLabel = useMemo(() => `手稿索引：已创作${novels.length}本小说`, [novels.length]);
+  const fontClass = `font-${appearance?.fontFamily ?? "sans"}`;
 
   return (
-    <aside className="sidebar" style={{ width }}>
+    <aside className={`sidebar ${fontClass}`} style={{ width }}>
       <div className="brand">
         <button type="button" className="logo-wrapper" onClick={() => setLogoOpen(true)} aria-label="放大查看 AuthorHub Logo">
           <img className="brand-logo logo-image" src="/authorhub-logo.png" alt="AuthorHub" />
@@ -46,7 +47,7 @@ export default function Sidebar({ novels, width, activeView, onSelect, onAddNove
           className={`nav-item is-user-center ${activeView === "user" ? "is-active" : ""}`}
         >
           <UserRound size={16} />
-          <span>私人资料匣</span>
+          <span>用户中心</span>
         </button>
 
         <div className="nav-label">{novelCountLabel}</div>
@@ -84,21 +85,9 @@ export default function Sidebar({ novels, width, activeView, onSelect, onAddNove
         })}
         <button type="button" data-tour="add-novel" className="nav-item add-novel-button" onClick={onAddNovel}>
           <Plus size={16} />
-          <span>添一册新稿</span>
+          <span>添加新小说</span>
         </button>
       </nav>
     </aside>
   );
-}
-
-function toChineseCount(value) {
-  const digits = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
-  if (value <= 10) return value === 10 ? "十" : digits[value] ?? String(value);
-  if (value < 20) return `十${value % 10 ? digits[value % 10] : ""}`;
-  if (value < 100) {
-    const ten = Math.floor(value / 10);
-    const unit = value % 10;
-    return `${digits[ten]}十${unit ? digits[unit] : ""}`;
-  }
-  return String(value);
 }
