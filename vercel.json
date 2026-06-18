@@ -4,7 +4,7 @@
   "framework": "vite",
   "headers": [
     {
-      "source": "/(authorhub-logo.png|donation-wechat.png|donation-alipay.jpg)",
+      "source": "/(authorhub-logo.png|donation-wechat.png|donation-alipay.jpg|texture-3.jpg)",
       "headers": [
         {
           "key": "Cache-Control",
