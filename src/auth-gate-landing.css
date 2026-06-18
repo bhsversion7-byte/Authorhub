@@ -16,12 +16,7 @@
   place-items: center;
   padding: clamp(18px, 5vw, 48px);
   overflow: hidden;
-  background:
-    radial-gradient(circle at 70% 46%, rgba(242, 153, 74, 0.16), transparent 23%),
-    radial-gradient(circle at 78% 38%, rgba(123, 97, 255, 0.12), transparent 29%),
-    radial-gradient(circle at 18% 14%, rgba(215, 137, 142, 0.1), transparent 28%),
-    radial-gradient(circle at 1px 1px, rgba(255, 248, 239, 0.11) 1px, transparent 0) 0 0 / 28px 28px,
-    linear-gradient(135deg, #0f1317 0%, #12161a 48%, #171214 100%) !important;
+  background: transparent;
 }
 
 .landing-gateway.mode-auth .landing-stage {
@@ -29,11 +24,13 @@
 }
 
 .landing-gateway.mode-auth .landing-book-stage {
-  opacity: 0 !important;
-  visibility: hidden;
+  opacity: 0.14 !important;
+  visibility: visible;
   transform: translateX(11vw) scale(0.78);
-  filter: none;
+  filter: blur(8px) saturate(0.9);
   pointer-events: none;
+  -webkit-mask-image: radial-gradient(ellipse at 58% 50%, rgba(0, 0, 0, 0.82) 0 28%, rgba(0, 0, 0, 0.34) 46%, transparent 72%);
+  mask-image: radial-gradient(ellipse at 58% 50%, rgba(0, 0, 0, 0.82) 0 28%, rgba(0, 0, 0, 0.34) 46%, transparent 72%);
 }
 
 .landing-gateway .landing-auth-panel .auth-wall {
@@ -52,10 +49,14 @@
   background:
     radial-gradient(circle at 16% 2%, rgba(244, 213, 191, 0.28), transparent 34%),
     rgba(253, 251, 247, 0.94);
+  background-clip: padding-box;
   color: #2c2a29;
   box-shadow: 0 34px 90px rgba(0, 0, 0, 0.24);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  overflow: hidden;
+  contain: paint;
+  clip-path: inset(0 round 26px);
 }
 
 .landing-gateway .landing-auth-panel .auth-mark {
