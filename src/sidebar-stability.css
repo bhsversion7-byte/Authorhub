@@ -133,3 +133,41 @@
 .sidebar .add-novel-button:hover svg {
   color: #6f8f8d;
 }
+
+/* Match the tactile click feedback of the author-home navigation button. */
+.sidebar .nav-item.is-home,
+.sidebar .nav-item.is-user-center {
+  cursor: pointer;
+  transition:
+    transform 150ms var(--ease),
+    box-shadow 180ms var(--ease),
+    background 180ms var(--ease),
+    border-color 180ms var(--ease) !important;
+}
+
+.sidebar .nav-item.is-home:active,
+.sidebar .nav-item.is-user-center:active {
+  transform: translateY(1px) scale(0.985) !important;
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.12),
+    0 8px 18px rgba(44, 42, 41, 0.045) !important;
+}
+
+.sidebar .nav-item.is-home.is-active,
+.sidebar .nav-item.is-user-center.is-active {
+  animation: sidebarNavButtonPress 260ms var(--ease);
+}
+
+@keyframes sidebarNavButtonPress {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+
+  44% {
+    transform: translateY(1px) scale(0.985);
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
