@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Disc3, Pause, Play, SkipBack, SkipForward } from "lucide-react";
 
 const TRACKS = [
@@ -35,7 +35,7 @@ const TRACKS = [
 ];
 
 const EDGE_GAP = 8;
-const EXPANDED_WIDTH = 420;
+const EXPANDED_WIDTH = 276;
 const COLLAPSED_WIDTH = 96;
 const PLAYER_HEIGHT = 86;
 
@@ -47,7 +47,6 @@ export default function FloatingMusicPlayer() {
   const [dragging, setDragging] = useState(false);
   const [position, setPosition] = useState(() => getInitialPosition());
   const audioRef = useRef(null);
-  const playerRef = useRef(null);
   const dragRef = useRef(null);
   const failedTrackIdsRef = useRef(new Set());
   const frameRef = useRef(null);
@@ -58,28 +57,9 @@ export default function FloatingMusicPlayer() {
     localStorage.setItem("author-hub-music-position", JSON.stringify(position));
   }, [position]);
 
-  useLayoutEffect(() => {
-    setPosition((current) => {
-      const measuredWidth = getPlayerWidth(playerRef.current, collapsed);
-      if (collapsed) return dockToRight(current, measuredWidth, collapsed);
-      return getSafePosition({ ...current, x: window.innerWidth - measuredWidth - EDGE_GAP }, collapsed, measuredWidth);
-    });
-  }, [collapsed]);
-
-  useEffect(() => {
-    setPosition((current) => {
-      const measuredWidth = getPlayerWidth(playerRef.current, collapsed);
-      return getSafePosition({ ...current, x: window.innerWidth - measuredWidth - EDGE_GAP }, collapsed, measuredWidth);
-    });
-  }, []);
-
   useEffect(() => {
     function clampIntoViewport() {
-      setPosition((current) => {
-        const measuredWidth = getPlayerWidth(playerRef.current, collapsed);
-        const next = collapsed ? { ...current, x: window.innerWidth - measuredWidth - EDGE_GAP } : current;
-        return getSafePosition(next, collapsed, measuredWidth);
-      });
+      setPosition((current) => (collapsed ? dockToRight(current, true) : getSafePosition(current, false)));
     }
     window.addEventListener("resize", clampIntoViewport);
     window.addEventListener("orientationchange", clampIntoViewport);
@@ -174,11 +154,7 @@ export default function FloatingMusicPlayer() {
     event?.stopPropagation();
     setCollapsed((current) => {
       const nextCollapsed = !current;
-      setPosition((positionNow) => {
-        const measuredWidth = getPlayerWidth(playerRef.current, nextCollapsed);
-        if (nextCollapsed) return dockToRight(positionNow, measuredWidth, nextCollapsed);
-        return getSafePosition({ ...positionNow, x: window.innerWidth - measuredWidth - EDGE_GAP }, nextCollapsed, measuredWidth);
-      });
+      setPosition((positionNow) => dockToRight(positionNow, nextCollapsed));
       return nextCollapsed;
     });
   }
@@ -192,23 +168,22 @@ export default function FloatingMusicPlayer() {
 
   function onPointerMove(event) {
     if (!dragRef.current) return;
-    const measuredWidth = getPlayerWidth(playerRef.current, collapsed);
     const nextX = dragRef.current.originX + event.clientX - dragRef.current.startX;
     const nextY = dragRef.current.originY + event.clientY - dragRef.current.startY;
     schedulePositionUpdate(
       getSafePosition(
         {
-          x: collapsed ? window.innerWidth - measuredWidth - EDGE_GAP : nextX,
+          x: collapsed ? getDockedX(true) : nextX,
           y: nextY,
         },
         collapsed,
-        measuredWidth,
       ),
     );
   }
 
   function onPointerUp() {
     dragRef.current = null;
+    const lastPointerPosition = pendingPositionRef.current;
     pendingPositionRef.current = null;
     if (frameRef.current) {
       window.cancelAnimationFrame(frameRef.current);
@@ -216,8 +191,8 @@ export default function FloatingMusicPlayer() {
     }
     setDragging(false);
     setPosition((current) => {
-      const measuredWidth = getPlayerWidth(playerRef.current, collapsed);
-      return getSafePosition(collapsed ? { ...current, x: window.innerWidth - measuredWidth - EDGE_GAP } : current, collapsed, measuredWidth);
+      const next = lastPointerPosition ?? current;
+      return collapsed ? dockToRight(next, true) : getSafePosition(next, false);
     });
   }
 
@@ -233,9 +208,8 @@ export default function FloatingMusicPlayer() {
 
   return (
     <div
-      ref={playerRef}
       className={`floating-music ${playing ? "is-playing" : ""} ${collapsed ? "is-collapsed" : ""} ${dragging ? "is-dragging" : ""} ${playbackIssue ? "has-playback-issue" : ""}`}
-      style={{ left: `${position.x}px`, top: `${position.y}px` }}
+      style={{ transform: `translate3d(${position.x}px, ${position.y}px, 0)` }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -278,23 +252,27 @@ function getInitialPosition() {
   } catch {
     stored = null;
   }
-  return getSafePosition({ x: window.innerWidth - EXPANDED_WIDTH - EDGE_GAP, y: stored?.y ?? 24 }, false, EXPANDED_WIDTH);
+  return getSafePosition({ x: getDockedX(false), y: stored?.y ?? 24 }, false);
 }
 
-function getPlayerWidth(element, isCollapsed) {
-  return Math.ceil(element?.offsetWidth || (isCollapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH));
+function getDockedX(isCollapsed) {
+  return window.innerWidth - getPlayerWidth(isCollapsed) - EDGE_GAP;
 }
 
-function dockToRight(position, measuredWidth, isCollapsed) {
-  return getSafePosition({ ...position, x: window.innerWidth - measuredWidth - EDGE_GAP }, isCollapsed, measuredWidth);
+function dockToRight(position, isCollapsed) {
+  return getSafePosition({ ...position, x: getDockedX(isCollapsed) }, isCollapsed);
 }
 
-function getSafePosition(position, isCollapsed, measuredWidth) {
-  const width = measuredWidth || (isCollapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH);
+function getSafePosition(position, isCollapsed) {
+  const maxX = Math.max(EDGE_GAP, window.innerWidth - getPlayerWidth(isCollapsed) - EDGE_GAP);
   return {
-    x: Math.max(EDGE_GAP, Math.min(window.innerWidth - width - EDGE_GAP, position.x)),
+    x: Math.max(EDGE_GAP, Math.min(maxX, position.x)),
     y: Math.max(EDGE_GAP, Math.min(window.innerHeight - PLAYER_HEIGHT, position.y)),
   };
+}
+
+function getPlayerWidth(isCollapsed) {
+  return isCollapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH;
 }
 
 function findNextPlayableIndex(currentIndex, failedIds) {
