@@ -36,6 +36,8 @@ Most writing tools are either too linear or too cold. AuthorHub is designed for 
 
 AuthorHub is tuned for the density writers often prefer at 80 percent browser zoom, but applied directly in CSS so the app feels right at 100 percent. Typography stays inside a restrained 10px-28px scale, with form controls and cards tightened for professional dashboard use.
 
+Recent interface polish is kept as small, auditable CSS passes so the workspace can evolve without losing its manuscript-first texture.
+
 ## Tech Stack
 
 - React 19
