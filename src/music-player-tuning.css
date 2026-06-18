@@ -3,11 +3,6 @@
   right: 8px !important;
   transform: none !important;
   will-change: top;
-  transition:
-    width 220ms var(--ease),
-    padding 220ms var(--ease),
-    border-radius 220ms var(--ease),
-    box-shadow 180ms var(--ease);
 }
 
 .floating-music:not(.is-dragging) {
@@ -21,6 +16,10 @@
 
 .floating-music.is-dragging {
   transition: none !important;
+  cursor: grabbing;
+}
+
+.floating-music.is-dragging * {
   cursor: grabbing;
 }
 
