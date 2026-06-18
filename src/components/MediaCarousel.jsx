@@ -26,6 +26,13 @@ const previewImageStyle = {
   background: "rgba(255, 250, 244, 0.68)",
 };
 
+const previewHotspotStyle = {
+  position: "absolute",
+  inset: 0,
+  zIndex: 1,
+  cursor: "zoom-in",
+};
+
 export default function MediaCarousel({ images = [], onChange, label = "参考图片" }) {
   const [url, setUrl] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -208,7 +215,6 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
                   className={`imessage-card ${index === activeIndex ? "is-active" : ""}`}
                   key={getImageKey(image, index)}
                   data-visible={visible ? "true" : "false"}
-                  onClick={(event) => openPreview(image, index, event)}
                   title={index === activeIndex ? "点击查看大图" : "点击切换到这张图片"}
                   style={{
                     "--card-x": `${offset * 42}px`,
@@ -220,7 +226,20 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
                   }}
                 >
                   <img src={image.src} alt={image.alt || `${label} ${index + 1}`} draggable="false" />
-                  <button type="button" onClick={(event) => removeImage(index, event)} aria-label="删除图片">
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    aria-label={index === activeIndex ? "查看大图" : "切换到这张图片"}
+                    style={previewHotspotStyle}
+                    onClick={(event) => openPreview(image, index, event)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        openPreview(image, index, event);
+                      }
+                    }}
+                  />
+                  <button type="button" onClick={(event) => removeImage(index, event)} aria-label="删除图片" style={{ zIndex: 3 }}>
                     <Trash2 size={14} />
                   </button>
                 </figure>
@@ -254,7 +273,7 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
 
       {previewImage &&
         createPortal(
-          <div className="modal-backdrop media-preview-backdrop" role="presentation" onMouseDown={() => setPreviewImage(null)}>
+          <div className="modal-backdrop media-preview-backdrop" role="presentation" style={{ zIndex: 140 }} onMouseDown={() => setPreviewImage(null)}>
             <section style={previewDialogStyle} role="dialog" aria-modal="true" aria-label={`${label} 大图预览`} onMouseDown={(event) => event.stopPropagation()}>
               <button
                 type="button"
