@@ -8,10 +8,20 @@ export default function FocusTextarea({ label, value, onChange, rows = 5, placeh
   useEffect(() => {
     if (!focused) return;
     const previous = document.body.style.overflow;
+
+    function onKeyDown(event) {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopPropagation();
+      setFocused(false);
+    }
+
     document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown, true);
     window.setTimeout(() => textareaRef.current?.focus(), 60);
     return () => {
       document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKeyDown, true);
     };
   }, [focused]);
 
