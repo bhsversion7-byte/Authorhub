@@ -1,3 +1,5 @@
+@import "./user-center-refine.css";
+
 .content-shell.font-sans,
 .sidebar.font-sans,
 .app-shell:has(.content-shell.font-sans) .sidebar {
