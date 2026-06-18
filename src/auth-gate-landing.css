@@ -16,7 +16,12 @@
   place-items: center;
   padding: clamp(18px, 5vw, 48px);
   overflow: hidden;
-  background: transparent;
+  background:
+    radial-gradient(circle at 70% 46%, rgba(242, 153, 74, 0.16), transparent 23%),
+    radial-gradient(circle at 78% 38%, rgba(123, 97, 255, 0.12), transparent 29%),
+    radial-gradient(circle at 18% 14%, rgba(215, 137, 142, 0.1), transparent 28%),
+    radial-gradient(circle at 1px 1px, rgba(255, 248, 239, 0.11) 1px, transparent 0) 0 0 / 28px 28px,
+    linear-gradient(135deg, #0f1317 0%, #12161a 48%, #171214 100%) !important;
 }
 
 .landing-gateway.mode-auth .landing-stage {
@@ -24,9 +29,11 @@
 }
 
 .landing-gateway.mode-auth .landing-book-stage {
-  opacity: 0.16;
+  opacity: 0 !important;
+  visibility: hidden;
   transform: translateX(11vw) scale(0.78);
-  filter: blur(8px);
+  filter: none;
+  pointer-events: none;
 }
 
 .landing-gateway .landing-auth-panel .auth-wall {
