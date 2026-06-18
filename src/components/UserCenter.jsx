@@ -78,13 +78,13 @@ export default function UserCenter({
             </button>
             <button type="button" onClick={onLogout}>
               <LogOut size={15} />
-              退出登录
+              安全登出
             </button>
           </div>
 
           <a className="feedback-link is-wide user-feedback" href="mailto:bhsversion@163.com?subject=AuthorHub_Feedback">
             <Mail size={14} />
-            反馈与建议：欢迎发邮件到 bhsversion@163.com。
+            小宇宙互助 / 倾听建议：欢迎向 bhsversion@163.com 分享产品建议或宏大人物设定。
           </a>
 
           {confirmClear && (
@@ -138,9 +138,9 @@ export default function UserCenter({
         <article className="panel donation-panel user-donation-panel">
           <div className="panel-title">
             <WalletCards size={16} />
-            <h2>打赏支持</h2>
+            <h2>纯净打赏</h2>
           </div>
-          <p>如果你喜欢这个工具，可以请作者喝杯咖啡，支持继续维护。</p>
+          <p>如果你喜欢这个工具，欢迎请作者喝杯咖啡，支持用爱发电（^^）。</p>
           <div className="donation-tabs" role="tablist" aria-label="赞助方式">
             <button
               type="button"
@@ -167,10 +167,10 @@ export default function UserCenter({
             type="button"
             className={`donation-qr donation-privacy-frame ${qrUnlocked ? "is-unlocked" : ""}`}
             onClick={() => setQrUnlocked((current) => !current)}
-            aria-label={qrUnlocked ? "重新模糊打赏二维码" : "查看打赏二维码"}
+            aria-label={qrUnlocked ? "重新模糊打赏二维码" : "解锁查看打赏二维码"}
           >
             <img src={DONATION_QR[donationTab]} alt={donationTab === "wechat" ? "微信打赏二维码" : "支付宝打赏二维码"} />
-            {!qrUnlocked && <span className="donation-unlock-copy">☕ 点击查看二维码</span>}
+            {!qrUnlocked && <span className="donation-unlock-copy">☕ 点击图片，解锁赞助通道</span>}
           </button>
         </article>
       </div>
