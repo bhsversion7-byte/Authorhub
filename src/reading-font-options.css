@@ -1,42 +1,56 @@
 .content-shell.font-sans,
+.sidebar.font-sans,
 .app-shell:has(.content-shell.font-sans) .sidebar {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Noto Sans SC", sans-serif;
+  --reading-font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--reading-font-family) !important;
 }
 
 .content-shell.font-serif,
+.sidebar.font-serif,
 .app-shell:has(.content-shell.font-serif) .sidebar {
-  font-family: Georgia, "Times New Roman", "Songti SC", "STSong", "Noto Serif SC", serif;
+  --reading-font-family: Georgia, "Times New Roman", "Songti SC", "STSong", "Noto Serif SC", serif;
+  font-family: var(--reading-font-family) !important;
 }
 
 .content-shell.font-mono,
+.sidebar.font-mono,
 .app-shell:has(.content-shell.font-mono) .sidebar {
-  font-family: "Cascadia Mono", "SFMono-Regular", Consolas, "Noto Sans Mono CJK SC", monospace;
+  --reading-font-family: "Cascadia Mono", "SFMono-Regular", Consolas, "Noto Sans Mono CJK SC", monospace;
+  font-family: var(--reading-font-family) !important;
 }
 
 .content-shell.font-yahei,
+.sidebar.font-yahei,
 .app-shell:has(.content-shell.font-yahei) .sidebar {
-  font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", system-ui, sans-serif;
+  --reading-font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", system-ui, sans-serif;
+  font-family: var(--reading-font-family) !important;
 }
 
 .content-shell.font-songti,
+.sidebar.font-songti,
 .app-shell:has(.content-shell.font-songti) .sidebar {
-  font-family: SimSun, "Songti SC", STSong, "Noto Serif SC", Georgia, serif;
+  --reading-font-family: SimSun, "Songti SC", STSong, "Noto Serif SC", Georgia, serif;
+  font-family: var(--reading-font-family) !important;
 }
 
-.content-shell.font-sans input,
-.content-shell.font-sans textarea,
-.content-shell.font-sans select,
-.content-shell.font-serif input,
-.content-shell.font-serif textarea,
-.content-shell.font-serif select,
-.content-shell.font-mono input,
-.content-shell.font-mono textarea,
-.content-shell.font-mono select,
-.content-shell.font-yahei input,
-.content-shell.font-yahei textarea,
-.content-shell.font-yahei select,
-.content-shell.font-songti input,
-.content-shell.font-songti textarea,
-.content-shell.font-songti select {
-  font-family: inherit;
+.content-shell.font-sans :where(h1, h2, h3, h4, p, span, strong, small, label, input, textarea, select, button, em, li),
+.content-shell.font-serif :where(h1, h2, h3, h4, p, span, strong, small, label, input, textarea, select, button, em, li),
+.content-shell.font-mono :where(h1, h2, h3, h4, p, span, strong, small, label, input, textarea, select, button, em, li),
+.content-shell.font-yahei :where(h1, h2, h3, h4, p, span, strong, small, label, input, textarea, select, button, em, li),
+.content-shell.font-songti :where(h1, h2, h3, h4, p, span, strong, small, label, input, textarea, select, button, em, li),
+.sidebar.font-sans :where(p, span, strong, small, label, input, textarea, select, button, li),
+.sidebar.font-serif :where(p, span, strong, small, label, input, textarea, select, button, li),
+.sidebar.font-mono :where(p, span, strong, small, label, input, textarea, select, button, li),
+.sidebar.font-yahei :where(p, span, strong, small, label, input, textarea, select, button, li),
+.sidebar.font-songti :where(p, span, strong, small, label, input, textarea, select, button, li) {
+  font-family: var(--reading-font-family) !important;
+}
+
+.content-shell.font-serif .meter-ring strong,
+.content-shell.font-songti .meter-ring strong {
+  font-family: var(--reading-font-family) !important;
+}
+
+.content-shell :where(input, textarea, select) {
+  font-family: inherit !important;
 }
