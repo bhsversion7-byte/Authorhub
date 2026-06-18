@@ -81,7 +81,7 @@ const QUOTES = [
     author: "Charlotte Bronte",
     layer: "mid",
     zone: "bottom",
-    style: { "--quote-x": "25vw", "--quote-y": "75vh", "--quote-rotate": "-3deg", "--quote-delay": "-3.1s", "--quote-duration": "14s" },
+    style: { "--quote-x": "19vw", "--quote-y": "75vh", "--quote-rotate": "-3deg", "--quote-delay": "-3.1s", "--quote-duration": "14s" },
   },
   {
     id: "alcott-storms",
