@@ -5,7 +5,19 @@
 .novel-section .novel-hero {
   position: relative !important;
   z-index: 60 !important;
+  align-items: flex-start !important;
   overflow: visible !important;
+}
+
+.novel-section .novel-hero > div:first-child {
+  align-self: flex-start !important;
+  padding-top: 0 !important;
+}
+
+.novel-section .novel-hero > div:first-child .eyebrow {
+  margin: 0 0 8px !important;
+  font-size: clamp(12px, 0.92vw, 14px) !important;
+  line-height: 1.1 !important;
 }
 
 .novel-section .story-grid {
@@ -74,17 +86,17 @@
 .novel-section .novel-title-input {
   color: var(--ink) !important;
   font-family: Georgia, "Times New Roman", "Songti SC", "STSong", serif !important;
-  font-size: clamp(18px, 1.95vw, 26px) !important;
+  font-size: clamp(21px, 2.25vw, 30px) !important;
   font-weight: 750 !important;
   letter-spacing: -0.035em !important;
-  line-height: 1.12 !important;
+  line-height: 1.1 !important;
 }
 
 .novel-section .novel-subtitle-input {
-  margin-top: 6px !important;
+  margin-top: 7px !important;
   color: rgba(64, 58, 52, 0.82) !important;
-  font-size: clamp(10.5px, 0.9vw, 13.5px) !important;
-  line-height: 1.42 !important;
+  font-size: clamp(12px, 1.05vw, 15.5px) !important;
+  line-height: 1.38 !important;
 }
 
 .novel-section .novel-title-input:hover,
