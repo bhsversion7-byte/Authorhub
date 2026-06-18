@@ -1,0 +1,135 @@
+.sidebar,
+.sidebar button,
+.sidebar input,
+.sidebar select,
+.sidebar textarea {
+  font-family: inherit;
+}
+
+.sidebar.font-sans,
+.app-shell:has(.content-shell.font-sans) .sidebar {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+}
+
+.sidebar.font-serif,
+.app-shell:has(.content-shell.font-serif) .sidebar {
+  font-family: Georgia, "Times New Roman", "Songti SC", "STSong", "Noto Serif SC", serif;
+}
+
+.sidebar.font-mono,
+.app-shell:has(.content-shell.font-mono) .sidebar {
+  font-family: "Cascadia Mono", "SFMono-Regular", Consolas, "Noto Sans Mono CJK SC", monospace;
+}
+
+.sidebar .brand p,
+.sidebar .brand span,
+.sidebar .nav-label,
+.sidebar .nav-item,
+.sidebar .novel-select-button,
+.sidebar .add-novel-button {
+  font-family: inherit;
+}
+
+.sidebar .brand span,
+.sidebar .nav-label {
+  text-transform: none;
+  letter-spacing: 0.06em;
+}
+
+.sidebar .nav-label {
+  margin: 18px 0 8px;
+  color: rgba(127, 116, 107, 0.76);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.sidebar .nav-item,
+.sidebar .nav-item:hover,
+.sidebar .nav-item.is-active,
+.sidebar .nav-item.is-active:not(.is-home) {
+  transform: none;
+  box-shadow: none;
+}
+
+.sidebar .nav-item.is-home,
+.sidebar .nav-item.is-home:hover,
+.sidebar .nav-item.is-home.is-active {
+  background: #2c2a29;
+  color: #fff8ef;
+  border-color: rgba(44, 42, 41, 0.12);
+  box-shadow: 0 14px 34px rgba(44, 42, 41, 0.08);
+}
+
+.sidebar .nav-item.is-home svg,
+.sidebar .nav-item.is-home:hover svg,
+.sidebar .nav-item.is-home.is-active svg {
+  color: #fff8ef;
+}
+
+.sidebar .nav-item.is-user-center,
+.sidebar .nav-item.is-user-center:hover,
+.sidebar .nav-item.is-user-center.is-active,
+.sidebar .nav-item.is-user-center.is-active:not(.is-home) {
+  background: #4e5c52;
+  color: #fff8ef;
+  border-color: rgba(78, 92, 82, 0.18);
+  box-shadow: 0 14px 34px rgba(44, 42, 41, 0.06);
+}
+
+.sidebar .nav-item.is-user-center svg,
+.sidebar .nav-item.is-user-center:hover svg,
+.sidebar .nav-item.is-user-center.is-active svg {
+  color: #fff8ef;
+}
+
+.sidebar .novel-nav-item,
+.sidebar .novel-nav-item:hover {
+  background: transparent;
+  color: var(--ink);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.sidebar .novel-nav-item.is-active,
+.sidebar .novel-nav-item.is-active:hover,
+.sidebar .novel-nav-item.is-active:not(.is-home) {
+  background: #2c2a29;
+  color: #fff8ef;
+  border-color: rgba(44, 42, 41, 0.12);
+  box-shadow: 0 14px 34px rgba(44, 42, 41, 0.08);
+}
+
+.sidebar .novel-nav-item::before {
+  content: none;
+  display: none;
+}
+
+.sidebar .novel-nav-item .novel-select-button {
+  padding-left: 0;
+  color: inherit;
+}
+
+.sidebar .novel-select-button svg,
+.sidebar .novel-nav-item.is-active .novel-select-button svg,
+.sidebar .novel-nav-item:hover .novel-select-button svg {
+  color: var(--item-color, var(--teal));
+}
+
+.sidebar .novel-delete-button {
+  right: 16px;
+}
+
+.sidebar .add-novel-button,
+.sidebar .add-novel-button:hover {
+  border: 1px dashed rgba(141, 122, 107, 0.26);
+  background: rgba(255, 250, 244, 0.42);
+  color: rgba(80, 72, 63, 0.78);
+  box-shadow: none;
+  transform: none;
+}
+
+.sidebar .add-novel-button svg,
+.sidebar .add-novel-button:hover svg {
+  color: #6f8f8d;
+}
