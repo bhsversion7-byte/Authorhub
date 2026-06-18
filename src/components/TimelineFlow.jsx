@@ -4,6 +4,8 @@ import { copyPromptAndOpen } from "../lib/aiHandoff.js";
 import FocusTextarea from "./FocusTextarea.jsx";
 import MediaCarousel from "./MediaCarousel.jsx";
 
+const VISIBLE_TIMELINE_NODES = 5;
+
 function createEvent(novelId) {
   return {
     id: `${novelId}-event-${Date.now()}`,
@@ -19,9 +21,10 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent }) {
   const [selectedId, setSelectedId] = useState(novel.timeline[0]?.id);
   const [slideIndex, setSlideIndex] = useState(0);
   const [handoffState, setHandoffState] = useState("");
+  const selectedIndex = useMemo(() => novel.timeline.findIndex((event) => event.id === selectedId), [novel.timeline, selectedId]);
   const selected = useMemo(() => novel.timeline.find((event) => event.id === selectedId) ?? novel.timeline[0], [novel.timeline, selectedId]);
   const [draft, setDraft] = useState(selected ?? null);
-  const maxSlide = Math.max(0, novel.timeline.length - 5);
+  const maxSlide = Math.max(0, novel.timeline.length - VISIBLE_TIMELINE_NODES);
   const keywords = buildReferenceKeywords(draft, novel);
 
   useEffect(() => {
@@ -33,6 +36,17 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent }) {
     setDraft({ ...selected });
   }, [selected]);
 
+  useEffect(() => {
+    if (selectedIndex < 0) return;
+    setSlideIndex((current) => {
+      if (selectedIndex < current) return selectedIndex;
+      if (selectedIndex >= current + VISIBLE_TIMELINE_NODES) {
+        return Math.min(maxSlide, selectedIndex - VISIBLE_TIMELINE_NODES + 1);
+      }
+      return current;
+    });
+  }, [selectedIndex, maxSlide]);
+
   function openEvent(event) {
     setSelectedId(event.id);
     setDraft({ ...event });
@@ -43,7 +57,7 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent }) {
     onAddEvent(novel.id, event);
     setSelectedId(event.id);
     setDraft(event);
-    setSlideIndex(Math.max(0, novel.timeline.length - 4));
+    setSlideIndex(Math.max(0, novel.timeline.length - VISIBLE_TIMELINE_NODES + 1));
   }
 
   function saveEvent() {
@@ -53,6 +67,18 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent }) {
 
   function moveTimeline(delta) {
     setSlideIndex((current) => Math.min(maxSlide, Math.max(0, current + delta)));
+  }
+
+  function moveSelectedEvent(delta) {
+    const nextIndex = Math.min(novel.timeline.length - 1, Math.max(0, selectedIndex + delta));
+    const nextEvent = novel.timeline[nextIndex];
+    if (nextEvent) openEvent(nextEvent);
+  }
+
+  function handleTimelineKeyDown(event) {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    event.preventDefault();
+    moveSelectedEvent(event.key === "ArrowLeft" ? -1 : 1);
   }
 
   async function copyKeywords() {
@@ -85,7 +111,7 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent }) {
         </button>
       </div>
 
-      <div className="timeline-slider">
+      <div className="timeline-slider" onKeyDown={handleTimelineKeyDown}>
         <button type="button" className="timeline-arrow left" onClick={() => moveTimeline(-1)} disabled={slideIndex === 0} aria-label="向左查看时间线">
           <ChevronLeft size={24} />
         </button>
@@ -98,6 +124,7 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent }) {
                 className={`timeline-node ${event.id === selectedId ? "is-active" : ""}`}
                 onClick={() => openEvent(event)}
                 style={{ "--node-color": novel.color, "--node-index": index, animationDelay: `${index * 42}ms` }}
+                aria-current={event.id === selectedId ? "step" : undefined}
               >
                 <span>{event.date}</span>
                 <strong>{event.title}</strong>
