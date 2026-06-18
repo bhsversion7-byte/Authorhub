@@ -1,9 +1,23 @@
 .floating-music {
+  will-change: left, top;
   transition:
-    left 240ms var(--ease),
-    top 180ms var(--ease),
     width 220ms var(--ease),
-    transform 180ms var(--ease);
+    transform 180ms var(--ease),
+    box-shadow 180ms var(--ease);
+}
+
+.floating-music:not(.is-dragging) {
+  transition:
+    left 160ms var(--ease),
+    top 160ms var(--ease),
+    width 220ms var(--ease),
+    transform 180ms var(--ease),
+    box-shadow 180ms var(--ease);
+}
+
+.floating-music.is-dragging {
+  transition: none !important;
+  cursor: grabbing;
 }
 
 .floating-music .music-collapse {
