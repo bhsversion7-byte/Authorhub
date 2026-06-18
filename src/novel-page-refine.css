@@ -3,7 +3,14 @@
 */
 
 .novel-section .novel-hero {
+  position: relative !important;
+  z-index: 60 !important;
   overflow: visible !important;
+}
+
+.novel-section .story-grid {
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 .novel-section .novel-title-input,
@@ -21,17 +28,17 @@
 .novel-section .novel-title-input {
   color: var(--ink) !important;
   font-family: Georgia, "Times New Roman", "Songti SC", "STSong", serif !important;
-  font-size: clamp(28px, 3.2vw, 42px) !important;
+  font-size: clamp(18px, 1.95vw, 26px) !important;
   font-weight: 750 !important;
-  letter-spacing: -0.04em !important;
-  line-height: 1.08 !important;
+  letter-spacing: -0.035em !important;
+  line-height: 1.12 !important;
 }
 
 .novel-section .novel-subtitle-input {
-  margin-top: 10px !important;
+  margin-top: 8px !important;
   color: rgba(64, 58, 52, 0.82) !important;
-  font-size: clamp(16px, 1.45vw, 22px) !important;
-  line-height: 1.34 !important;
+  font-size: clamp(10.5px, 0.9vw, 13.5px) !important;
+  line-height: 1.42 !important;
 }
 
 .novel-section .novel-title-input:focus,
@@ -85,7 +92,7 @@
 
 .novel-section .publish-link {
   position: relative !important;
-  z-index: 35 !important;
+  z-index: 70 !important;
   display: inline-grid !important;
   place-items: center !important;
 }
@@ -99,7 +106,7 @@
   position: absolute !important;
   top: calc(100% + 12px) !important;
   right: 0 !important;
-  z-index: 240 !important;
+  z-index: 400 !important;
   display: grid !important;
   width: min(340px, calc(100vw - 48px)) !important;
   gap: 12px !important;
