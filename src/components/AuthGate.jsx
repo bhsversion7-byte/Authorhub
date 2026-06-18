@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
 import { hasSupabaseConfig, makeLocalUser, setLocalAuthUser, supabase } from "../lib/supabaseClient.js";
-import "../auth-gate.css";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -69,9 +68,9 @@ export default function AuthGate({ onAuthed }) {
   async function submit(event) {
     event.preventDefault();
     setMessage("");
-    if (!emailValid) return setMessage("请输入有效邮箱。");
-    if (!passwordValid) return setMessage("密码至少需要 6 位。");
-    if (mode === "register" && !accepted) return setMessage("请先阅读并接受服务条款与隐私政策。");
+    if (!emailValid) return setMessage("请输入有效邮箱。令");
+    if (!passwordValid) return setMessage("密码至少需要 6 位。令");
+    if (mode === "register" && !accepted) return setMessage("请先阅读并接受服务条款与隐私政策。令");
     if (mode === "register" && !(await verifyCaptcha())) return;
 
     setBusy(true);
@@ -112,37 +111,17 @@ export default function AuthGate({ onAuthed }) {
 
   return (
     <div className="auth-wall" aria-live="polite">
-      <div className="auth-ambient" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-      </div>
-
       <form className={`auth-card ${mode === "register" ? "is-register" : "is-login"}`} onSubmit={submit}>
-        <div className="auth-card-head">
-          <div className="auth-mark" aria-hidden="true">
-            <ShieldCheck size={18} />
-          </div>
-          <div>
-            <p className="eyebrow">{mode === "login" ? "Login / Manuscript Gate" : "Register / Manuscript Gate"}</p>
-            <h1>{mode === "login" ? "登录" : "注册"}</h1>
-          </div>
+        <div className="auth-mark">
+          <ShieldCheck size={20} />
         </div>
-
+        <p className="eyebrow">{mode === "login" ? "Login" : "Register"}</p>
+        <h1>{mode === "login" ? "登录" : "注册"}</h1>
         <p className="auth-copy">
           {mode === "login"
-            ? "确认身份后，再进入你的小说宇宙、人物星图和未完成的章节。"
-            : "创建一个安静的私人创作账号。你的草稿、人物关系和世界设定默认只属于你。"}
+            ? "登录后再进入你的小说宇宙。勾选 30 天免登录后，系统会保留安全会话。"
+            : "创建一个隐私优先的创作账号，所有作品数据默认只属于你。"}
         </p>
-
-        <div className="auth-mode-tabs" role="tablist" aria-label="切换登录和注册">
-          <button type="button" className={mode === "login" ? "is-active" : ""} onClick={() => switchMode("login")}>
-            登录
-          </button>
-          <button type="button" className={mode === "register" ? "is-active" : ""} onClick={() => switchMode("register")}>
-            注册
-          </button>
-        </div>
 
         <label className={`auth-field ${email && !emailValid ? "is-invalid" : ""}`}>
           <Mail size={16} />
@@ -195,7 +174,7 @@ export default function AuthGate({ onAuthed }) {
           ) : (
             <label className="auth-check">
               <input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} />
-              同意《服务条款》《隐私政策》和《儿童隐私政策》
+              同意服务条款和隐私政策
             </label>
           )}
           {mode === "login" && <button type="button" className="auth-link">忘记密码</button>}
@@ -204,11 +183,11 @@ export default function AuthGate({ onAuthed }) {
         {message && <p className="auth-message">{message}</p>}
 
         <button type="submit" className="auth-submit" disabled={busy}>
-          {busy ? "处理中..." : mode === "login" ? "进入房间" : "创建房间"}
+          {busy ? "处理中..." : mode === "login" ? "登录" : "立即注册"}
         </button>
 
         <button type="button" className="auth-switch" onClick={() => switchMode(mode === "login" ? "register" : "login")}>
-          {mode === "login" ? "还没有账号？注册" : "已有账号？登录"}
+          {mode === "login" ? "注册新账号" : "返回登录"}
         </button>
 
         {!hasSupabaseConfig && (
