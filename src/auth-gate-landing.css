@@ -1,3 +1,19 @@
+.landing-gateway.mode-auth {
+  background:
+    radial-gradient(circle at 70% 46%, rgba(242, 153, 74, 0.16), transparent 24%),
+    radial-gradient(circle at 78% 38%, rgba(123, 97, 255, 0.1), transparent 30%),
+    radial-gradient(circle at 18% 14%, rgba(215, 137, 142, 0.1), transparent 29%),
+    linear-gradient(135deg, #0f1317 0%, #11161a 50%, #171214 100%) !important;
+}
+
+.landing-gateway .landing-auth-panel {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 70% 46%, rgba(242, 153, 74, 0.12), transparent 25%),
+    radial-gradient(circle at 18% 14%, rgba(215, 137, 142, 0.08), transparent 30%),
+    linear-gradient(135deg, #0f1317 0%, #11161a 50%, #171214 100%);
+}
+
 .landing-gateway .landing-auth-panel .auth-wall {
   width: min(416px, 100%);
   min-height: auto;
@@ -14,16 +30,16 @@
   width: min(408px, 100%);
   gap: 13px;
   padding: clamp(24px, 3.2vw, 30px);
-  border: 1px solid rgba(255, 248, 239, 0.13);
+  border: 1px solid rgba(238, 196, 128, 0.11);
   border-radius: 28px;
   background:
-    radial-gradient(circle at 14% 0%, rgba(255, 248, 239, 0.11), transparent 34%),
-    linear-gradient(135deg, rgba(19, 23, 27, 0.78), rgba(15, 18, 21, 0.64)),
-    rgba(18, 22, 26, 0.6);
-  color: #fff8ef;
+    radial-gradient(circle at 14% 0%, rgba(238, 196, 128, 0.08), transparent 34%),
+    linear-gradient(135deg, rgba(19, 23, 27, 0.8), rgba(15, 18, 21, 0.68)),
+    rgba(18, 22, 26, 0.62);
+  color: rgba(236, 218, 199, 0.82);
   box-shadow:
     0 36px 110px rgba(0, 0, 0, 0.42),
-    inset 0 1px 0 rgba(255, 248, 239, 0.09);
+    inset 0 1px 0 rgba(238, 196, 128, 0.07);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
 }
@@ -38,20 +54,20 @@
   width: 38px;
   height: 38px;
   flex: 0 0 38px;
-  border: 1px solid rgba(255, 248, 239, 0.12);
+  border: 1px solid rgba(238, 196, 128, 0.14);
   border-radius: 14px;
   background:
-    linear-gradient(135deg, rgba(255, 248, 239, 0.14), rgba(255, 248, 239, 0.04)),
-    rgba(255, 248, 239, 0.04);
-  color: rgba(255, 248, 239, 0.72);
+    linear-gradient(135deg, rgba(238, 196, 128, 0.12), rgba(215, 137, 142, 0.05)),
+    rgba(255, 248, 239, 0.035);
+  color: rgba(238, 196, 128, 0.7);
 }
 
 .landing-gateway .landing-auth-panel .auth-card .eyebrow {
-  color: rgba(238, 196, 128, 0.52);
+  color: rgba(238, 196, 128, 0.5);
 }
 
 .landing-gateway .landing-auth-panel .auth-card h1 {
-  color: #fff8ef;
+  color: rgba(236, 218, 199, 0.86);
   font-family: "Xiangcui-Kesong", "Songti SC", "STSong", serif;
   font-size: clamp(1.22rem, 2.1vw, 1.55rem);
   font-weight: 400;
@@ -64,7 +80,7 @@
 .landing-gateway .landing-auth-panel .auth-check,
 .landing-gateway .landing-auth-panel .auth-link,
 .landing-gateway .landing-auth-panel .auth-switch {
-  color: rgba(255, 248, 239, 0.54);
+  color: rgba(236, 218, 199, 0.58);
 }
 
 .landing-gateway .landing-auth-panel .auth-mode-tabs {
@@ -72,37 +88,37 @@
   grid-template-columns: 1fr 1fr;
   gap: 4px;
   padding: 4px;
-  border: 1px solid rgba(255, 248, 239, 0.08);
+  border: 1px solid rgba(238, 196, 128, 0.08);
   border-radius: 999px;
-  background: rgba(255, 248, 239, 0.035);
+  background: rgba(255, 248, 239, 0.026);
 }
 
 .landing-gateway .landing-auth-panel .auth-mode-tabs button {
   min-height: 31px;
   border-radius: 999px;
   background: transparent;
-  color: rgba(255, 248, 239, 0.48);
+  color: rgba(236, 218, 199, 0.44);
 }
 
 .landing-gateway .landing-auth-panel .auth-mode-tabs button.is-active {
-  background: rgba(255, 248, 239, 0.12);
-  color: rgba(255, 248, 239, 0.9);
+  background: rgba(238, 196, 128, 0.1);
+  color: rgba(236, 218, 199, 0.84);
 }
 
 .landing-gateway .landing-auth-panel .auth-field {
   min-height: 47px;
-  border: 1px solid rgba(255, 248, 239, 0.08);
+  border: 1px solid rgba(238, 196, 128, 0.08);
   border-radius: 17px;
-  background: rgba(255, 248, 239, 0.06);
-  color: rgba(255, 248, 239, 0.62);
-  box-shadow: inset 0 -1px 0 rgba(255, 248, 239, 0.045);
+  background: rgba(255, 248, 239, 0.045);
+  color: rgba(236, 218, 199, 0.58);
+  box-shadow: inset 0 -1px 0 rgba(238, 196, 128, 0.04);
 }
 
 .landing-gateway .landing-auth-panel .auth-field:focus-within {
-  border-color: rgba(215, 137, 142, 0.36);
-  background: rgba(255, 248, 239, 0.085);
+  border-color: rgba(215, 137, 142, 0.34);
+  background: rgba(255, 248, 239, 0.068);
   box-shadow:
-    inset 0 -1px 0 rgba(215, 137, 142, 0.28),
+    inset 0 -1px 0 rgba(215, 137, 142, 0.24),
     0 14px 34px rgba(0, 0, 0, 0.18);
 }
 
@@ -110,27 +126,32 @@
 .landing-gateway .landing-auth-panel .auth-field input:focus,
 .landing-gateway .landing-auth-panel .captcha-row input,
 .landing-gateway .landing-auth-panel .captcha-row input:focus {
-  color: #fff8ef;
+  color: rgba(236, 218, 199, 0.9);
   background: transparent;
   box-shadow: none;
 }
 
+.landing-gateway .landing-auth-panel .auth-field input::placeholder,
+.landing-gateway .landing-auth-panel .captcha-row input::placeholder {
+  color: rgba(236, 218, 199, 0.32);
+}
+
 .landing-gateway .landing-auth-panel .captcha-row input {
-  background: rgba(255, 248, 239, 0.06);
+  background: rgba(255, 248, 239, 0.045);
 }
 
 .landing-gateway .landing-auth-panel .auth-submit {
   min-height: 48px;
-  border: 1px solid rgba(255, 248, 239, 0.2);
+  border: 1px solid rgba(238, 196, 128, 0.2);
   border-radius: 999px;
   background:
-    linear-gradient(135deg, rgba(255, 248, 239, 0.93), rgba(236, 218, 199, 0.82));
+    linear-gradient(135deg, rgba(236, 218, 199, 0.9), rgba(215, 196, 176, 0.78));
   color: #2b1010;
   font-family: "Xiangcui-Kesong", "Songti SC", serif;
   font-size: 0.92rem;
   font-weight: 400;
   letter-spacing: 0.22em;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
     0 18px 46px rgba(0, 0, 0, 0.22);
 }
