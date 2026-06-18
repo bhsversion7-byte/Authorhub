@@ -109,10 +109,8 @@
   font-family: "Songti SC", "STSong", "Noto Serif SC", serif;
   font-weight: 400;
   letter-spacing: 0.16em;
-  color: rgba(190, 174, 255, 0.38);
-  text-shadow:
-    0 0 8px rgba(170, 150, 255, 0.13),
-    0 0 22px rgba(140, 110, 255, 0.07);
+  color: rgba(255, 248, 239, 0.36);
+  text-shadow: none;
 }
 
 .landing-control-zone {
