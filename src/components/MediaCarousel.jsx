@@ -1,14 +1,39 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, ImagePlus, Link, Trash2 } from "lucide-react";
+import { createPortal } from "react-dom";
+import { ChevronLeft, ChevronRight, ImagePlus, Link, Trash2, X } from "lucide-react";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+const previewDialogStyle = {
+  position: "relative",
+  display: "grid",
+  gap: "12px",
+  width: "min(980px, calc(100vw - 36px))",
+  maxHeight: "calc(100vh - 42px)",
+  padding: "14px",
+  border: "1px solid rgba(255, 255, 255, 0.78)",
+  borderRadius: "24px",
+  background: "linear-gradient(180deg, rgba(255, 253, 248, 0.96), rgba(246, 241, 234, 0.92))",
+  boxShadow: "0 34px 90px rgba(44, 42, 41, 0.22)",
+};
+
+const previewImageStyle = {
+  display: "block",
+  width: "100%",
+  maxHeight: "calc(100vh - 156px)",
+  objectFit: "contain",
+  borderRadius: "18px",
+  background: "rgba(255, 250, 244, 0.68)",
+};
 
 export default function MediaCarousel({ images = [], onChange, label = "参考图片" }) {
   const [url, setUrl] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const [dragX, setDragX] = useState(0);
   const [mediaError, setMediaError] = useState("");
+  const [previewImage, setPreviewImage] = useState(null);
   const dragStart = useRef(null);
+  const hasDragged = useRef(false);
   const safeImages = useMemo(() => images ?? [], [images]);
 
   useEffect(() => {
@@ -18,6 +43,25 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
     }
     if (activeIndex > safeImages.length - 1) setActiveIndex(safeImages.length - 1);
   }, [activeIndex, safeImages.length]);
+
+  useEffect(() => {
+    if (!previewImage) return;
+    const previousOverflow = document.body.style.overflow;
+
+    function onKeyDown(event) {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopPropagation();
+      setPreviewImage(null);
+    }
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown, true);
+    };
+  }, [previewImage]);
 
   function addFiles(event) {
     const files = Array.from(event.target.files ?? []);
@@ -70,19 +114,35 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
   function onPointerDown(event) {
     if (event.target.closest("button, input, label")) return;
     dragStart.current = event.clientX;
+    hasDragged.current = false;
     event.currentTarget.setPointerCapture?.(event.pointerId);
   }
 
   function onPointerMove(event) {
     if (dragStart.current === null) return;
-    setDragX(Math.max(-110, Math.min(110, event.clientX - dragStart.current)));
+    const offset = event.clientX - dragStart.current;
+    if (Math.abs(offset) > 8) hasDragged.current = true;
+    setDragX(Math.max(-110, Math.min(110, offset)));
   }
 
   function onPointerUp() {
     if (dragX > 42) move(-1);
     if (dragX < -42) move(1);
     dragStart.current = null;
+    window.setTimeout(() => {
+      hasDragged.current = false;
+    }, 0);
     setDragX(0);
+  }
+
+  function openPreview(image, index, event) {
+    event.stopPropagation();
+    if (hasDragged.current) return;
+    if (index !== activeIndex) {
+      setActiveIndex(index);
+      return;
+    }
+    setPreviewImage(image);
   }
 
   return (
@@ -122,6 +182,8 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
                   className={`imessage-card ${index === activeIndex ? "is-active" : ""}`}
                   key={image.id ?? image.src}
                   data-visible={visible ? "true" : "false"}
+                  onClick={(event) => openPreview(image, index, event)}
+                  title={index === activeIndex ? "点击查看大图" : "点击切换到这张图片"}
                   style={{
                     "--card-x": `${offset * 42}px`,
                     "--card-y": `${Math.abs(offset) * 9}px`,
@@ -163,6 +225,39 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
           <div className="media-empty">添加 2 张或更多图片后，可滑动查看。</div>
         )}
       </div>
+
+      {previewImage &&
+        createPortal(
+          <div className="modal-backdrop media-preview-backdrop" role="presentation" onMouseDown={() => setPreviewImage(null)}>
+            <section style={previewDialogStyle} role="dialog" aria-modal="true" aria-label={`${label} 大图预览`} onMouseDown={(event) => event.stopPropagation()}>
+              <button
+                type="button"
+                onClick={() => setPreviewImage(null)}
+                aria-label="关闭图片预览"
+                style={{
+                  position: "absolute",
+                  top: "12px",
+                  right: "12px",
+                  zIndex: 2,
+                  display: "grid",
+                  width: "34px",
+                  height: "34px",
+                  placeItems: "center",
+                  borderRadius: "50%",
+                  background: "rgba(44, 42, 41, 0.78)",
+                  color: "#fff8ef",
+                }}
+              >
+                <X size={16} />
+              </button>
+              <img style={previewImageStyle} src={previewImage.src} alt={previewImage.alt || label} />
+              <p style={{ margin: "0 4px", color: "#6f6258", fontSize: "12px", lineHeight: 1.6 }}>
+                {previewImage.alt || label}
+              </p>
+            </section>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
