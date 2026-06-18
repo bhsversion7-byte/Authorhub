@@ -38,6 +38,10 @@ function damp(current, target, lambda, delta) {
   return THREE.MathUtils.damp(current, target, lambda, delta);
 }
 
+function portraitBlob(nx, ny, cx, cy, rx, ry, weight = 1) {
+  return Math.exp(-((nx - cx) ** 2 / rx + (ny - cy) ** 2 / ry)) * weight;
+}
+
 function useWindowScrollProgress(enabled) {
   const [progress, setProgress] = useState(0);
 
@@ -133,13 +137,20 @@ function createProceduralCoverTexture(gl) {
 
   ctx.fillStyle = "#eee9df";
   ctx.fillRect(0, 0, width, height);
-  drawPaperFiber(ctx, width, height, 1.2);
+  drawPaperFiber(ctx, width, height, 1.15);
+
+  const paperGlow = ctx.createRadialGradient(width * 0.56, height * 0.42, 40, width * 0.54, height * 0.48, 620);
+  paperGlow.addColorStop(0, "rgba(255, 253, 245, 0.46)");
+  paperGlow.addColorStop(0.62, "rgba(222, 211, 195, 0.1)");
+  paperGlow.addColorStop(1, "rgba(94, 68, 48, 0.12)");
+  ctx.fillStyle = paperGlow;
+  ctx.fillRect(0, 0, width, height);
 
   ctx.save();
-  ctx.globalAlpha = 0.13;
+  ctx.globalAlpha = 0.14;
   ctx.fillStyle = "#d2c4b0";
-  ctx.fillRect(0, 0, 74, height);
-  ctx.fillRect(width - 46, 0, 46, height);
+  ctx.fillRect(0, 0, 76, height);
+  ctx.fillRect(width - 48, 0, 48, height);
   ctx.restore();
 
   ctx.save();
@@ -153,30 +164,73 @@ function createProceduralCoverTexture(gl) {
   ctx.fillText("WORLD, OURS", 0, 0);
   ctx.restore();
 
-  const dotStep = 13;
-  ctx.fillStyle = "#050505";
-  for (let y = 120; y < height - 78; y += dotStep) {
-    for (let x = 128; x < width - 44; x += dotStep) {
+  ctx.save();
+  ctx.globalAlpha = 0.2;
+  ctx.fillStyle = "#dbcfc0";
+  ctx.beginPath();
+  ctx.ellipse(width * 0.57, height * 0.49, width * 0.26, height * 0.34, 0.05, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  const dotStep = 10.8;
+  for (let y = 112; y < height - 72; y += dotStep) {
+    for (let x = 124; x < width - 42; x += dotStep) {
       const nx = x / width;
       const ny = y / height;
-      const eyeL = Math.exp(-((nx - 0.39) ** 2 / 0.006 + (ny - 0.32) ** 2 / 0.0028));
-      const eyeR = Math.exp(-((nx - 0.67) ** 2 / 0.006 + (ny - 0.31) ** 2 / 0.0028));
-      const browL = Math.exp(-((nx - 0.37) ** 2 / 0.012 + (ny - 0.25) ** 2 / 0.0018));
-      const browR = Math.exp(-((nx - 0.68) ** 2 / 0.012 + (ny - 0.245) ** 2 / 0.0018));
-      const cheek = Math.exp(-((nx - 0.39) ** 2 / 0.026 + (ny - 0.61) ** 2 / 0.014));
-      const mouthTop = Math.exp(-((nx - 0.58) ** 2 / 0.016 + (ny - 0.66) ** 2 / 0.003));
-      const mouthLow = Math.exp(-((nx - 0.58) ** 2 / 0.02 + (ny - 0.74) ** 2 / 0.004));
-      const shadow = Math.exp(-((nx - 0.78) ** 2 / 0.02 + (ny - 0.53) ** 2 / 0.08));
-      const edge = nx > 0.84 || nx < 0.21 || ny < 0.17 || ny > 0.86 ? 0.32 : 0;
-      const noise = (Math.sin(x * 0.05 + y * 0.073) + 1) * 0.13;
-      const intensity = Math.min(1, eyeL * 1.4 + eyeR * 1.35 + browL + browR + cheek * 0.62 + mouthTop + mouthLow * 0.86 + shadow * 0.35 + edge + noise);
-      if (intensity < 0.2) continue;
-      const radius = 1.2 + intensity * 4.7;
+
+      const hairMass =
+        portraitBlob(nx, ny, 0.36, 0.33, 0.026, 0.06, 0.62) +
+        portraitBlob(nx, ny, 0.74, 0.31, 0.03, 0.065, 0.52) +
+        portraitBlob(nx, ny, 0.55, 0.20, 0.09, 0.025, 0.42) +
+        portraitBlob(nx, ny, 0.27, 0.68, 0.035, 0.05, 0.5) +
+        portraitBlob(nx, ny, 0.86, 0.58, 0.025, 0.11, 0.34);
+      const brow =
+        portraitBlob(nx, ny, 0.39, 0.305, 0.013, 0.0018, 0.52) +
+        portraitBlob(nx, ny, 0.67, 0.298, 0.014, 0.0018, 0.46);
+      const eyes =
+        portraitBlob(nx, ny, 0.415, 0.36, 0.0036, 0.0019, 0.58) +
+        portraitBlob(nx, ny, 0.655, 0.35, 0.0036, 0.0019, 0.54);
+      const nose =
+        portraitBlob(nx, ny, 0.54, 0.45, 0.0024, 0.035, 0.25) +
+        portraitBlob(nx, ny, 0.565, 0.57, 0.006, 0.006, 0.22);
+      const lips =
+        portraitBlob(nx, ny, 0.57, 0.665, 0.014, 0.0026, 0.48) +
+        portraitBlob(nx, ny, 0.58, 0.718, 0.018, 0.0038, 0.34);
+      const cheekAndJaw =
+        portraitBlob(nx, ny, 0.34, 0.59, 0.032, 0.035, 0.26) +
+        portraitBlob(nx, ny, 0.73, 0.58, 0.04, 0.06, 0.2) +
+        portraitBlob(nx, ny, 0.55, 0.82, 0.085, 0.022, 0.38);
+      const pageEdge = nx > 0.86 || nx < 0.22 || ny < 0.15 || ny > 0.87 ? 0.18 : 0;
+      const stochasticInk = (Math.sin(x * 0.055 + y * 0.071) + Math.sin(x * 0.028 - y * 0.044) + 2) * 0.04;
+
+      const intensity = Math.min(1, hairMass + brow + eyes + nose + lips + cheekAndJaw + pageEdge + stochasticInk);
+      if (intensity < 0.16) continue;
+
+      const radius = 0.75 + Math.pow(intensity, 1.18) * 3.05;
+      ctx.globalAlpha = 0.3 + intensity * 0.58;
+      ctx.fillStyle = "#050505";
       ctx.beginPath();
-      ctx.arc(x + Math.sin(y * 0.06) * 2, y, radius, 0, Math.PI * 2);
+      ctx.arc(x + Math.sin(y * 0.035) * 1.2, y + Math.cos(x * 0.031) * 0.9, radius, 0, Math.PI * 2);
       ctx.fill();
     }
   }
+  ctx.globalAlpha = 1;
+
+  ctx.save();
+  ctx.globalAlpha = 0.62;
+  ctx.strokeStyle = "#050505";
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.moveTo(width * 0.39, height * 0.355);
+  ctx.quadraticCurveTo(width * 0.43, height * 0.342, width * 0.48, height * 0.358);
+  ctx.moveTo(width * 0.63, height * 0.35);
+  ctx.quadraticCurveTo(width * 0.67, height * 0.338, width * 0.72, height * 0.352);
+  ctx.stroke();
+  ctx.globalAlpha = 0.48;
+  ctx.beginPath();
+  ctx.ellipse(width * 0.58, height * 0.69, 34, 8, -0.02, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
 
   ctx.fillStyle = "#050505";
   ctx.textAlign = "center";
@@ -188,9 +242,9 @@ function createProceduralCoverTexture(gl) {
   ctx.fillText("AND", width * 0.5, height * 0.535);
   ctx.fillText("YOUR WORK DESK", width * 0.5, height * 0.562);
 
-  const vignette = ctx.createRadialGradient(width / 2, height / 2, 220, width / 2, height / 2, 680);
+  const vignette = ctx.createRadialGradient(width / 2, height / 2, 260, width / 2, height / 2, 700);
   vignette.addColorStop(0, "rgba(255,255,255,0)");
-  vignette.addColorStop(1, "rgba(40,25,16,0.14)");
+  vignette.addColorStop(1, "rgba(40,25,16,0.12)");
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, width, height);
 
