@@ -46,7 +46,7 @@ export default function NovelSection({
     <section id={novel.id} className="section novel-section" style={{ "--novel-color": novel.color, "--novel-accent": novel.accent }}>
       <div className="novel-hero">
         <div>
-          <p className="eyebrow">Manuscript dossier</p>
+          <p className="eyebrow">Novel section</p>
           <input className="novel-title-input" value={novel.title} onChange={(event) => onNovelChange(novel.id, { title: event.target.value })} aria-label="小说书名" />
           <input
             className="novel-subtitle-input"
@@ -57,19 +57,19 @@ export default function NovelSection({
         </div>
         <div className="novel-meta" aria-label="作品档案">
           <label>
-            体裁
+            类型
             <input value={novel.genre} onChange={(event) => onNovelChange(novel.id, { genre: event.target.value })} />
           </label>
           <label>
-            已落墨
+            当前字数
             <input type="number" value={novel.currentWords} onChange={(event) => onNovelChange(novel.id, { currentWords: Number(event.target.value) })} />
           </label>
           <label>
-            预估篇幅
+            预计总字数
             <input type="number" value={novel.targetWords} onChange={(event) => onNovelChange(novel.id, { targetWords: Number(event.target.value) })} />
           </label>
           <label>
-            收束日期
+            完结时间
             <input type="date" value={novel.finishDate} onChange={(event) => onNovelChange(novel.id, { finishDate: event.target.value })} />
           </label>
           <PublishLinkPill link={publishLink} onChange={updatePublishLink} />
