@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { FileJson, FileText, KeyRound, LogOut, Mail, ShieldCheck, Trash2, UserX, WalletCards } from "lucide-react";
 import { hasSupabaseConfig, supabase } from "../lib/supabaseClient.js";
 
@@ -184,6 +184,18 @@ function PasswordModal({ onClose }) {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    function onKeyDown(event) {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopPropagation();
+      onClose();
+    }
+
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, [onClose]);
 
   async function savePassword(event) {
     event.preventDefault();
