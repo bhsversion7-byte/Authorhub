@@ -1,0 +1,56 @@
+/* Critical background override: keep the paper mood but remove slow page-level image URLs from the largest surfaces. */
+:root {
+  --instant-paper-base: #f5f1e8;
+  --instant-paper-soft: #fdfbf7;
+  --instant-paper-warm: #f4f0e6;
+}
+
+html,
+body,
+#root,
+.app-shell,
+.content-shell,
+.loading-screen,
+.auth-wall {
+  background-color: var(--instant-paper-base) !important;
+}
+
+body,
+.app-shell,
+.content-shell,
+.loading-screen,
+.auth-wall {
+  background-image:
+    radial-gradient(circle at 8px 8px, rgba(92, 74, 52, 0.055) 0 0.8px, transparent 1px),
+    radial-gradient(circle at 18px 19px, rgba(255, 255, 255, 0.42) 0 0.75px, transparent 1.1px),
+    repeating-linear-gradient(97deg, rgba(91, 73, 52, 0.028) 0 1px, transparent 1px 13px),
+    radial-gradient(circle at 72% 12%, rgba(196, 176, 142, 0.12), transparent 34%),
+    linear-gradient(135deg, var(--instant-paper-soft) 0%, #fafafa 50%, var(--instant-paper-warm) 100%) !important;
+  background-size:
+    22px 22px,
+    31px 31px,
+    140px 140px,
+    auto,
+    cover !important;
+  background-repeat: repeat, repeat, repeat, no-repeat, no-repeat !important;
+  background-attachment: fixed, fixed, fixed, fixed, fixed !important;
+  background-blend-mode: multiply, soft-light, multiply, normal, normal !important;
+}
+
+body[data-theme="dark"],
+body[data-theme="dark"] .app-shell,
+body[data-theme="dark"] .content-shell,
+body[data-theme="dark"] .loading-screen {
+  background-color: #171514 !important;
+  background-image:
+    radial-gradient(circle at 8px 8px, rgba(245, 230, 211, 0.045) 0 0.8px, transparent 1px),
+    repeating-linear-gradient(97deg, rgba(245, 230, 211, 0.02) 0 1px, transparent 1px 13px),
+    radial-gradient(circle at 18% 8%, rgba(245, 230, 211, 0.1), transparent 30%),
+    radial-gradient(circle at 86% 8%, rgba(139, 160, 156, 0.12), transparent 32%),
+    linear-gradient(135deg, #171514 0%, #211d1a 52%, #28221d 100%) !important;
+  background-size: 24px 24px, 150px 150px, auto, auto, cover !important;
+}
+
+.paper-texture-overlay {
+  display: none !important;
+}
