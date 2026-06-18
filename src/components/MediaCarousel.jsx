@@ -29,7 +29,20 @@ const previewImageStyle = {
 const previewHotspotStyle = {
   position: "absolute",
   inset: 0,
-  zIndex: 1,
+  top: 0,
+  right: "auto",
+  bottom: "auto",
+  left: 0,
+  zIndex: 2,
+  display: "block",
+  width: "100%",
+  height: "100%",
+  padding: 0,
+  border: 0,
+  borderRadius: "18px",
+  background: "transparent",
+  color: "transparent",
+  boxShadow: "none",
   cursor: "zoom-in",
 };
 
@@ -226,18 +239,11 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
                   }}
                 >
                   <img src={image.src} alt={image.alt || `${label} ${index + 1}`} draggable="false" />
-                  <span
-                    role="button"
-                    tabIndex={0}
+                  <button
+                    type="button"
                     aria-label={index === activeIndex ? "查看大图" : "切换到这张图片"}
                     style={previewHotspotStyle}
                     onClick={(event) => openPreview(image, index, event)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        openPreview(image, index, event);
-                      }
-                    }}
                   />
                   <button type="button" onClick={(event) => removeImage(index, event)} aria-label="删除图片" style={{ zIndex: 3 }}>
                     <Trash2 size={14} />
