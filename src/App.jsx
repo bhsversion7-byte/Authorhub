@@ -11,6 +11,8 @@ import { getLocalAuthUser, hasSupabaseConfig, setLocalAuthUser, supabase } from 
 import { loadAuthorHubData, saveAuthorHubData } from "./lib/shimoAdapter.js";
 
 const BOOK_COLORS = ["#4A6357", "#7A3E3E", "#2E4C6D", "#8C6239", "#6C5E7A", "#6F7D5E"];
+const ESCAPE_BLOCKING_SELECTOR = ".modal-backdrop, .zen-overlay, .logo-preview-modal, .publish-popover";
+const TEXT_ENTRY_SELECTOR = "input, textarea, select, [contenteditable='true']";
 
 export default function App() {
   const [data, setData] = useState(null);
@@ -80,11 +82,29 @@ export default function App() {
 
   useEffect(() => {
     function onKeyDown(event) {
-      if (event.key === "Escape") setPrivacyBlur((current) => !current);
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+
+      if (deleteCandidate) {
+        event.preventDefault();
+        setDeleteCandidate(null);
+        return;
+      }
+
+      if (tourStep !== null) {
+        event.preventDefault();
+        finishTour();
+        return;
+      }
+
+      if (document.querySelector(ESCAPE_BLOCKING_SELECTOR)) return;
+      if (document.activeElement?.closest?.(TEXT_ENTRY_SELECTOR)) return;
+
+      setPrivacyBlur((current) => !current);
     }
+
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [deleteCandidate, tourStep]);
 
   const novels = useMemo(() => data?.novels ?? [], [data]);
   const activeNovel = useMemo(() => novels.find((novel) => novel.id === activeView), [activeView, novels]);
