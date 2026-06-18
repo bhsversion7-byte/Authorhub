@@ -38,6 +38,7 @@ export default function FloatingMusicPlayer() {
   const [playing, setPlaying] = useState(false);
   const [trackIndex, setTrackIndex] = useState(0);
   const [collapsed, setCollapsed] = useState(false);
+  const [playbackIssue, setPlaybackIssue] = useState("");
   const [position, setPosition] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("author-hub-music-position")) ?? { x: window.innerWidth - 330, y: 24 };
@@ -47,6 +48,7 @@ export default function FloatingMusicPlayer() {
   });
   const audioRef = useRef(null);
   const dragRef = useRef(null);
+  const failedTrackIdsRef = useRef(new Set());
   const track = TRACKS[trackIndex];
 
   useEffect(() => {
@@ -74,7 +76,8 @@ export default function FloatingMusicPlayer() {
     if (!audio) return;
     audio.volume = 0.22;
     audio.load();
-    if (playing) audio.play().catch(() => nextTrack());
+    if (!playing) return;
+    audio.play().catch(() => handlePlaybackFailure(trackIndex));
   }, [trackIndex, playing]);
 
   function togglePlay(event) {
@@ -84,22 +87,63 @@ export default function FloatingMusicPlayer() {
     if (playing) {
       audio.pause();
       setPlaying(false);
+      setPlaybackIssue("");
       return;
     }
+    failedTrackIdsRef.current.clear();
+    setPlaybackIssue("");
     audio.volume = 0.22;
-    audio.play().then(() => setPlaying(true)).catch(() => nextTrack());
+    audio.play().then(() => setPlaying(true)).catch(() => handlePlaybackFailure(trackIndex));
   }
 
   function nextTrack(event) {
     event?.stopPropagation();
+    failedTrackIdsRef.current.clear();
+    setPlaybackIssue("");
     setTrackIndex((current) => (current + 1) % TRACKS.length);
     setPlaying(true);
   }
 
   function previousTrack(event) {
     event?.stopPropagation();
+    failedTrackIdsRef.current.clear();
+    setPlaybackIssue("");
     setTrackIndex((current) => (current - 1 + TRACKS.length) % TRACKS.length);
     setPlaying(true);
+  }
+
+  function handlePlaybackFailure(failedIndex) {
+    const failedTrack = TRACKS[failedIndex];
+    if (!failedTrack) return;
+    const failedIds = failedTrackIdsRef.current;
+    failedIds.add(failedTrack.id);
+
+    if (failedIds.size >= TRACKS.length) {
+      audioRef.current?.pause();
+      setPlaying(false);
+      setPlaybackIssue("音乐源暂时不可用");
+      failedIds.clear();
+      return;
+    }
+
+    const nextIndex = findNextPlayableIndex(failedIndex, failedIds);
+    if (nextIndex === failedIndex) {
+      setPlaying(false);
+      setPlaybackIssue("音乐源暂时不可用");
+      return;
+    }
+
+    setPlaybackIssue("已跳过一首不可用曲目");
+    setTrackIndex(nextIndex);
+    setPlaying(true);
+  }
+
+  function handleAudioError() {
+    if (!playing) {
+      setPlaybackIssue("当前曲目加载失败");
+      return;
+    }
+    handlePlaybackFailure(trackIndex);
   }
 
   function onPointerDown(event) {
@@ -124,14 +168,14 @@ export default function FloatingMusicPlayer() {
 
   return (
     <div
-      className={`floating-music ${playing ? "is-playing" : ""} ${collapsed ? "is-collapsed" : ""}`}
+      className={`floating-music ${playing ? "is-playing" : ""} ${collapsed ? "is-collapsed" : ""} ${playbackIssue ? "has-playback-issue" : ""}`}
       style={{ left: `${position.x}px`, top: `${position.y}px` }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      <audio ref={audioRef} src={track.src} preload="auto" onEnded={nextTrack} onError={nextTrack} />
+      <audio ref={audioRef} src={track.src} preload="none" onEnded={nextTrack} onError={handleAudioError} />
       <button type="button" className="vinyl-button floating-vinyl" onClick={togglePlay} aria-label={playing ? "暂停音乐" : "播放音乐"}>
         <Disc3 size={collapsed ? 20 : 22} />
       </button>
@@ -139,7 +183,7 @@ export default function FloatingMusicPlayer() {
         <>
           <div className="track-window">
             <span>{track.title}</span>
-            <small>{track.artist}</small>
+            <small>{playbackIssue || track.artist}</small>
           </div>
           <div className="player-controls">
             <button type="button" onClick={previousTrack} aria-label="上一首">
@@ -159,4 +203,12 @@ export default function FloatingMusicPlayer() {
       </button>
     </div>
   );
+}
+
+function findNextPlayableIndex(currentIndex, failedIds) {
+  for (let step = 1; step <= TRACKS.length; step += 1) {
+    const nextIndex = (currentIndex + step) % TRACKS.length;
+    if (!failedIds.has(TRACKS[nextIndex].id)) return nextIndex;
+  }
+  return currentIndex;
 }
