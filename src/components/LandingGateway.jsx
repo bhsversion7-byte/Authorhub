@@ -4,7 +4,6 @@ import "../landing-font-local.css";
 import "../landing.css";
 import "../landing-tuning.css";
 import "../landing-quote-refine.css";
-import "../landing-debug.css";
 
 const cinematicBookModules = import.meta.glob("./CinematicBookOpener.jsx");
 const cinematicBookImporter = Object.values(cinematicBookModules)[0];
@@ -14,18 +13,6 @@ const BOOK_PROGRESS_MIN = 0.035;
 const BOOK_PROGRESS_MAX = 0.46;
 const BOOK_AUTOPLAY_SPEED = 0.000095;
 const BOOK_PAGE_JUMP = (BOOK_PROGRESS_MAX - BOOK_PROGRESS_MIN) / 4.8;
-const ASSET_DEBUG_VERSION = "book-assets-20260618-0305";
-const ASSET_DEBUG_CANDIDATES = [
-  { key: "cover-png", label: "cover png", src: "/bookcover.png" },
-  { key: "cover-webp", label: "cover webp", src: "/bookcover.webp" },
-  { key: "cover-jpg", label: "cover jpg", src: "/bookcover.jpg" },
-  { key: "cover-jpeg", label: "cover jpeg", src: "/bookcover.jpeg" },
-  { key: "cover-public", label: "public/cover", src: "/public/bookcover.png" },
-  { key: "inside-png", label: "inside png", src: "/bookinside.png" },
-  { key: "inside-webp", label: "inside webp", src: "/bookinside.webp" },
-  { key: "inside-jpg", label: "inside jpg", src: "/bookinside.jpg" },
-  { key: "inside-public", label: "public/inside", src: "/public/bookinside.png" },
-];
 
 function shouldSkipLanding() {
   try {
@@ -214,83 +201,10 @@ export default function LandingGateway({ children }) {
         )}
       </section>
 
-      <LandingAssetDebug />
-
       <section className="landing-auth-panel" aria-hidden={!isAuthVisible}>
         {isAuthVisible ? children : null}
       </section>
     </main>
-  );
-}
-
-function LandingAssetDebug() {
-  const [records, setRecords] = useState(() =>
-    Object.fromEntries(
-      ASSET_DEBUG_CANDIDATES.map(({ key }) => [key, { status: "loading", fetchStatus: "checking", dimensions: "", contentType: "" }]),
-    ),
-  );
-
-  useEffect(() => {
-    let cancelled = false;
-    ASSET_DEBUG_CANDIDATES.forEach(({ key, src }) => {
-      fetch(`${src}?v=${ASSET_DEBUG_VERSION}`, { cache: "no-store" })
-        .then((response) => {
-          if (cancelled) return;
-          setRecords((current) => ({
-            ...current,
-            [key]: {
-              ...current[key],
-              fetchStatus: `${response.status}`,
-              contentType: response.headers.get("content-type") ?? "no content-type",
-            },
-          }));
-        })
-        .catch(() => {
-          if (cancelled) return;
-          setRecords((current) => ({
-            ...current,
-            [key]: {
-              ...current[key],
-              fetchStatus: "fetch error",
-            },
-          }));
-        });
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  function handleLoad(key, event) {
-    const { naturalWidth, naturalHeight } = event.currentTarget;
-    setRecords((current) => ({ ...current, [key]: { ...current[key], status: "loaded", dimensions: `${naturalWidth}×${naturalHeight}` } }));
-  }
-
-  function handleError(key) {
-    setRecords((current) => ({ ...current, [key]: { ...current[key], status: "error", dimensions: "failed" } }));
-  }
-
-  return (
-    <aside className="landing-asset-debug" data-ai-target="landing-asset-debug" aria-label="Landing image asset debug panel">
-      <strong>asset debug v0305</strong>
-      {ASSET_DEBUG_CANDIDATES.map(({ key, label, src }) => {
-        const record = records[key];
-        return (
-          <figure key={key} className={`asset-debug-item is-${record.status}`}>
-            <img
-              src={`${src}?v=${ASSET_DEBUG_VERSION}`}
-              alt={`${label} debug preview`}
-              onLoad={(event) => handleLoad(key, event)}
-              onError={() => handleError(key)}
-            />
-            <figcaption>
-              {label} · img:{record.status} · fetch:{record.fetchStatus} · {record.dimensions || "—"} · {record.contentType || "—"}
-            </figcaption>
-          </figure>
-        );
-      })}
-    </aside>
   );
 }
 
