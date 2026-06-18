@@ -58,9 +58,10 @@
   background: transparent !important;
   box-shadow: none !important;
   color: var(--ink);
-  font-size: 13px;
-  font-weight: 750;
-  line-height: 1.55;
+  font-family: inherit;
+  font-size: var(--editor-font-size, 14px);
+  font-weight: 650;
+  line-height: 1.58;
 }
 
 .author-section .editable-control strong {
@@ -80,19 +81,93 @@
   height: auto;
   min-height: 44px;
   place-items: center;
+  border-left: 1px solid rgba(108, 139, 136, 0.12);
   border-radius: 0;
-  background: transparent;
-  color: var(--teal);
+  background: rgba(108, 139, 136, 0.1);
+  color: color-mix(in srgb, var(--teal) 74%, var(--ink));
   box-shadow: none;
 }
 
 .author-section .editable-control button:hover,
 .author-section .editable-field.is-editing .editable-control button {
-  background: rgba(108, 139, 136, 0.08);
-  color: color-mix(in srgb, var(--teal) 76%, var(--ink));
+  background: rgba(108, 139, 136, 0.16);
+  color: color-mix(in srgb, var(--teal) 58%, var(--ink));
 }
 
 .author-section .editable-control button:focus-visible {
   outline: 2px solid rgba(108, 139, 136, 0.28);
   outline-offset: -4px;
+}
+
+.author-section .appearance-controls {
+  grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr) auto;
+  align-items: center;
+  gap: 14px 18px;
+}
+
+.author-section .appearance-controls > label {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.author-section .appearance-controls > label:nth-of-type(2) {
+  grid-template-columns: 52px minmax(0, 1fr);
+}
+
+.author-section .appearance-controls > label > input,
+.author-section .appearance-controls > label > select {
+  min-width: 0;
+}
+
+.author-section .appearance-controls > label > strong {
+  min-width: 42px;
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.author-section .privacy-control-row {
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.author-section .font-preview {
+  grid-column: 1 / -1;
+  display: flex;
+  width: min(920px, 100%);
+  max-width: none;
+  align-items: center;
+  gap: 12px;
+}
+
+.author-section .font-preview p {
+  max-width: none;
+  margin: 0;
+  font-family: inherit;
+  font-size: var(--editor-font-size, 14px);
+  line-height: 1.7;
+}
+
+.author-section .global-disclaimer {
+  border-style: solid;
+  background: rgba(255, 250, 244, 0.5);
+  color: rgba(122, 114, 103, 0.88);
+}
+
+@media (max-width: 980px) {
+  .author-section .appearance-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .author-section .appearance-controls > label,
+  .author-section .appearance-controls > label:nth-of-type(2) {
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+  }
+
+  .author-section .font-preview {
+    width: 100%;
+  }
 }
