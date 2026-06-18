@@ -13,6 +13,7 @@ import "./author-center-polish.css";
 import "./paper-texture-system.css";
 import "./reading-font-options.css";
 import "./sidebar-nav-state-fix.css";
+import "./novel-page-refine.css";
 import "./relation-graph-runtime-fix.js";
 import "./modal-empty-qa.js";
 
