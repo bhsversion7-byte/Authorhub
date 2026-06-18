@@ -1,0 +1,46 @@
+body[data-authorhub-modal-open="true"] {
+  overflow: hidden;
+}
+
+.modal-backdrop {
+  z-index: 150;
+}
+
+.confirm-modal {
+  outline: none;
+}
+
+.confirm-modal .ghost-button:focus-visible,
+.confirm-modal .danger-button:focus-visible,
+.confirm-modal .btn-unregister:focus-visible,
+.empty-state .primary-button:focus-visible {
+  outline: 2px solid rgba(108, 139, 136, 0.42);
+  outline-offset: 3px;
+}
+
+.confirm-actions {
+  align-items: center;
+}
+
+.empty-state {
+  width: min(720px, 100%);
+  margin-inline: auto;
+}
+
+.empty-state .primary-button {
+  justify-self: center;
+}
+
+@media (max-width: 680px) {
+  .modal-backdrop {
+    padding: 14px;
+  }
+
+  .confirm-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .empty-state {
+    padding: 28px 18px;
+  }
+}
