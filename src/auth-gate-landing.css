@@ -1,0 +1,136 @@
+.landing-gateway .landing-auth-panel .auth-wall {
+  width: min(416px, 100%);
+  min-height: auto;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+}
+
+.landing-gateway .landing-auth-panel .auth-ambient {
+  display: none;
+}
+
+.landing-gateway .landing-auth-panel .auth-card {
+  width: min(408px, 100%);
+  gap: 13px;
+  padding: clamp(24px, 3.2vw, 30px);
+  border: 1px solid rgba(255, 248, 239, 0.13);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 14% 0%, rgba(255, 248, 239, 0.11), transparent 34%),
+    linear-gradient(135deg, rgba(19, 23, 27, 0.78), rgba(15, 18, 21, 0.64)),
+    rgba(18, 22, 26, 0.6);
+  color: #fff8ef;
+  box-shadow:
+    0 36px 110px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 248, 239, 0.09);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.landing-gateway .landing-auth-panel .auth-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.landing-gateway .landing-auth-panel .auth-mark {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border: 1px solid rgba(255, 248, 239, 0.12);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(255, 248, 239, 0.14), rgba(255, 248, 239, 0.04)),
+    rgba(255, 248, 239, 0.04);
+  color: rgba(255, 248, 239, 0.72);
+}
+
+.landing-gateway .landing-auth-panel .auth-card .eyebrow {
+  color: rgba(238, 196, 128, 0.52);
+}
+
+.landing-gateway .landing-auth-panel .auth-card h1 {
+  color: #fff8ef;
+  font-family: "Xiangcui-Kesong", "Songti SC", "STSong", serif;
+  font-size: clamp(1.22rem, 2.1vw, 1.55rem);
+  font-weight: 400;
+  letter-spacing: 0.14em;
+}
+
+.landing-gateway .landing-auth-panel .auth-copy,
+.landing-gateway .landing-auth-panel .auth-dev-note,
+.landing-gateway .landing-auth-panel .auth-message,
+.landing-gateway .landing-auth-panel .auth-check,
+.landing-gateway .landing-auth-panel .auth-link,
+.landing-gateway .landing-auth-panel .auth-switch {
+  color: rgba(255, 248, 239, 0.54);
+}
+
+.landing-gateway .landing-auth-panel .auth-mode-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgba(255, 248, 239, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 248, 239, 0.035);
+}
+
+.landing-gateway .landing-auth-panel .auth-mode-tabs button {
+  min-height: 31px;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 248, 239, 0.48);
+}
+
+.landing-gateway .landing-auth-panel .auth-mode-tabs button.is-active {
+  background: rgba(255, 248, 239, 0.12);
+  color: rgba(255, 248, 239, 0.9);
+}
+
+.landing-gateway .landing-auth-panel .auth-field {
+  min-height: 47px;
+  border: 1px solid rgba(255, 248, 239, 0.08);
+  border-radius: 17px;
+  background: rgba(255, 248, 239, 0.06);
+  color: rgba(255, 248, 239, 0.62);
+  box-shadow: inset 0 -1px 0 rgba(255, 248, 239, 0.045);
+}
+
+.landing-gateway .landing-auth-panel .auth-field:focus-within {
+  border-color: rgba(215, 137, 142, 0.36);
+  background: rgba(255, 248, 239, 0.085);
+  box-shadow:
+    inset 0 -1px 0 rgba(215, 137, 142, 0.28),
+    0 14px 34px rgba(0, 0, 0, 0.18);
+}
+
+.landing-gateway .landing-auth-panel .auth-field input,
+.landing-gateway .landing-auth-panel .auth-field input:focus,
+.landing-gateway .landing-auth-panel .captcha-row input,
+.landing-gateway .landing-auth-panel .captcha-row input:focus {
+  color: #fff8ef;
+  background: transparent;
+  box-shadow: none;
+}
+
+.landing-gateway .landing-auth-panel .captcha-row input {
+  background: rgba(255, 248, 239, 0.06);
+}
+
+.landing-gateway .landing-auth-panel .auth-submit {
+  min-height: 48px;
+  border: 1px solid rgba(255, 248, 239, 0.2);
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, rgba(255, 248, 239, 0.93), rgba(236, 218, 199, 0.82));
+  color: #2b1010;
+  font-family: "Xiangcui-Kesong", "Songti SC", serif;
+  font-size: 0.92rem;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 18px 46px rgba(0, 0, 0, 0.22);
+}
