@@ -6,7 +6,7 @@ const BOOK_ICON_COLORS = ["#4A6357", "#7A3E3E", "#2E4C6D", "#8C6239", "#6C5E7A",
 
 export default function Sidebar({ novels, width, activeView, onSelect, onAddNovel, onDeleteNovel }) {
   const [logoOpen, setLogoOpen] = useState(false);
-  const novelCountLabel = useMemo(() => `${toChineseCount(novels.length)}本小说`, [novels.length]);
+  const novelCountLabel = useMemo(() => `手稿索引 · ${toChineseCount(novels.length)}本`, [novels.length]);
 
   return (
     <aside className="sidebar" style={{ width }}>
@@ -15,8 +15,8 @@ export default function Sidebar({ novels, width, activeView, onSelect, onAddNove
           <img className="brand-logo logo-image" src="/authorhub-logo.png" alt="AuthorHub" />
         </button>
         <div className="brand-text">
-          <p>Author Hub</p>
-          <span>小说创作中台</span>
+          <p>AuthorHub</p>
+          <span>私人手稿星图</span>
         </div>
       </div>
 
@@ -33,10 +33,10 @@ export default function Sidebar({ novels, width, activeView, onSelect, onAddNove
           document.body,
         )}
 
-      <nav className="nav-stack" aria-label="全局导航">
+      <nav className="nav-stack" aria-label="手稿导航">
         <button type="button" data-tour="author-home" onClick={() => onSelect("author")} className={`nav-item is-home ${activeView === "author" ? "is-active" : ""}`}>
           <Home size={16} />
-          <span>作者个人主页</span>
+          <span>作者主页</span>
         </button>
 
         <button
@@ -46,7 +46,7 @@ export default function Sidebar({ novels, width, activeView, onSelect, onAddNove
           className={`nav-item is-user-center ${activeView === "user" ? "is-active" : ""}`}
         >
           <UserRound size={16} />
-          <span>用户中心</span>
+          <span>私人资料匣</span>
         </button>
 
         <div className="nav-label">{novelCountLabel}</div>
@@ -84,7 +84,7 @@ export default function Sidebar({ novels, width, activeView, onSelect, onAddNove
         })}
         <button type="button" data-tour="add-novel" className="nav-item add-novel-button" onClick={onAddNovel}>
           <Plus size={16} />
-          <span>新增小说</span>
+          <span>添一册新稿</span>
         </button>
       </nav>
     </aside>
