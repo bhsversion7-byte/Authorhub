@@ -4,6 +4,7 @@ import App from "./App.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import "./styles.css";
 import "./auth-gate-landing.css";
+import "./auth-gate-artifact-fix.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
