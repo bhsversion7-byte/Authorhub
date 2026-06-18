@@ -7,6 +7,7 @@ import "./internal-polish.css";
 import "./novel-section-restore.css";
 import "./relation-graph-polish.css";
 import "./modal-empty-qa.css";
+import "./sidebar-stability.css";
 import "./relation-graph-runtime-fix.js";
 import "./modal-empty-qa.js";
 
