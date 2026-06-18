@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preload" href="/texture-3.jpg" as="image" fetchpriority="high" />
     <link rel="preload" href="/fonts/Victoria%20Typewriter%20Regular.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/%E9%A6%99%E8%90%83%E5%88%BB%E5%AE%8B.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/%E8%BF%AB%E7%9C%9F%E6%89%93%E5%AD%97%E6%B2%B9%E5%8D%B0%E4%BD%93.woff2" as="font" type="font/woff2" crossorigin />
@@ -15,15 +16,15 @@
       #root {
         min-height: 100%;
         background-color: #f5f1e8;
-        background-image:
-          radial-gradient(circle at 8px 8px, rgba(92, 74, 52, 0.055) 0 0.8px, transparent 1px),
-          radial-gradient(circle at 18px 19px, rgba(255, 255, 255, 0.42) 0 0.75px, transparent 1.1px),
-          repeating-linear-gradient(97deg, rgba(91, 73, 52, 0.028) 0 1px, transparent 1px 13px),
-          radial-gradient(circle at 72% 12%, rgba(196, 176, 142, 0.12), transparent 34%),
-          linear-gradient(135deg, #fdfbf7 0%, #fafafa 50%, #f4f0e6 100%);
-        background-size: 22px 22px, 31px 31px, 140px 140px, auto, cover;
-        background-repeat: repeat, repeat, repeat, no-repeat, no-repeat;
-        background-attachment: fixed, fixed, fixed, fixed, fixed;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background: #f5f1e8 url("/texture-3.jpg") center center / cover no-repeat;
       }
     </style>
     <link rel="icon" href="/authorhub-logo.png" />
