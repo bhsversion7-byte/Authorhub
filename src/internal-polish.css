@@ -1,0 +1,104 @@
+.sidebar {
+  background:
+    linear-gradient(180deg, rgba(255, 253, 248, 0.78), rgba(246, 239, 229, 0.74)),
+    radial-gradient(circle at 18% 8%, rgba(221, 169, 106, 0.12), transparent 34%);
+  border-right: 1px solid rgba(214, 199, 183, 0.72);
+  box-shadow: 18px 0 58px rgba(73, 55, 43, 0.045);
+}
+
+.brand {
+  align-items: flex-start;
+}
+
+.brand p {
+  letter-spacing: -0.01em;
+}
+
+.brand span {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", serif;
+  letter-spacing: 0.12em;
+}
+
+.nav-stack {
+  gap: 7px;
+}
+
+.nav-label {
+  margin: 18px 0 5px;
+  color: rgba(127, 116, 107, 0.72);
+  font-family: "Songti SC", "STSong", "Noto Serif SC", serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: none;
+}
+
+.nav-item {
+  min-height: 38px;
+  border-radius: 14px;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.nav-item:hover,
+.nav-item.is-active,
+.nav-item.is-home.is-active,
+.nav-item.is-home:hover,
+.nav-item.is-active:not(.is-home) {
+  transform: none;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--item-color, #8ba09c) 15%, rgba(255, 250, 244, 0.82)), rgba(255, 250, 244, 0.52));
+  border-color: rgba(234, 223, 212, 0.62);
+  color: var(--ink);
+  box-shadow: inset 3px 0 0 var(--item-color, #8ba09c), 0 10px 24px rgba(60, 44, 32, 0.035);
+}
+
+.nav-item.is-home,
+.nav-item.is-home.is-active,
+.nav-item.is-home:hover {
+  --item-color: #2c2a29;
+}
+
+.nav-item.is-user-center {
+  --item-color: #8c6239;
+}
+
+.nav-item svg,
+.nav-item.is-home.is-active svg,
+.nav-item.is-home:hover svg {
+  color: var(--item-color, var(--teal));
+}
+
+.novel-nav-item::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--item-color, var(--teal));
+  opacity: 0.46;
+  transform: translateY(-50%);
+}
+
+.novel-nav-item .novel-select-button {
+  padding-left: 10px;
+}
+
+.add-novel-button {
+  margin-top: 4px;
+  border: 1px dashed rgba(141, 122, 107, 0.28);
+  background: rgba(255, 250, 244, 0.42);
+  color: rgba(80, 72, 63, 0.78);
+}
+
+.add-novel-button:hover {
+  border-style: solid;
+  color: var(--ink);
+}
+
+.novel-delete-button {
+  right: 16px;
+}
