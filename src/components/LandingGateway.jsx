@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import CinematicBookOpener from "./CinematicBookOpener.jsx";
 import LandingQuoteOrbit from "./LandingQuoteOrbit.jsx";
 import "../landing-font-local.css";
 import "../landing.css";
 import "../landing-tuning.css";
 import "../landing-quote-refine.css";
 
-const cinematicBookModules = import.meta.glob("./CinematicBookOpener.jsx");
-const cinematicBookImporter = Object.values(cinematicBookModules)[0];
 const LANDING_HIDDEN_UNTIL_KEY = "author-hub-landing-hidden-until";
 const LANDING_SKIP_MS = 30 * 24 * 60 * 60 * 1000;
 const BOOK_PROGRESS_MIN = 0.035;
@@ -28,7 +27,6 @@ function shouldSkipLanding() {
 
 export default function LandingGateway({ children }) {
   const [landingMode, setLandingMode] = useState(() => (shouldSkipLanding() ? "AUTH" : "FULL"));
-  const [CinematicBook, setCinematicBook] = useState(null);
   const [bookProgress, setBookProgress] = useState(BOOK_PROGRESS_MIN + 0.035);
   const [rememberLanding, setRememberLanding] = useState(false);
   const transitionTimer = useRef(null);
@@ -37,23 +35,6 @@ export default function LandingGateway({ children }) {
 
   const isFolding = landingMode === "FOLDING";
   const isAuthVisible = landingMode === "AUTH";
-
-  useEffect(() => {
-    let mounted = true;
-    if (!cinematicBookImporter) return undefined;
-
-    cinematicBookImporter()
-      .then((module) => {
-        if (mounted) setCinematicBook(() => module.default ?? null);
-      })
-      .catch(() => {
-        if (mounted) setCinematicBook(null);
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   useEffect(() => {
     return () => window.clearTimeout(transitionTimer.current);
@@ -172,7 +153,7 @@ export default function LandingGateway({ children }) {
           onClick={advanceBookPage}
           onKeyDown={handleBookKeyDown}
         >
-          {CinematicBook ? <CinematicBook {...bookProps} /> : <ManuscriptFallback isFolding={isFolding} />}
+          <CinematicBookOpener {...bookProps} />
         </div>
 
         {!isAuthVisible && (
@@ -205,16 +186,5 @@ export default function LandingGateway({ children }) {
         {isAuthVisible ? children : null}
       </section>
     </main>
-  );
-}
-
-function ManuscriptFallback({ isFolding }) {
-  return (
-    <div className={`manuscript-fallback ${isFolding ? "is-folding" : ""}`} aria-hidden="true">
-      <div className="manuscript-cover" />
-      <div className="manuscript-page page-left" />
-      <div className="manuscript-page page-right" />
-      <div className="manuscript-spine" />
-    </div>
   );
 }
