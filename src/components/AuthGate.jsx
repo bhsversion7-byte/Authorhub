@@ -124,14 +124,14 @@ export default function AuthGate({ onAuthed }) {
             <ShieldCheck size={18} />
           </div>
           <div>
-            <p className="eyebrow">Private Manuscript Room</p>
-            <h1>{mode === "login" ? "回到写作房间" : "开一间自己的房间"}</h1>
+            <p className="eyebrow">{mode === "login" ? "Login / Manuscript Gate" : "Register / Manuscript Gate"}</p>
+            <h1>{mode === "login" ? "登录" : "注册"}</h1>
           </div>
         </div>
 
         <p className="auth-copy">
           {mode === "login"
-            ? "这里只是门口。确认身份后，再进入你的小说宇宙、人物星图和未完成的章节。"
+            ? "确认身份后，再进入你的小说宇宙、人物星图和未完成的章节。"
             : "创建一个安静的私人创作账号。你的草稿、人物关系和世界设定默认只属于你。"}
         </p>
 
@@ -208,7 +208,7 @@ export default function AuthGate({ onAuthed }) {
         </button>
 
         <button type="button" className="auth-switch" onClick={() => switchMode(mode === "login" ? "register" : "login")}>
-          {mode === "login" ? "还没有房间？注册新账号" : "已经有房间？返回登录"}
+          {mode === "login" ? "还没有账号？注册" : "已有账号？登录"}
         </button>
 
         {!hasSupabaseConfig && (
