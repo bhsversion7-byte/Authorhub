@@ -1,0 +1,24 @@
+.floating-music {
+  transition:
+    left 240ms var(--ease),
+    top 180ms var(--ease),
+    width 220ms var(--ease),
+    transform 180ms var(--ease);
+}
+
+.floating-music .music-collapse {
+  flex: 0 0 auto;
+}
+
+.floating-music:not(.is-collapsed) .music-collapse {
+  color: rgba(44, 42, 41, 0.66);
+}
+
+.floating-music.is-collapsed {
+  width: 96px;
+  min-width: 96px;
+}
+
+.floating-music.is-collapsed .floating-vinyl {
+  flex: 0 0 auto;
+}
