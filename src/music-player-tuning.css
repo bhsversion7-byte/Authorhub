@@ -1,7 +1,8 @@
 .floating-music {
-  left: 0;
-  top: 0;
-  will-change: transform;
+  left: auto !important;
+  right: 8px !important;
+  transform: none !important;
+  will-change: top;
   transition:
     width 220ms var(--ease),
     padding 220ms var(--ease),
@@ -11,7 +12,7 @@
 
 .floating-music:not(.is-dragging) {
   transition:
-    transform 180ms var(--ease),
+    top 160ms var(--ease),
     width 220ms var(--ease),
     padding 220ms var(--ease),
     border-radius 220ms var(--ease),
