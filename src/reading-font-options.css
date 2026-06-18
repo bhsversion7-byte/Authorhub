@@ -33,21 +33,31 @@
   font-family: var(--reading-font-family) !important;
 }
 
+.content-shell.font-mimeograph,
+.sidebar.font-mimeograph,
+.app-shell:has(.content-shell.font-mimeograph) .sidebar {
+  --reading-font-family: "迫真打字油印體", "迫真打字油印体", "Mimeograph", "KaiTi", "STKaiti", "SimSun", serif;
+  font-family: var(--reading-font-family) !important;
+}
+
 .content-shell.font-sans :where(h1, h2, h3, h4, p, span, strong, small, label, input, textarea, select, button, em, li),
 .content-shell.font-serif :where(h1, h2, h3, h4, p, span, strong, small, label, input, textarea, select, button, em, li),
 .content-shell.font-mono :where(h1, h2, h3, h4, p, span, strong, small, label, input, textarea, select, button, em, li),
 .content-shell.font-yahei :where(h1, h2, h3, h4, p, span, strong, small, label, input, textarea, select, button, em, li),
 .content-shell.font-songti :where(h1, h2, h3, h4, p, span, strong, small, label, input, textarea, select, button, em, li),
+.content-shell.font-mimeograph :where(h1, h2, h3, h4, p, span, strong, small, label, input, textarea, select, button, em, li),
 .sidebar.font-sans :where(p, span, strong, small, label, input, textarea, select, button, li),
 .sidebar.font-serif :where(p, span, strong, small, label, input, textarea, select, button, li),
 .sidebar.font-mono :where(p, span, strong, small, label, input, textarea, select, button, li),
 .sidebar.font-yahei :where(p, span, strong, small, label, input, textarea, select, button, li),
-.sidebar.font-songti :where(p, span, strong, small, label, input, textarea, select, button, li) {
+.sidebar.font-songti :where(p, span, strong, small, label, input, textarea, select, button, li),
+.sidebar.font-mimeograph :where(p, span, strong, small, label, input, textarea, select, button, li) {
   font-family: var(--reading-font-family) !important;
 }
 
 .content-shell.font-serif .meter-ring strong,
-.content-shell.font-songti .meter-ring strong {
+.content-shell.font-songti .meter-ring strong,
+.content-shell.font-mimeograph .meter-ring strong {
   font-family: var(--reading-font-family) !important;
 }
 
