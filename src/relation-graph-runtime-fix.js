@@ -3,12 +3,26 @@ import * as d3 from "d3";
 const GRAPH_SELECTOR = ".relation-graph";
 const TOOLBAR_SELECTOR = ".graph-toolbar .toolbar-actions";
 const RESET_BUTTON_CLASS = "relation-reset-button";
+const INSTALL_FLAG = "__authorHubRelationGraphRuntimeFix";
 
 if (typeof document !== "undefined") {
   installRelationGraphRuntimeFix();
 }
 
 function installRelationGraphRuntimeFix() {
+  if (window[INSTALL_FLAG]) return;
+  window[INSTALL_FLAG] = true;
+
+  let ensureScheduled = false;
+  const scheduleEnsureResetButtons = () => {
+    if (ensureScheduled) return;
+    ensureScheduled = true;
+    window.requestAnimationFrame(() => {
+      ensureScheduled = false;
+      ensureResetButtons();
+    });
+  };
+
   ensureResetButtons();
 
   document.addEventListener("click", (event) => {
@@ -29,7 +43,7 @@ function installRelationGraphRuntimeFix() {
     }
   });
 
-  const observer = new MutationObserver(() => ensureResetButtons());
+  const observer = new MutationObserver(scheduleEnsureResetButtons);
   observer.observe(document.body, { childList: true, subtree: true });
 }
 
@@ -60,7 +74,7 @@ function focusSelectedNode(graphCard) {
   const scale = 1.42;
   const transform = d3.zoomIdentity.translate(width / 2 - point.x * scale, height / 2 - point.y * scale).scale(scale);
 
-  svg.__zoom = transform;
+  syncZoomState(svg, transform);
   d3.select(graphLayer)
     .transition()
     .duration(520)
@@ -73,12 +87,16 @@ function resetGraphView(graphCard) {
   const graphLayer = svg?.querySelector(".graph-layer");
   if (!svg || !graphLayer) return;
 
-  svg.__zoom = d3.zoomIdentity;
+  syncZoomState(svg, d3.zoomIdentity);
   d3.select(graphLayer)
     .transition()
     .duration(420)
     .ease(d3.easeCubicOut)
     .attr("transform", null);
+}
+
+function syncZoomState(svg, transform) {
+  svg.__zoom = transform;
 }
 
 function readTranslate(value = "") {
