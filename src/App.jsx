@@ -119,20 +119,28 @@ export default function App() {
     setAuthUser(user);
   }
 
-  function selectView(id) {
-    setActiveView(id);
+  async function logout() {
+    if (hasSupabaseConfig && supabase) await supabase.auth.signOut();
+    else setLocalAuthUser(null);
+    setAuthUser(null);
+    setData(null);
+    setActiveView("author");
+  }
+
+  function selectView(viewId) {
+    setActiveView(viewId);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function updateAuthor(author) {
-    setData((current) => ({ ...current, author }));
+  function updateAuthor(nextAuthor) {
+    setData((current) => ({ ...current, author: nextAuthor }));
   }
 
-  async function logout() {
-    if (hasSupabaseConfig && supabase) await supabase.auth.signOut();
-    setLocalAuthUser(null);
-    setAuthUser(null);
-    setJustRegistered(false);
+  function updateAppearance(patch) {
+    setData((current) => ({
+      ...current,
+      appearance: { ...current.appearance, ...patch },
+    }));
   }
 
   function updateNovel(novelId, patch) {
@@ -142,18 +150,16 @@ export default function App() {
     }));
   }
 
-  function updateAppearance(patch) {
-    setData((current) => ({
-      ...current,
-      appearance: { ...(current.appearance ?? appearance), ...patch },
-    }));
-  }
-
   function addCharacter(novelId, character) {
     setData((current) => ({
       ...current,
       novels: current.novels.map((novel) =>
-        novel.id === novelId ? { ...novel, characters: [...novel.characters, character] } : novel,
+        novel.id === novelId
+          ? {
+              ...novel,
+              characters: [...novel.characters, character],
+            }
+          : novel,
       ),
     }));
   }
@@ -165,9 +171,7 @@ export default function App() {
         novel.id === novelId
           ? {
               ...novel,
-              characters: novel.characters.map((character) =>
-                character.id === characterId ? { ...character, ...patch } : character,
-              ),
+              characters: novel.characters.map((character) => (character.id === characterId ? { ...character, ...patch } : character)),
             }
           : novel,
       ),
@@ -304,6 +308,7 @@ export default function App() {
         novels={novels}
         width={sidebarWidth}
         activeView={activeView}
+        appearance={appearance}
         onSelect={selectView}
         onAddNovel={addNovel}
         onDeleteNovel={requestDeleteNovel}
@@ -388,215 +393,60 @@ export default function App() {
           onSelectDemo={() => selectView(novels[0]?.id ?? "author")}
         />
       )}
-      <div className="paper-texture-overlay" aria-hidden="true" />
     </div>
   );
-}
-
-const TOUR_STEPS = [
-  {
-    title: "先看这里",
-    text: "从《新手视界》进入示例小说，先熟悉星图、时间线和发布页配置。",
-    target: "demo-novel",
-    arrow: "left",
-  },
-  {
-    title: "人物星图",
-    text: "点击节点即可实时连线互动",
-    target: "relation-graph",
-    arrow: "down",
-  },
-  {
-    title: "人物详情",
-    text: "选中星球后，在这里编辑人物、标签、图片和关系。",
-    target: "detail-panel-head",
-    arrow: "right",
-  },
-  {
-    title: "用户中心",
-    text: "账号安全、导出、清空、登出和打赏都收在这里。",
-    target: "user-center-nav",
-    arrow: "up",
-  },
-];
-
-function TourProvider({ step, setStep, onDone, onSelectDemo }) {
-  const current = TOUR_STEPS[step] ?? TOUR_STEPS[0];
-  const isLast = step >= TOUR_STEPS.length - 1;
-  const [rect, setRect] = useState(null);
-
-  useEffect(() => {
-    const selector = current.target === "relation-graph" ? ".relation-graph" : '[data-tour="' + current.target + '"]';
-    let attempts = 0;
-    let timer;
-
-    function locate() {
-      const element = document.querySelector(selector);
-      if (!element && attempts < 12) {
-        attempts += 1;
-        timer = window.setTimeout(locate, 180);
-        return;
-      }
-      if (!element) {
-        setRect({ top: 120, left: 300, width: 220, height: 64 });
-        return;
-      }
-
-      element.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
-      timer = window.setTimeout(() => {
-        const box = element.getBoundingClientRect();
-        setRect({ top: box.top, left: box.left, width: box.width, height: box.height });
-      }, 560);
-    }
-
-    locate();
-    return () => window.clearTimeout(timer);
-  }, [current.target, step]);
-
-  useEffect(() => {
-    function updateRect() {
-      const selector = current.target === "relation-graph" ? ".relation-graph" : '[data-tour="' + current.target + '"]';
-      const element = document.querySelector(selector);
-      if (!element) return;
-      const box = element.getBoundingClientRect();
-      setRect({ top: box.top, left: box.left, width: box.width, height: box.height });
-    }
-    window.addEventListener("resize", updateRect);
-    window.addEventListener("scroll", updateRect, true);
-    return () => {
-      window.removeEventListener("resize", updateRect);
-      window.removeEventListener("scroll", updateRect, true);
-    };
-  }, [current.target, step]);
-
-  function next() {
-    if (step === 0) {
-      onSelectDemo();
-      window.setTimeout(() => setStep(step + 1), 240);
-      return;
-    }
-    if (isLast) onDone();
-    else setStep(step + 1);
-  }
-
-  if (!rect) return null;
-
-  const bubbleWidth = 270;
-  const left =
-    current.arrow === "right"
-      ? Math.max(18, rect.left - bubbleWidth - 22)
-      : current.arrow === "down"
-        ? Math.min(window.innerWidth - bubbleWidth - 18, Math.max(18, rect.left + rect.width / 2 - bubbleWidth / 2))
-        : Math.min(window.innerWidth - bubbleWidth - 18, Math.max(18, rect.left + rect.width + 22));
-  const top =
-    current.arrow === "down"
-      ? Math.max(18, rect.top + rect.height / 2 - 42)
-      : Math.max(18, Math.min(window.innerHeight - 150, rect.top + rect.height / 2 - 44));
-
-  return (
-    <div className="glow-tour-layer" aria-live="polite">
-      <section className={"glow-tour-bubble tour-provider-bubble arrow-" + (current.arrow ?? "right")} style={{ "--tour-top": top + "px", "--tour-left": left + "px" }}>
-        <span className="glow-arrow">{arrowSymbol(current.arrow)}</span>
-        <div>
-          <strong>{current.title}</strong>
-          <p>{current.text}</p>
-          <div className="glow-tour-actions">
-            <button type="button" onClick={onDone}>跳过 (Skip)</button>
-            <button type="button" onClick={next}>{isLast ? "完成" : "知道了 (Next)"}</button>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function arrowSymbol(direction = "right") {
-  return { right: "⬅️", down: "⬇️", left: "➡️", up: "⬆️" }[direction] ?? "➡️";
 }
 
 function createBlankNovel(id, index) {
-  const color = BOOK_COLORS[(index - 1) % BOOK_COLORS.length];
   return {
     id,
     title: `新小说 ${index}`,
-    subtitle: "在这里写一句温柔、清晰的副标题",
-    color,
-    accent: "#DDA96A",
-    genre: "原创 / 待定",
+    subtitle: "一句话写下这本书的灵魂。",
+    genre: "类型未定",
+    color: BOOK_COLORS[index % BOOK_COLORS.length],
+    accent: "#F6E7D5",
     currentWords: 0,
-    targetWords: 120000,
-    finishDate: "2027-12-31",
-    urls: { ao3: "", jjwxc: "", qidian: "", qimao: "", fanqie: "", changpei: "" },
-    sourceLinks: [{ label: "AO3", url: "" }],
-    outline: "在这里整理故事大纲。",
-    setting: "在这里整理世界观、空间、组织和物件设定。",
-    themes: ["新故事"],
-    characters: [
-      {
-        id: `${id}-character-1`,
-        name: "新人物",
-        age: 20,
-        role: "待定",
-        tag: "主要配角",
-        color,
-        background: "补充人物背景。",
-        secret: "补充隐藏设定。",
-        images: [],
-      },
-    ],
+    targetWords: 100000,
+    finishDate: "2026-12-31",
+    outline: "写下主线、转折点、核心冲突与结局方向。",
+    setting: "写下世界观、时代背景、规则系统、地理空间与重要道具。",
+    themes: ["成长", "羁绊"],
+    characters: [],
     relationships: [],
-    timeline: [
-      {
-        id: `${id}-event-1`,
-        date: "起点",
-        title: "故事开始",
-        background: "补充事件发生前的背景。",
-        plot: "补充这个事件如何推动人物选择。",
-        images: [],
-      },
-    ],
+    timeline: [],
+    sourceLinks: [],
   };
 }
 
 function timelineRank(event) {
-  if (Number.isFinite(event.rank)) return event.rank;
-  const text = `${event.date ?? ""} ${event.title ?? ""}`;
-  const age = text.match(/(\d+)\s*岁/);
-  if (age) return Number(age[1]) * 100;
-  const chapter = text.match(/第\s*(\d+)\s*章/);
-  if (chapter) return 10000 + Number(chapter[1]);
-  const year = text.match(/(\d{2,4})\s*年/);
-  if (year) return Number(year[1]);
-  if (/童年/.test(text)) return 100;
-  if (/少年|高中/.test(text)) return 1500;
-  if (/大学/.test(text)) return 2200;
-  return 999999;
+  const parsed = Date.parse(event.date);
+  if (!Number.isNaN(parsed)) return parsed;
+  return String(event.date ?? "").localeCompare("");
 }
 
 function downloadText(filename, content, type) {
   const blob = new Blob([content], { type });
   const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  link.click();
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
   URL.revokeObjectURL(url);
 }
 
 function buildMarkdownExport(data) {
-  const lines = [`# AuthorHub Export`, "", `导出时间：${new Date().toLocaleString()}`, ""];
-  for (const novel of data.novels ?? []) {
-    lines.push(`## ${novel.title}`, "", novel.subtitle ?? "", "", `类型：${novel.genre ?? ""}`, `字数：${novel.currentWords ?? 0} / ${novel.targetWords ?? 0}`, "");
-    lines.push(`### 大纲`, "", novel.outline ?? "", "", `### 设定集`, "", novel.setting ?? "", "");
-    lines.push(`### 人物`, "");
-    for (const character of novel.characters ?? []) {
-      lines.push(`- **${character.name}**：${character.role ?? ""} / ${character.tag ?? ""}`);
-    }
-    lines.push("", `### 时间线`, "");
-    for (const event of novel.timeline ?? []) {
-      lines.push(`- **${event.date}｜${event.title}**：${event.plot ?? ""}`);
-    }
-    lines.push("");
-  }
-  return lines.join("\n");
+  const sections = [`# AuthorHub Export`, ``, `## 作者`, `- 笔名：${data.author.pseudonym}`, `- 年龄：${data.author.age}`, `- 更新频率：${data.author.updateFrequency}`, `- 首发平台：${data.author.platform}`, ``];
+
+  data.novels.forEach((novel) => {
+    sections.push(`## ${novel.title}`, `_${novel.subtitle}_`, ``, `- 类型：${novel.genre}`, `- 当前字数：${novel.currentWords}`, `- 预计总字数：${novel.targetWords}`, `- 完结时间：${novel.finishDate}`, ``);
+    sections.push(`### 大纲`, novel.outline, ``, `### 设定集`, novel.setting, ``);
+    sections.push(`### 主题`, ...(novel.themes ?? []).map((theme) => `- ${theme}`), ``);
+    sections.push(`### 人物`, ...(novel.characters ?? []).map((character) => `- ${character.name}：${character.archetype}`), ``);
+    sections.push(`### 关系`, ...(novel.relationships ?? []).map((relationship) => `- ${relationship.source} → ${relationship.target}：${relationship.label}`), ``);
+    sections.push(`### 时间线`, ...(novel.timeline ?? []).map((event) => `- ${event.date}｜${event.title}`), ``);
+  });
+
+  return sections.join("\n");
 }
