@@ -1,0 +1,193 @@
+/* User Center Refine Pass
+   Scope: fix user-center field artifacts, stable hover surfaces, and account-deletion modal.
+*/
+
+.user-center-section {
+  --uc-account-surface:
+    radial-gradient(circle at 10% 0%, rgba(255, 255, 255, 0.54), transparent 32%),
+    linear-gradient(135deg, #f0efeb 0%, #e5e3dc 50%, #dcd9d0 100%);
+  --uc-donation-surface:
+    radial-gradient(circle at 22% 8%, rgba(255, 255, 255, 0.58), transparent 34%),
+    radial-gradient(circle at 82% 86%, rgba(174, 128, 82, 0.075), transparent 36%),
+    linear-gradient(135deg, #f5eee4 0%, #e9ddce 54%, #e1d3c2 100%);
+  --uc-danger-surface: linear-gradient(135deg, #a36a61 0%, #8f5e57 100%);
+}
+
+/* User-center cards are excluded from the paper-texture system.
+   Keep their base surface deterministic; hover may move slightly but cannot swap color. */
+.user-center-section .user-account-panel,
+.user-center-section .user-account-panel:hover {
+  background: var(--uc-account-surface) !important;
+  border-color: rgba(67, 72, 65, 0.08) !important;
+}
+
+.user-center-section .user-donation-panel,
+.user-center-section .user-donation-panel:hover {
+  background: var(--uc-donation-surface) !important;
+  border-color: rgba(139, 105, 72, 0.1) !important;
+}
+
+.user-center-section .user-account-panel,
+.user-center-section .user-donation-panel {
+  transition:
+    transform 190ms var(--ease),
+    border-color 190ms var(--ease),
+    box-shadow 190ms var(--ease) !important;
+}
+
+.user-center-section .user-account-panel:hover,
+.user-center-section .user-donation-panel:hover {
+  transform: translateY(-1px) !important;
+}
+
+/* Kill old global pseudo-texture layers that were reintroduced in styles.css.
+   They caused the surface to look like it changed color on hover. */
+.user-center-section .user-account-panel::before,
+.user-center-section .user-account-panel::after,
+.user-center-section .user-donation-panel::before,
+.user-center-section .user-donation-panel::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* The username/email wrappers should not be mini paper cards.
+   The square artifact came from background applied to the label wrapper, then the input sat on top. */
+.user-center-section .user-info-grid label {
+  display: grid !important;
+  gap: 7px !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: rgba(91, 79, 68, 0.86) !important;
+  text-shadow: none !important;
+}
+
+.user-center-section .user-info-grid label::before,
+.user-center-section .user-info-grid label::after {
+  content: none !important;
+  display: none !important;
+}
+
+.user-center-section .user-info-grid input {
+  display: block !important;
+  min-height: 48px !important;
+  margin: 0 !important;
+  padding: 10px 14px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(218, 207, 190, 0.66) !important;
+  border-radius: 12px !important;
+  background:
+    linear-gradient(135deg, rgba(255, 253, 248, 0.9), rgba(247, 241, 232, 0.82)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.74),
+    0 1px 0 rgba(255, 255, 255, 0.32) !important;
+  color: var(--ink) !important;
+  line-height: 1.42 !important;
+  text-overflow: ellipsis !important;
+}
+
+.user-center-section .user-info-grid input:focus {
+  border-color: rgba(108, 139, 136, 0.44) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 253, 248, 0.98), rgba(249, 244, 237, 0.9)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 0 0 3px rgba(108, 139, 136, 0.09) !important;
+}
+
+/* Unregister button: keep the same color on hover, but preserve a small spring. */
+.user-center-section .user-action-board .btn-unregister,
+.user-center-section .user-action-board .btn-unregister:hover,
+.user-center-section .user-action-board .btn-unregister:focus-visible {
+  background: var(--uc-danger-surface) !important;
+  color: #fff8ef !important;
+  border-color: rgba(143, 94, 87, 0.22) !important;
+}
+
+.user-center-section .user-action-board .btn-unregister:hover {
+  box-shadow: 0 11px 24px rgba(143, 94, 87, 0.12) !important;
+  animation: userCenterSoftSpring 210ms var(--ease);
+}
+
+/* Account deletion is a real modal, not an inline block inside the card. */
+.user-unregister-backdrop {
+  z-index: 170 !important;
+  padding: 24px !important;
+}
+
+.user-unregister-modal {
+  width: min(430px, 100%) !important;
+  border-radius: 24px !important;
+  background:
+    radial-gradient(circle at 14% 4%, rgba(255, 255, 255, 0.58), transparent 34%),
+    linear-gradient(135deg, rgba(253, 251, 247, 0.96), rgba(239, 232, 220, 0.9)) !important;
+  border: 1px solid rgba(234, 223, 212, 0.84) !important;
+  box-shadow: 0 30px 82px rgba(44, 36, 24, 0.16) !important;
+}
+
+.user-unregister-modal .confirm-actions {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+  margin-top: 8px !important;
+}
+
+.user-unregister-modal .ghost-button,
+.user-unregister-modal .btn-unregister {
+  display: inline-flex !important;
+  min-height: 52px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 16px !important;
+  font-weight: 850 !important;
+}
+
+.user-unregister-modal .ghost-button {
+  background:
+    linear-gradient(135deg, rgba(255, 253, 248, 0.92), rgba(247, 241, 232, 0.86)) !important;
+  border: 1px solid rgba(218, 207, 190, 0.66) !important;
+  color: var(--ink) !important;
+}
+
+.user-unregister-modal .btn-unregister,
+.user-unregister-modal .btn-unregister:hover,
+.user-unregister-modal .btn-unregister:focus-visible {
+  background: var(--uc-danger-surface) !important;
+  color: #fff8ef !important;
+  border: 1px solid rgba(143, 94, 87, 0.22) !important;
+  box-shadow: none !important;
+}
+
+.user-unregister-modal .btn-unregister:hover,
+.user-unregister-modal .ghost-button:hover {
+  animation: userCenterSoftSpring 210ms var(--ease);
+}
+
+@keyframes userCenterSoftSpring {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+
+  58% {
+    transform: translateY(-1px) scale(1.012);
+  }
+
+  100% {
+    transform: translateY(-1px) scale(1);
+  }
+}
+
+body[data-theme="dark"] .user-center-section {
+  --uc-account-surface: linear-gradient(135deg, #282724 0%, #333029 100%);
+  --uc-donation-surface: linear-gradient(135deg, #2c2822 0%, #382f24 100%);
+}
+
+@media (max-width: 680px) {
+  .user-unregister-modal .confirm-actions {
+    grid-template-columns: 1fr !important;
+  }
+}
