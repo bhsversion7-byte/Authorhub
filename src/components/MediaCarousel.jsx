@@ -39,10 +39,17 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
   useEffect(() => {
     if (!safeImages.length) {
       setActiveIndex(0);
+      setPreviewImage(null);
       return;
     }
     if (activeIndex > safeImages.length - 1) setActiveIndex(safeImages.length - 1);
   }, [activeIndex, safeImages.length]);
+
+  useEffect(() => {
+    if (!previewImage) return;
+    const stillExists = safeImages.some((image) => getImageKey(image) === getImageKey(previewImage));
+    if (!stillExists) setPreviewImage(null);
+  }, [previewImage, safeImages]);
 
   useEffect(() => {
     if (!previewImage) return;
@@ -86,7 +93,10 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
           }),
       ),
     ).then((nextImages) => {
-      if (nextImages.length) onChange([...safeImages, ...nextImages]);
+      if (!nextImages.length) return;
+      const nextActiveIndex = safeImages.length;
+      onChange([...safeImages, ...nextImages]);
+      setActiveIndex(nextActiveIndex);
     });
     event.target.value = "";
   }
@@ -95,13 +105,19 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
     const trimmed = url.trim();
     if (!trimmed) return;
     setMediaError("");
+    const nextActiveIndex = safeImages.length;
     onChange([...safeImages, { id: `${Date.now()}-${trimmed}`, src: trimmed, alt: label }]);
+    setActiveIndex(nextActiveIndex);
     setUrl("");
   }
 
-  function removeImage(id, event) {
+  function removeImage(index, event) {
+    event?.preventDefault();
     event?.stopPropagation();
-    onChange(safeImages.filter((image) => image.id !== id));
+    const nextImages = safeImages.filter((_, itemIndex) => itemIndex !== index);
+    onChange(nextImages);
+    setActiveIndex((current) => Math.max(0, Math.min(current, nextImages.length - 1)));
+    setPreviewImage(null);
   }
 
   function move(delta, event) {
@@ -157,7 +173,17 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
       </div>
 
       <div className="media-url-row compact-media-url">
-        <input value={url} onChange={(event) => setUrl(event.target.value)} placeholder="粘贴图片 URL" />
+        <input
+          value={url}
+          onChange={(event) => setUrl(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              addUrl();
+            }
+          }}
+          placeholder="粘贴图片 URL"
+        />
         <button type="button" onClick={addUrl} aria-label="添加图片链接">
           <Link size={15} />
         </button>
@@ -180,7 +206,7 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
               return (
                 <figure
                   className={`imessage-card ${index === activeIndex ? "is-active" : ""}`}
-                  key={image.id ?? image.src}
+                  key={getImageKey(image, index)}
                   data-visible={visible ? "true" : "false"}
                   onClick={(event) => openPreview(image, index, event)}
                   title={index === activeIndex ? "点击查看大图" : "点击切换到这张图片"}
@@ -194,7 +220,7 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
                   }}
                 >
                   <img src={image.src} alt={image.alt || `${label} ${index + 1}`} draggable="false" />
-                  <button type="button" onClick={(event) => removeImage(image.id, event)} aria-label="删除图片">
+                  <button type="button" onClick={(event) => removeImage(index, event)} aria-label="删除图片">
                     <Trash2 size={14} />
                   </button>
                 </figure>
@@ -210,7 +236,7 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
               {safeImages.map((image, index) => (
                 <button
                   type="button"
-                  key={image.id ?? image.src}
+                  key={getImageKey(image, index)}
                   className={index === activeIndex ? "is-active" : ""}
                   onClick={(event) => {
                     event.stopPropagation();
@@ -260,4 +286,8 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
         )}
     </div>
   );
+}
+
+function getImageKey(image, fallback = "") {
+  return image?.id ?? image?.src ?? String(fallback);
 }
