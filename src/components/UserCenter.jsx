@@ -31,7 +31,7 @@ export default function UserCenter({
       <div className="section-heading user-center-heading">
         <p className="eyebrow">User center</p>
         <h1>用户中心</h1>
-        <p>管理账号、安全、数据导出与纯净打赏。创作内容隐私优先；云端同步失败时会自动回落到本地缓存。</p>
+        <p>管理账号、数据备份、清空数据和打赏入口。创作内容优先保存在当前账号；云端同步失败时会自动回落到本地缓存。</p>
       </div>
 
       <div className="user-center-page-grid">
@@ -39,7 +39,7 @@ export default function UserCenter({
           <div className="panel-title spacious-title">
             <ShieldCheck size={16} />
             <div>
-              <h2>账号与数据主权</h2>
+              <h2>账号与备份</h2>
               <span>{authUser ? "已登录" : "本地演示账号"}</span>
             </div>
           </div>
@@ -50,7 +50,7 @@ export default function UserCenter({
               <input value={username} onChange={(event) => onAuthorChange({ ...safeAuthor, username: event.target.value })} />
             </label>
             <label>
-              用户绑定邮箱
+              邮箱
               <input value={email} onChange={(event) => onAuthorChange({ ...safeAuthor, email: event.target.value })} />
             </label>
           </div>
@@ -70,7 +70,7 @@ export default function UserCenter({
             </button>
             <button type="button" onClick={() => setConfirmClear(true)}>
               <Trash2 size={15} />
-              清空云端数据
+              清空数据
             </button>
             <button type="button" className="btn-unregister" onClick={() => setConfirmUnregister(true)}>
               <UserX size={15} />
@@ -78,19 +78,19 @@ export default function UserCenter({
             </button>
             <button type="button" onClick={onLogout}>
               <LogOut size={15} />
-              安全登出
+              退出登录
             </button>
           </div>
 
           <a className="feedback-link is-wide user-feedback" href="mailto:bhsversion@163.com?subject=AuthorHub_Feedback">
             <Mail size={14} />
-            小宇宙互助 / 倾听建议：欢迎向 bhsversion@163.com 分享产品建议或宏大人物设定。
+            反馈与建议：欢迎发邮件到 bhsversion@163.com。
           </a>
 
           {confirmClear && (
             <div className="inline-confirm compact-confirm">
-              <strong>确定清空全部小说信息？</strong>
-              <p>这会清空当前账号下的作品、人物、星图、时间线和设定集。本地缓存也会同步清空。</p>
+              <strong>确定清空全部作品数据？</strong>
+              <p>这会清空当前账号下的作品、人物、星图、时间线和设定集，本地缓存也会同步清空。</p>
               <div>
                 <button type="button" className="ghost-button" onClick={() => setConfirmClear(false)}>
                   取消
@@ -111,7 +111,7 @@ export default function UserCenter({
 
           {confirmUnregister && (
             <div className="inline-confirm compact-confirm unregister-confirm">
-              <strong>确认申请注销账号？</strong>
+              <strong>确认注销账号？</strong>
               <div>
                 <button type="button" className="ghost-button" onClick={() => setConfirmUnregister(false)}>
                   取消
@@ -138,9 +138,9 @@ export default function UserCenter({
         <article className="panel donation-panel user-donation-panel">
           <div className="panel-title">
             <WalletCards size={16} />
-            <h2>纯净打赏</h2>
+            <h2>打赏支持</h2>
           </div>
-          <p>如果你喜欢这个工具，欢迎请作者喝杯咖啡，支持用爱发电（^^）。</p>
+          <p>如果你喜欢这个工具，可以请作者喝杯咖啡，支持继续维护。</p>
           <div className="donation-tabs" role="tablist" aria-label="赞助方式">
             <button
               type="button"
@@ -167,10 +167,10 @@ export default function UserCenter({
             type="button"
             className={`donation-qr donation-privacy-frame ${qrUnlocked ? "is-unlocked" : ""}`}
             onClick={() => setQrUnlocked((current) => !current)}
-            aria-label={qrUnlocked ? "重新模糊打赏二维码" : "解锁查看打赏二维码"}
+            aria-label={qrUnlocked ? "重新模糊打赏二维码" : "查看打赏二维码"}
           >
             <img src={DONATION_QR[donationTab]} alt={donationTab === "wechat" ? "微信打赏二维码" : "支付宝打赏二维码"} />
-            {!qrUnlocked && <span className="donation-unlock-copy">☕ 点击图片，解锁赞助通道</span>}
+            {!qrUnlocked && <span className="donation-unlock-copy">☕ 点击查看二维码</span>}
           </button>
         </article>
       </div>
