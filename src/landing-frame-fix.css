@@ -1,0 +1,12 @@
+[data-landing-mode="AUTH"] section[aria-hidden="false"] > div {
+  width: min(430px, calc(100vw - 48px)) !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+[data-landing-mode="AUTH"] section[aria-hidden="false"] > div > form {
+  width: 100% !important;
+  margin: 0 !important;
+}
