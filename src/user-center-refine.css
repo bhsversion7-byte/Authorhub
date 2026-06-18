@@ -4,21 +4,24 @@
 
 .user-center-section {
   --uc-account-surface:
-    radial-gradient(circle at 10% 0%, rgba(255, 255, 255, 0.54), transparent 32%),
-    linear-gradient(135deg, #f0efeb 0%, #e5e3dc 50%, #dcd9d0 100%);
+    radial-gradient(circle at 10% 0%, rgba(255, 255, 255, 0.56), transparent 32%),
+    radial-gradient(circle at 88% 90%, rgba(108, 128, 112, 0.075), transparent 38%),
+    linear-gradient(135deg, #eceee9 0%, #dfe5dd 52%, #d3dbd2 100%);
   --uc-donation-surface:
-    radial-gradient(circle at 20% 6%, rgba(255, 255, 255, 0.58), transparent 34%),
-    radial-gradient(circle at 86% 88%, rgba(114, 132, 129, 0.08), transparent 38%),
-    linear-gradient(135deg, #eef1f1 0%, #dfe6e7 54%, #d4dcde 100%);
+    radial-gradient(circle at 20% 6%, rgba(255, 255, 255, 0.54), transparent 34%),
+    radial-gradient(circle at 86% 88%, rgba(92, 112, 120, 0.12), transparent 38%),
+    linear-gradient(135deg, #e5eaeb 0%, #d3dddf 54%, #c4d0d3 100%);
   --uc-danger-surface: linear-gradient(135deg, #a36a61 0%, #8f5e57 100%);
 }
 
 /* User-center cards are excluded from the paper-texture system.
    Keep their base surface deterministic; hover may move slightly but cannot swap color. */
 .user-center-section .user-account-panel,
-.user-center-section .user-account-panel:hover {
+.user-center-section .user-account-panel:hover,
+.user-center-section .panel.user-account-panel,
+.user-center-section .panel.user-account-panel:hover {
   background: var(--uc-account-surface) !important;
-  border-color: rgba(67, 72, 65, 0.08) !important;
+  border-color: rgba(86, 105, 91, 0.13) !important;
 }
 
 .user-center-section .user-donation-panel,
@@ -28,7 +31,7 @@
 .user-center-section .panel.donation-panel.user-donation-panel,
 .user-center-section .panel.donation-panel.user-donation-panel:hover {
   background: var(--uc-donation-surface) !important;
-  border-color: rgba(105, 126, 132, 0.16) !important;
+  border-color: rgba(89, 111, 119, 0.18) !important;
 }
 
 .user-center-section .user-account-panel,
@@ -186,7 +189,7 @@
 }
 
 body[data-theme="dark"] .user-center-section {
-  --uc-account-surface: linear-gradient(135deg, #282724 0%, #333029 100%);
+  --uc-account-surface: linear-gradient(135deg, #252c27 0%, #30362f 100%);
   --uc-donation-surface: linear-gradient(135deg, #253031 0%, #30383a 100%);
 }
 
