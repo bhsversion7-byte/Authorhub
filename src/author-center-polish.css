@@ -21,10 +21,11 @@
 .author-section .editable-control {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 42px;
+  grid-template-columns: minmax(0, 1fr) 40px;
   align-items: stretch;
   min-height: 44px;
   overflow: hidden;
+  padding-right: 3px;
   border: 1px solid rgba(234, 229, 218, 0.78);
   border-radius: 18px;
   background:
@@ -52,7 +53,7 @@
   min-width: 0;
   min-height: 44px;
   margin: 0;
-  padding: 10px 0 10px 12px;
+  padding: 10px 6px 10px 12px;
   border: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
@@ -77,14 +78,15 @@
 
 .author-section .editable-control button {
   display: grid;
-  width: 42px;
-  height: auto;
-  min-height: 44px;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  place-self: center;
   place-items: center;
-  border-left: 1px solid rgba(108, 139, 136, 0.12);
-  border-radius: 0;
+  border: 0;
+  border-radius: 14px;
   background: rgba(108, 139, 136, 0.1);
-  color: color-mix(in srgb, var(--teal) 74%, var(--ink));
+  color: color-mix(in srgb, var(--teal) 72%, var(--ink));
   box-shadow: none;
 }
 
@@ -97,6 +99,24 @@
 .author-section .editable-control button:focus-visible {
   outline: 2px solid rgba(108, 139, 136, 0.28);
   outline-offset: -4px;
+}
+
+.author-section .profile-panel,
+.author-section .progress-panel,
+.author-section .appearance-panel {
+  transition:
+    border-color 170ms var(--ease),
+    box-shadow 170ms var(--ease);
+}
+
+.author-section .profile-panel:hover,
+.author-section .progress-panel:hover,
+.author-section .appearance-panel:hover {
+  transform: none !important;
+  background: var(--paper-gradient) !important;
+  border-color: rgba(108, 139, 136, 0.28) !important;
+  box-shadow: var(--paper-shadow), 0 0 0 1px rgba(108, 139, 136, 0.12) !important;
+  animation: authorCardBorderPop 190ms ease-out;
 }
 
 .author-section .appearance-controls {
@@ -155,6 +175,20 @@
   border-style: solid;
   background: rgba(255, 250, 244, 0.5);
   color: rgba(122, 114, 103, 0.88);
+}
+
+@keyframes authorCardBorderPop {
+  0% {
+    box-shadow: var(--paper-shadow), 0 0 0 0 rgba(108, 139, 136, 0);
+  }
+
+  70% {
+    box-shadow: var(--paper-shadow), 0 0 0 3px rgba(108, 139, 136, 0.08);
+  }
+
+  100% {
+    box-shadow: var(--paper-shadow), 0 0 0 1px rgba(108, 139, 136, 0.12);
+  }
 }
 
 @media (max-width: 980px) {
