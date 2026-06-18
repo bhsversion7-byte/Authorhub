@@ -1,0 +1,42 @@
+.content-shell.font-sans,
+.app-shell:has(.content-shell.font-sans) .sidebar {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Noto Sans SC", sans-serif;
+}
+
+.content-shell.font-serif,
+.app-shell:has(.content-shell.font-serif) .sidebar {
+  font-family: Georgia, "Times New Roman", "Songti SC", "STSong", "Noto Serif SC", serif;
+}
+
+.content-shell.font-mono,
+.app-shell:has(.content-shell.font-mono) .sidebar {
+  font-family: "Cascadia Mono", "SFMono-Regular", Consolas, "Noto Sans Mono CJK SC", monospace;
+}
+
+.content-shell.font-yahei,
+.app-shell:has(.content-shell.font-yahei) .sidebar {
+  font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", system-ui, sans-serif;
+}
+
+.content-shell.font-songti,
+.app-shell:has(.content-shell.font-songti) .sidebar {
+  font-family: SimSun, "Songti SC", STSong, "Noto Serif SC", Georgia, serif;
+}
+
+.content-shell.font-sans input,
+.content-shell.font-sans textarea,
+.content-shell.font-sans select,
+.content-shell.font-serif input,
+.content-shell.font-serif textarea,
+.content-shell.font-serif select,
+.content-shell.font-mono input,
+.content-shell.font-mono textarea,
+.content-shell.font-mono select,
+.content-shell.font-yahei input,
+.content-shell.font-yahei textarea,
+.content-shell.font-yahei select,
+.content-shell.font-songti input,
+.content-shell.font-songti textarea,
+.content-shell.font-songti select {
+  font-family: inherit;
+}
