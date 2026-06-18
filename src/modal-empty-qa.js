@@ -1,5 +1,6 @@
 const INSTALL_FLAG = "__authorHubModalQa";
 const MODAL_SELECTOR = ".modal-backdrop .confirm-modal";
+const FOCUSABLE_SELECTOR = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 if (typeof document !== "undefined") {
   installModalQa();
@@ -40,6 +41,26 @@ function installModalQa() {
       window.setTimeout(() => (preferred ?? modal).focus?.(), 0);
     });
   };
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab" || !activeModal) return;
+    const focusable = Array.from(activeModal.querySelectorAll(FOCUSABLE_SELECTOR)).filter((element) => !element.disabled && element.offsetParent !== null);
+    if (!focusable.length) {
+      event.preventDefault();
+      activeModal.focus?.();
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
 
   scheduleUpdate();
   const observer = new MutationObserver(scheduleUpdate);
