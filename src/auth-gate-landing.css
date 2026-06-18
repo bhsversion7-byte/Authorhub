@@ -1,15 +1,11 @@
-.landing-gateway.mode-auth,
-.landing-gateway .landing-auth-panel {
-  background:
-    radial-gradient(circle at 18% 12%, rgba(221, 169, 106, 0.16), transparent 30%),
-    radial-gradient(circle at 84% 16%, rgba(139, 160, 156, 0.14), transparent 32%),
-    linear-gradient(135deg, #fbf9f6 0%, #f7f0e8 100%) !important;
-}
-
 .landing-gateway.mode-auth {
-  height: 100svh;
   min-height: 100svh;
   overflow: hidden;
+  background:
+    radial-gradient(circle at 70% 46%, rgba(242, 153, 74, 0.19), transparent 23%),
+    radial-gradient(circle at 78% 38%, rgba(123, 97, 255, 0.15), transparent 29%),
+    radial-gradient(circle at 18% 14%, rgba(215, 137, 142, 0.12), transparent 28%),
+    linear-gradient(135deg, #0f1317 0%, #12161a 48%, #171214 100%) !important;
 }
 
 .landing-gateway .landing-auth-panel {
@@ -20,10 +16,21 @@
   place-items: center;
   padding: clamp(18px, 5vw, 48px);
   overflow: hidden;
+  background: transparent;
+}
+
+.landing-gateway.mode-auth .landing-stage {
+  min-height: 100svh;
+}
+
+.landing-gateway.mode-auth .landing-book-stage {
+  opacity: 0.16;
+  transform: translateX(11vw) scale(0.78);
+  filter: blur(8px);
 }
 
 .landing-gateway .landing-auth-panel .auth-wall {
-  width: 100%;
+  width: min(450px, 100%);
   min-height: auto;
   padding: 0;
   background: transparent;
@@ -39,7 +46,7 @@
     radial-gradient(circle at 16% 2%, rgba(244, 213, 191, 0.28), transparent 34%),
     rgba(253, 251, 247, 0.94);
   color: #2c2a29;
-  box-shadow: 0 34px 90px rgba(44, 38, 33, 0.16);
+  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.24);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
