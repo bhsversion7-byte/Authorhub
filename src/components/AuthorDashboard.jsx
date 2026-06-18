@@ -135,7 +135,7 @@ export default function AuthorDashboard({
         </div>
       </div>
 
-      <p className="global-disclaimer">请勿上传违法违规或侵犯他人版权的内容。本工具用于结构化创作辅助，用户生成内容不代表本站立场。</p>
+      <p className="global-disclaimer">请尊重法律、版权与他人权益；AuthorHub 用于辅助梳理创作结构，具体内容由用户自行负责。</p>
     </section>
   );
 }
