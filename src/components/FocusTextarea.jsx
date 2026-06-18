@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { Maximize2, Minimize2 } from "lucide-react";
 
 export default function FocusTextarea({ label, value, onChange, rows = 5, placeholder }) {
   const [focused, setFocused] = useState(false);
   const textareaRef = useRef(null);
+  const titleId = useId();
 
   useEffect(() => {
     if (!focused) return;
@@ -26,21 +27,21 @@ export default function FocusTextarea({ label, value, onChange, rows = 5, placeh
   }, [focused]);
 
   return (
-    <label className="focus-textarea-wrap">
-      <span className="focus-textarea-label">
-        {label}
+    <div className="focus-textarea-wrap">
+      <div className="focus-textarea-label">
+        <span>{label}</span>
         <button type="button" onClick={() => setFocused(true)} aria-label={`专注编辑${label}`}>
           <Maximize2 size={14} />
         </button>
-      </span>
+      </div>
       <textarea value={value} rows={rows} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />
       {focused && (
-        <div className="zen-overlay" role="dialog" aria-modal="true">
-          <div className="zen-editor">
+        <div className="zen-overlay" role="presentation" onMouseDown={() => setFocused(false)}>
+          <div className="zen-editor" role="dialog" aria-modal="true" aria-labelledby={titleId} onMouseDown={(event) => event.stopPropagation()}>
             <div className="zen-editor-head">
               <div>
-                <p className="eyebrow">Zen focus</p>
-                <h3>{label}</h3>
+                <p className="eyebrow">Focus editor</p>
+                <h3 id={titleId}>{label}</h3>
               </div>
               <button type="button" onClick={() => setFocused(false)} aria-label="退出专注编辑">
                 <Minimize2 size={17} />
@@ -51,6 +52,6 @@ export default function FocusTextarea({ label, value, onChange, rows = 5, placeh
           </div>
         </div>
       )}
-    </label>
+    </div>
   );
 }
