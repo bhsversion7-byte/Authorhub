@@ -1,6 +1,7 @@
 /* Sidebar nav state fix
    Keep 作者主页 as a dark button even when 用户中心 is active.
    Keep this file loaded after global sidebar rules.
+   Recent source polish included.
 */
 
 .sidebar .nav-item.is-home,
