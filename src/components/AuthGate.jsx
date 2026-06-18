@@ -68,9 +68,9 @@ export default function AuthGate({ onAuthed }) {
   async function submit(event) {
     event.preventDefault();
     setMessage("");
-    if (!emailValid) return setMessage("请输入有效邮箱。令");
-    if (!passwordValid) return setMessage("密码至少需要 6 位。令");
-    if (mode === "register" && !accepted) return setMessage("请先阅读并接受服务条款与隐私政策。令");
+    if (!emailValid) return setMessage("请输入有效邮箱。");
+    if (!passwordValid) return setMessage("密码至少需要 6 位。");
+    if (mode === "register" && !accepted) return setMessage("请先阅读并接受服务条款与隐私政策。");
     if (mode === "register" && !(await verifyCaptcha())) return;
 
     setBusy(true);
