@@ -118,6 +118,7 @@ export default function AuthorDashboard({
               <option value="mono">设定文档等宽</option>
               <option value="yahei">系统雅黑</option>
               <option value="songti">传统宋体</option>
+              <option value="mimeograph">油印仿真</option>
             </select>
           </label>
           <div className="privacy-control-row">
