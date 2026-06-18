@@ -38,10 +38,6 @@ function damp(current, target, lambda, delta) {
   return THREE.MathUtils.damp(current, target, lambda, delta);
 }
 
-function portraitBlob(nx, ny, cx, cy, rx, ry, weight = 1) {
-  return Math.exp(-((nx - cx) ** 2 / rx + (ny - cy) ** 2 / ry)) * weight;
-}
-
 function useWindowScrollProgress(enabled) {
   const [progress, setProgress] = useState(0);
 
@@ -102,6 +98,26 @@ function drawPaperFiber(ctx, width, height, intensity = 1) {
   ctx.restore();
 }
 
+function drawCrossStar(ctx, x, y, radius, alpha, rotation = 0) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rotation);
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = "#050505";
+  ctx.beginPath();
+  ctx.moveTo(0, -radius);
+  ctx.quadraticCurveTo(radius * 0.16, -radius * 0.16, radius, 0);
+  ctx.quadraticCurveTo(radius * 0.16, radius * 0.16, 0, radius);
+  ctx.quadraticCurveTo(-radius * 0.16, radius * 0.16, -radius, 0);
+  ctx.quadraticCurveTo(-radius * 0.16, -radius * 0.16, 0, -radius);
+  ctx.fill();
+
+  ctx.globalAlpha = alpha * 0.45;
+  ctx.fillRect(-radius * 0.055, -radius * 1.45, radius * 0.11, radius * 2.9);
+  ctx.fillRect(-radius * 1.45, -radius * 0.055, radius * 2.9, radius * 0.11);
+  ctx.restore();
+}
+
 function createProceduralPaperTexture(gl) {
   const canvas = document.createElement("canvas");
   canvas.width = 768;
@@ -137,10 +153,10 @@ function createProceduralCoverTexture(gl) {
 
   ctx.fillStyle = "#eee9df";
   ctx.fillRect(0, 0, width, height);
-  drawPaperFiber(ctx, width, height, 1.15);
+  drawPaperFiber(ctx, width, height, 1.18);
 
   const paperGlow = ctx.createRadialGradient(width * 0.56, height * 0.42, 40, width * 0.54, height * 0.48, 620);
-  paperGlow.addColorStop(0, "rgba(255, 253, 245, 0.46)");
+  paperGlow.addColorStop(0, "rgba(255, 253, 245, 0.5)");
   paperGlow.addColorStop(0.62, "rgba(222, 211, 195, 0.1)");
   paperGlow.addColorStop(1, "rgba(94, 68, 48, 0.12)");
   ctx.fillStyle = paperGlow;
@@ -164,75 +180,28 @@ function createProceduralCoverTexture(gl) {
   ctx.fillText("WORLD, OURS", 0, 0);
   ctx.restore();
 
-  ctx.save();
-  ctx.globalAlpha = 0.2;
-  ctx.fillStyle = "#dbcfc0";
-  ctx.beginPath();
-  ctx.ellipse(width * 0.57, height * 0.49, width * 0.26, height * 0.34, 0.05, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
-  const dotStep = 10.8;
-  for (let y = 112; y < height - 72; y += dotStep) {
+  const dotStep = 22;
+  for (let y = 90; y < height - 72; y += dotStep) {
     for (let x = 124; x < width - 42; x += dotStep) {
       const nx = x / width;
       const ny = y / height;
+      const edgeBand = nx > 0.82 || nx < 0.23 || ny < 0.15 || ny > 0.84 ? 0.38 : 0;
+      const diagonal = Math.max(0, 0.5 - Math.abs(ny - (0.18 + nx * 0.78))) * 0.7;
+      const upperMist = Math.max(0, 0.4 - Math.abs(ny - 0.24)) * 0.4;
+      const lowerMist = Math.max(0, 0.42 - Math.abs(ny - 0.72)) * 0.38;
+      const randomInk = (Math.sin(x * 0.055 + y * 0.071) + Math.sin(x * 0.028 - y * 0.044) + 2) * 0.065;
+      const keepTextClear = nx > 0.42 && nx < 0.6 && ny > 0.44 && ny < 0.59 ? -0.42 : 0;
+      const intensity = clamp01(edgeBand + diagonal + upperMist + lowerMist + randomInk + keepTextClear);
+      if (intensity < 0.2) continue;
 
-      const hairMass =
-        portraitBlob(nx, ny, 0.36, 0.33, 0.026, 0.06, 0.62) +
-        portraitBlob(nx, ny, 0.74, 0.31, 0.03, 0.065, 0.52) +
-        portraitBlob(nx, ny, 0.55, 0.20, 0.09, 0.025, 0.42) +
-        portraitBlob(nx, ny, 0.27, 0.68, 0.035, 0.05, 0.5) +
-        portraitBlob(nx, ny, 0.86, 0.58, 0.025, 0.11, 0.34);
-      const brow =
-        portraitBlob(nx, ny, 0.39, 0.305, 0.013, 0.0018, 0.52) +
-        portraitBlob(nx, ny, 0.67, 0.298, 0.014, 0.0018, 0.46);
-      const eyes =
-        portraitBlob(nx, ny, 0.415, 0.36, 0.0036, 0.0019, 0.58) +
-        portraitBlob(nx, ny, 0.655, 0.35, 0.0036, 0.0019, 0.54);
-      const nose =
-        portraitBlob(nx, ny, 0.54, 0.45, 0.0024, 0.035, 0.25) +
-        portraitBlob(nx, ny, 0.565, 0.57, 0.006, 0.006, 0.22);
-      const lips =
-        portraitBlob(nx, ny, 0.57, 0.665, 0.014, 0.0026, 0.48) +
-        portraitBlob(nx, ny, 0.58, 0.718, 0.018, 0.0038, 0.34);
-      const cheekAndJaw =
-        portraitBlob(nx, ny, 0.34, 0.59, 0.032, 0.035, 0.26) +
-        portraitBlob(nx, ny, 0.73, 0.58, 0.04, 0.06, 0.2) +
-        portraitBlob(nx, ny, 0.55, 0.82, 0.085, 0.022, 0.38);
-      const pageEdge = nx > 0.86 || nx < 0.22 || ny < 0.15 || ny > 0.87 ? 0.18 : 0;
-      const stochasticInk = (Math.sin(x * 0.055 + y * 0.071) + Math.sin(x * 0.028 - y * 0.044) + 2) * 0.04;
-
-      const intensity = Math.min(1, hairMass + brow + eyes + nose + lips + cheekAndJaw + pageEdge + stochasticInk);
-      if (intensity < 0.16) continue;
-
-      const radius = 0.75 + Math.pow(intensity, 1.18) * 3.05;
-      ctx.globalAlpha = 0.3 + intensity * 0.58;
-      ctx.fillStyle = "#050505";
-      ctx.beginPath();
-      ctx.arc(x + Math.sin(y * 0.035) * 1.2, y + Math.cos(x * 0.031) * 0.9, radius, 0, Math.PI * 2);
-      ctx.fill();
+      const radius = 4.6 + intensity * 7.8;
+      const alpha = 0.13 + intensity * 0.38;
+      drawCrossStar(ctx, x + Math.sin(y * 0.03) * 1.6, y + Math.cos(x * 0.025) * 1.1, radius, alpha, (x + y) * 0.006);
     }
   }
+
   ctx.globalAlpha = 1;
-
-  ctx.save();
-  ctx.globalAlpha = 0.62;
-  ctx.strokeStyle = "#050505";
-  ctx.lineWidth = 2.2;
-  ctx.beginPath();
-  ctx.moveTo(width * 0.39, height * 0.355);
-  ctx.quadraticCurveTo(width * 0.43, height * 0.342, width * 0.48, height * 0.358);
-  ctx.moveTo(width * 0.63, height * 0.35);
-  ctx.quadraticCurveTo(width * 0.67, height * 0.338, width * 0.72, height * 0.352);
-  ctx.stroke();
-  ctx.globalAlpha = 0.48;
-  ctx.beginPath();
-  ctx.ellipse(width * 0.58, height * 0.69, 34, 8, -0.02, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.restore();
-
-  ctx.fillStyle = "#050505";
+  ctx.fillStyle = "rgba(5, 5, 5, 0.68)";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.font = "900 22px Arial, sans-serif";
