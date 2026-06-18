@@ -156,32 +156,31 @@
   min-width: 13px;
   margin: 0;
   padding: 0;
-  border: 1px solid rgba(255, 248, 239, 0.26);
-  border-radius: 3px;
-  background: linear-gradient(180deg, rgba(255, 248, 239, 0.14), rgba(255, 248, 239, 0.05));
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.16);
+  border: 1px solid rgba(255, 248, 239, 0.36);
+  border-radius: 2px;
+  background: rgba(255, 248, 239, 0.09);
+  box-shadow: none;
   overflow: hidden;
   accent-color: transparent;
 }
 
 .landing-remember-check input::after {
   content: "";
-  width: 4px;
-  height: 7px;
+  width: 4.5px;
+  height: 7.5px;
   margin-top: -1px;
-  border: solid rgba(255, 248, 239, 0.88);
-  border-width: 0 1.4px 1.4px 0;
+  border: solid rgba(255, 248, 239, 0.98);
+  border-width: 0 1.8px 1.8px 0;
+  filter: drop-shadow(0 0 2px rgba(255, 248, 239, 0.22));
   transform: rotate(45deg) scale(0);
   transform-origin: center;
   transition: transform 160ms ease;
 }
 
 .landing-remember-check input:checked {
-  border-color: rgba(215, 137, 142, 0.54);
-  background: linear-gradient(180deg, rgba(215, 137, 142, 0.36), rgba(199, 126, 126, 0.22));
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 248, 239, 0.08),
-    0 0 10px rgba(215, 137, 142, 0.12);
+  border-color: rgba(255, 248, 239, 0.5);
+  background: linear-gradient(180deg, rgba(215, 137, 142, 0.5), rgba(199, 126, 126, 0.34));
+  box-shadow: inset 0 0 0 1px rgba(255, 248, 239, 0.1);
 }
 
 .landing-remember-check input:checked::after {
