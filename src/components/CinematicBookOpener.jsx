@@ -8,7 +8,7 @@ const PAGE_SEGMENTS = 32;
 const PAGE_COUNT = 20;
 const COVER_THICKNESS = 0.09;
 const STACK_THICKNESS = 0.28;
-const BOOK_ASSET_VERSION = "book-assets-20260618-0255";
+const BOOK_ASSET_VERSION = "book-assets-20260618-0318";
 
 const BOOK_ASSETS = {
   cover: `/bookcover.png?v=${BOOK_ASSET_VERSION}`,
@@ -76,9 +76,131 @@ function prepareTexture(texture, gl) {
   return texture;
 }
 
-function useImageTexture(url) {
+function makeCanvasTexture(canvas, gl) {
+  return prepareTexture(new THREE.CanvasTexture(canvas), gl);
+}
+
+function drawPaperFiber(ctx, width, height, intensity = 1) {
+  ctx.save();
+  ctx.globalAlpha = 0.16 * intensity;
+  for (let i = 0; i < 1800 * intensity; i += 1) {
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+    const length = 2 + Math.random() * 18;
+    const angle = (Math.random() - 0.5) * 0.75;
+    ctx.strokeStyle = Math.random() > 0.52 ? "#8e8579" : "#cbbfac";
+    ctx.lineWidth = Math.random() > 0.88 ? 0.9 : 0.38;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + Math.cos(angle) * length, y + Math.sin(angle) * length);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function createProceduralPaperTexture(gl) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 768;
+  canvas.height = 1080;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#efe9dc";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const gradient = ctx.createRadialGradient(260, 210, 40, canvas.width / 2, canvas.height / 2, 820);
+  gradient.addColorStop(0, "rgba(255,255,250,0.58)");
+  gradient.addColorStop(0.58, "rgba(228,218,199,0.2)");
+  gradient.addColorStop(1, "rgba(166,143,113,0.2)");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  drawPaperFiber(ctx, canvas.width, canvas.height, 1.75);
+
+  ctx.globalAlpha = 0.12;
+  ctx.fillStyle = "#6e6458";
+  for (let i = 0; i < 2600; i += 1) {
+    const size = Math.random() > 0.9 ? 1.2 : 0.52;
+    ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, size, size);
+  }
+
+  return makeCanvasTexture(canvas, gl);
+}
+
+function createProceduralCoverTexture(gl) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 720;
+  canvas.height = 980;
+  const ctx = canvas.getContext("2d");
+  const { width, height } = canvas;
+
+  ctx.fillStyle = "#eee9df";
+  ctx.fillRect(0, 0, width, height);
+  drawPaperFiber(ctx, width, height, 1.2);
+
+  ctx.save();
+  ctx.globalAlpha = 0.13;
+  ctx.fillStyle = "#d2c4b0";
+  ctx.fillRect(0, 0, 74, height);
+  ctx.fillRect(width - 46, 0, 46, height);
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(52, height / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillStyle = "#050505";
+  ctx.font = "900 86px Arial Black, Impact, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.letterSpacing = "6px";
+  ctx.fillText("WORLD, OURS", 0, 0);
+  ctx.restore();
+
+  const dotStep = 13;
+  ctx.fillStyle = "#050505";
+  for (let y = 120; y < height - 78; y += dotStep) {
+    for (let x = 128; x < width - 44; x += dotStep) {
+      const nx = x / width;
+      const ny = y / height;
+      const eyeL = Math.exp(-((nx - 0.39) ** 2 / 0.006 + (ny - 0.32) ** 2 / 0.0028));
+      const eyeR = Math.exp(-((nx - 0.67) ** 2 / 0.006 + (ny - 0.31) ** 2 / 0.0028));
+      const browL = Math.exp(-((nx - 0.37) ** 2 / 0.012 + (ny - 0.25) ** 2 / 0.0018));
+      const browR = Math.exp(-((nx - 0.68) ** 2 / 0.012 + (ny - 0.245) ** 2 / 0.0018));
+      const cheek = Math.exp(-((nx - 0.39) ** 2 / 0.026 + (ny - 0.61) ** 2 / 0.014));
+      const mouthTop = Math.exp(-((nx - 0.58) ** 2 / 0.016 + (ny - 0.66) ** 2 / 0.003));
+      const mouthLow = Math.exp(-((nx - 0.58) ** 2 / 0.02 + (ny - 0.74) ** 2 / 0.004));
+      const shadow = Math.exp(-((nx - 0.78) ** 2 / 0.02 + (ny - 0.53) ** 2 / 0.08));
+      const edge = nx > 0.84 || nx < 0.21 || ny < 0.17 || ny > 0.86 ? 0.32 : 0;
+      const noise = (Math.sin(x * 0.05 + y * 0.073) + 1) * 0.13;
+      const intensity = Math.min(1, eyeL * 1.4 + eyeR * 1.35 + browL + browR + cheek * 0.62 + mouthTop + mouthLow * 0.86 + shadow * 0.35 + edge + noise);
+      if (intensity < 0.2) continue;
+      const radius = 1.2 + intensity * 4.7;
+      ctx.beginPath();
+      ctx.arc(x + Math.sin(y * 0.06) * 2, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  ctx.fillStyle = "#050505";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = "900 22px Arial, sans-serif";
+  ctx.fillText("TO GIRLS:", width * 0.5, height * 0.48);
+  ctx.font = "800 17px Arial, sans-serif";
+  ctx.fillText("THE HOURS", width * 0.5, height * 0.508);
+  ctx.fillText("AND", width * 0.5, height * 0.535);
+  ctx.fillText("YOUR WORK DESK", width * 0.5, height * 0.562);
+
+  const vignette = ctx.createRadialGradient(width / 2, height / 2, 220, width / 2, height / 2, 680);
+  vignette.addColorStop(0, "rgba(255,255,255,0)");
+  vignette.addColorStop(1, "rgba(40,25,16,0.14)");
+  ctx.fillStyle = vignette;
+  ctx.fillRect(0, 0, width, height);
+
+  return makeCanvasTexture(canvas, gl);
+}
+
+function useTextureWithFallback(url, fallbackFactory) {
   const { gl } = useThree();
-  const [texture, setTexture] = useState(null);
+  const fallbackTexture = useMemo(() => fallbackFactory(gl), [fallbackFactory, gl]);
+  const [texture, setTexture] = useState(fallbackTexture);
 
   useEffect(() => {
     let alive = true;
@@ -97,7 +219,7 @@ function useImageTexture(url) {
       },
       undefined,
       () => {
-        if (alive) setTexture(null);
+        if (alive) setTexture(fallbackTexture);
       },
     );
 
@@ -105,7 +227,9 @@ function useImageTexture(url) {
       alive = false;
       loadedTexture?.dispose();
     };
-  }, [url, gl]);
+  }, [url, gl, fallbackTexture]);
+
+  useEffect(() => () => fallbackTexture.dispose(), [fallbackTexture]);
 
   return texture;
 }
@@ -142,14 +266,10 @@ function CinematicCameraRig({ motion, triggerGateway }) {
 }
 
 function CoverSurfaceMaterial({ texture }) {
-  if (!texture) {
-    return <meshBasicMaterial color="#f6f0e6" side={THREE.DoubleSide} />;
-  }
-
   return <meshBasicMaterial map={texture} side={THREE.DoubleSide} transparent={false} toneMapped={false} />;
 }
 
-function PaperMaterial({ texture, bumpScale = 0.16, opacity = 1 }) {
+function PaperMaterial({ texture, bumpScale = 0.2, opacity = 1 }) {
   return (
     <meshStandardMaterial
       map={texture}
@@ -206,12 +326,12 @@ function BackCover({ coverGeometry, insideTexture }) {
   return (
     <mesh castShadow receiveShadow position={[PAGE_WIDTH / 2, 0, -0.115]}>
       <primitive attach="geometry" object={coverGeometry} />
-      <meshStandardMaterial attach="material-0" color="#ded6c9" map={insideTexture} roughness={0.99} bumpMap={insideTexture} bumpScale={0.12} />
-      <meshStandardMaterial attach="material-1" color="#d5cabd" map={insideTexture} roughness={0.99} bumpMap={insideTexture} bumpScale={0.12} />
-      <meshStandardMaterial attach="material-2" color="#eee5d9" map={insideTexture} roughness={0.99} bumpMap={insideTexture} bumpScale={0.1} />
-      <meshStandardMaterial attach="material-3" color="#d6cabd" map={insideTexture} roughness={0.99} bumpMap={insideTexture} bumpScale={0.1} />
-      <meshStandardMaterial attach="material-4" color="#ffffff" map={insideTexture} bumpMap={insideTexture} bumpScale={0.16} roughness={1} />
-      <meshStandardMaterial attach="material-5" color="#ffffff" map={insideTexture} bumpMap={insideTexture} bumpScale={0.16} roughness={1} />
+      <meshStandardMaterial attach="material-0" color="#ded6c9" map={insideTexture} roughness={0.99} bumpMap={insideTexture} bumpScale={0.14} />
+      <meshStandardMaterial attach="material-1" color="#d5cabd" map={insideTexture} roughness={0.99} bumpMap={insideTexture} bumpScale={0.14} />
+      <meshStandardMaterial attach="material-2" color="#eee5d9" map={insideTexture} roughness={0.99} bumpMap={insideTexture} bumpScale={0.12} />
+      <meshStandardMaterial attach="material-3" color="#d6cabd" map={insideTexture} roughness={0.99} bumpMap={insideTexture} bumpScale={0.12} />
+      <meshStandardMaterial attach="material-4" color="#ffffff" map={insideTexture} bumpMap={insideTexture} bumpScale={0.2} roughness={1} />
+      <meshStandardMaterial attach="material-5" color="#ffffff" map={insideTexture} bumpMap={insideTexture} bumpScale={0.2} roughness={1} />
     </mesh>
   );
 }
@@ -285,15 +405,15 @@ function PageBlockEdges({ motion, insideTexture }) {
   return (
     <mesh ref={edgeRef} castShadow receiveShadow position={[PAGE_WIDTH / 2 - 0.03, 0, -0.052]}>
       <primitive attach="geometry" object={edgeGeometry} />
-      <meshStandardMaterial map={insideTexture} bumpMap={insideTexture} bumpScale={0.12} color="#ffffff" roughness={1} />
+      <meshStandardMaterial map={insideTexture} bumpMap={insideTexture} bumpScale={0.14} color="#ffffff" roughness={1} />
     </mesh>
   );
 }
 
 function BookModel({ motion, scrollProgress, autoOpen }) {
   const groupRef = useRef(null);
-  const coverTexture = useImageTexture(BOOK_ASSETS.cover);
-  const insideTexture = useImageTexture(BOOK_ASSETS.inside);
+  const coverTexture = useTextureWithFallback(BOOK_ASSETS.cover, createProceduralCoverTexture);
+  const insideTexture = useTextureWithFallback(BOOK_ASSETS.inside, createProceduralPaperTexture);
 
   const pageGeometry = useMemo(() => new THREE.PlaneGeometry(PAGE_WIDTH - 0.11, PAGE_HEIGHT - 0.14, PAGE_SEGMENTS, PAGE_SEGMENTS), []);
   const coverGeometry = useMemo(() => new THREE.BoxGeometry(PAGE_WIDTH + 0.18, PAGE_HEIGHT + 0.2, COVER_THICKNESS, 8, 20, 4), []);
