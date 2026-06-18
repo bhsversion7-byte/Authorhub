@@ -1,4 +1,3 @@
-import CinematicBookOpener from "./CinematicBookOpener.jsx";
 import React, { useEffect, useMemo, useState } from "react";
 import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
 import { hasSupabaseConfig, makeLocalUser, setLocalAuthUser, supabase } from "../lib/supabaseClient.js";
@@ -112,25 +111,37 @@ export default function AuthGate({ onAuthed }) {
 
   return (
     <div className="auth-wall" aria-live="polite">
-      <CinematicBookOpener
-        height="100vh"
-        scrollDriven={false}
-        autoOpen={true}
-        triggerGateway={false}
-        title="AuthorHub"
-        subtitle="把灵感、人物关系、章节大纲和设定集，收束进一张会呼吸的文学宇宙工作台。"
-        />
+      <div className="auth-ambient" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+
       <form className={`auth-card ${mode === "register" ? "is-register" : "is-login"}`} onSubmit={submit}>
-        <div className="auth-mark">
-          <ShieldCheck size={20} />
+        <div className="auth-card-head">
+          <div className="auth-mark" aria-hidden="true">
+            <ShieldCheck size={18} />
+          </div>
+          <div>
+            <p className="eyebrow">Private Manuscript Room</p>
+            <h1>{mode === "login" ? "回到写作房间" : "开一间自己的房间"}</h1>
+          </div>
         </div>
-        <p className="eyebrow">Author Hub Private Gate</p>
-        <h1>{mode === "login" ? "账号登录" : "欢迎注册"}</h1>
+
         <p className="auth-copy">
           {mode === "login"
-            ? "登录后再进入你的小说宇宙。勾选 30 天免登录后，系统会保留安全会话。"
-            : "创建一个隐私优先的创作账号，所有作品数据默认只属于你。"}
+            ? "这里只是门口。确认身份后，再进入你的小说宇宙、人物星图和未完成的章节。"
+            : "创建一个安静的私人创作账号。你的草稿、人物关系和世界设定默认只属于你。"}
         </p>
+
+        <div className="auth-mode-tabs" role="tablist" aria-label="切换登录和注册">
+          <button type="button" className={mode === "login" ? "is-active" : ""} onClick={() => switchMode("login")}>
+            登录
+          </button>
+          <button type="button" className={mode === "register" ? "is-active" : ""} onClick={() => switchMode("register")}>
+            注册
+          </button>
+        </div>
 
         <label className={`auth-field ${email && !emailValid ? "is-invalid" : ""}`}>
           <Mail size={16} />
@@ -192,11 +203,11 @@ export default function AuthGate({ onAuthed }) {
         {message && <p className="auth-message">{message}</p>}
 
         <button type="submit" className="auth-submit" disabled={busy}>
-          {busy ? "处理中..." : mode === "login" ? "登录" : "立即注册"}
+          {busy ? "处理中..." : mode === "login" ? "进入房间" : "创建房间"}
         </button>
 
         <button type="button" className="auth-switch" onClick={() => switchMode(mode === "login" ? "register" : "login")}>
-          {mode === "login" ? "注册新账号" : "返回登录"}
+          {mode === "login" ? "还没有房间？注册新账号" : "已经有房间？返回登录"}
         </button>
 
         {!hasSupabaseConfig && (
