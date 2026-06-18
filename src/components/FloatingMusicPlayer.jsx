@@ -1,6 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Disc3, Pause, Play, SkipBack, SkipForward } from "lucide-react";
 
+const STORAGE_KEY = "author-hub-music-position";
+const EDGE_GAP = 8;
+const PLAYER_HEIGHT = 86;
+const PLAYER_VOLUME = 0.22;
+
 const TRACKS = [
   {
     id: 1,
@@ -34,9 +39,6 @@ const TRACKS = [
   },
 ];
 
-const EDGE_GAP = 8;
-const PLAYER_HEIGHT = 86;
-
 export default function FloatingMusicPlayer() {
   const [playing, setPlaying] = useState(false);
   const [trackIndex, setTrackIndex] = useState(0);
@@ -52,8 +54,13 @@ export default function FloatingMusicPlayer() {
   const track = TRACKS[trackIndex];
 
   useEffect(() => {
-    localStorage.setItem("author-hub-music-position", JSON.stringify({ y: top }));
-  }, [top]);
+    const audio = audioRef.current;
+    if (audio) audio.volume = PLAYER_VOLUME;
+  }, []);
+
+  useEffect(() => {
+    if (!dragging) localStorage.setItem(STORAGE_KEY, JSON.stringify({ y: top }));
+  }, [top, dragging]);
 
   useEffect(() => {
     function clampIntoViewport() {
@@ -76,14 +83,24 @@ export default function FloatingMusicPlayer() {
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    audio.volume = 0.22;
     audio.load();
-    if (!playing) return;
-    audio.play().catch(() => handlePlaybackFailure(trackIndex));
-  }, [trackIndex, playing]);
+    if (playing) playCurrentTrack(trackIndex);
+  }, [trackIndex]);
+
+  function playCurrentTrack(index = trackIndex) {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.volume = PLAYER_VOLUME;
+    audio.play().then(() => setPlaying(true)).catch(() => handlePlaybackFailure(index));
+  }
+
+  function resetTrackFailures() {
+    failedTrackIdsRef.current.clear();
+    setPlaybackIssue("");
+  }
 
   function togglePlay(event) {
-    event?.stopPropagation();
+    event?.stopPropagation?.();
     const audio = audioRef.current;
     if (!audio) return;
     if (playing) {
@@ -92,26 +109,24 @@ export default function FloatingMusicPlayer() {
       setPlaybackIssue("");
       return;
     }
-    failedTrackIdsRef.current.clear();
-    setPlaybackIssue("");
-    audio.volume = 0.22;
-    audio.play().then(() => setPlaying(true)).catch(() => handlePlaybackFailure(trackIndex));
+    resetTrackFailures();
+    playCurrentTrack(trackIndex);
+  }
+
+  function selectTrack(delta) {
+    resetTrackFailures();
+    setPlaying(true);
+    setTrackIndex((current) => (current + delta + TRACKS.length) % TRACKS.length);
   }
 
   function nextTrack(event) {
-    event?.stopPropagation();
-    failedTrackIdsRef.current.clear();
-    setPlaybackIssue("");
-    setTrackIndex((current) => (current + 1) % TRACKS.length);
-    setPlaying(true);
+    event?.stopPropagation?.();
+    selectTrack(1);
   }
 
   function previousTrack(event) {
-    event?.stopPropagation();
-    failedTrackIdsRef.current.clear();
-    setPlaybackIssue("");
-    setTrackIndex((current) => (current - 1 + TRACKS.length) % TRACKS.length);
-    setPlaying(true);
+    event?.stopPropagation?.();
+    selectTrack(-1);
   }
 
   function handlePlaybackFailure(failedIndex) {
@@ -136,20 +151,17 @@ export default function FloatingMusicPlayer() {
     }
 
     setPlaybackIssue("已跳过一首不可用曲目");
-    setTrackIndex(nextIndex);
     setPlaying(true);
+    setTrackIndex(nextIndex);
   }
 
   function handleAudioError() {
-    if (!playing) {
-      setPlaybackIssue("当前曲目加载失败");
-      return;
-    }
-    handlePlaybackFailure(trackIndex);
+    if (playing) handlePlaybackFailure(trackIndex);
+    else setPlaybackIssue("当前曲目加载失败");
   }
 
   function toggleCollapsed(event) {
-    event?.stopPropagation();
+    event?.stopPropagation?.();
     setCollapsed((current) => !current);
     setTop((current) => getSafeTop(current));
   }
@@ -230,7 +242,7 @@ export default function FloatingMusicPlayer() {
 function getInitialTop() {
   let stored = null;
   try {
-    stored = JSON.parse(localStorage.getItem("author-hub-music-position"));
+    stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
   } catch {
     stored = null;
   }
