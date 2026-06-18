@@ -6,7 +6,9 @@ import "./styles.css";
 import "./internal-polish.css";
 import "./novel-section-restore.css";
 import "./relation-graph-polish.css";
+import "./modal-empty-qa.css";
 import "./relation-graph-runtime-fix.js";
+import "./modal-empty-qa.js";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
