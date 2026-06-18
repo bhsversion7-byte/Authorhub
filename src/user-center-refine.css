@@ -4,9 +4,9 @@
 
 .user-center-section {
   --uc-account-surface:
-    radial-gradient(circle at 10% 0%, rgba(255, 255, 255, 0.56), transparent 32%),
-    radial-gradient(circle at 88% 90%, rgba(108, 128, 112, 0.075), transparent 38%),
-    linear-gradient(135deg, #eceee9 0%, #dfe5dd 52%, #d3dbd2 100%);
+    radial-gradient(circle at 10% 0%, rgba(255, 255, 255, 0.5), transparent 32%),
+    radial-gradient(circle at 88% 90%, rgba(96, 116, 101, 0.12), transparent 38%),
+    linear-gradient(135deg, #e4e8e1 0%, #d4ddd1 52%, #c7d1c5 100%);
   --uc-donation-surface:
     radial-gradient(circle at 20% 6%, rgba(255, 255, 255, 0.54), transparent 34%),
     radial-gradient(circle at 86% 88%, rgba(92, 112, 120, 0.12), transparent 38%),
@@ -21,7 +21,7 @@
 .user-center-section .panel.user-account-panel,
 .user-center-section .panel.user-account-panel:hover {
   background: var(--uc-account-surface) !important;
-  border-color: rgba(86, 105, 91, 0.13) !important;
+  border-color: rgba(75, 96, 82, 0.16) !important;
 }
 
 .user-center-section .user-donation-panel,
