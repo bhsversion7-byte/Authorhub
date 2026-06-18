@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { EyeOff, Sparkles, X } from "lucide-react";
+import { EyeOff, Sparkles } from "lucide-react";
 import AuthGate from "./components/AuthGate.jsx";
 import AuthorDashboard from "./components/AuthorDashboard.jsx";
 import FloatingMusicPlayer from "./components/FloatingMusicPlayer.jsx";
 import LandingGateway from "./components/LandingGateway.jsx";
 import NovelSection from "./components/NovelSection.jsx";
 import Sidebar from "./components/Sidebar.jsx";
+import TourProvider from "./components/TourProvider.jsx";
 import UserCenter from "./components/UserCenter.jsx";
 import { getLocalAuthUser, hasSupabaseConfig, setLocalAuthUser, supabase } from "./lib/supabaseClient.js";
 import { loadAuthorHubData, saveAuthorHubData } from "./lib/shimoAdapter.js";
@@ -24,7 +25,7 @@ export default function App() {
   const [justRegistered, setJustRegistered] = useState(false);
   const [privacyBlur, setPrivacyBlur] = useState(() => localStorage.getItem("author-hub-privacy-blur") === "true");
 
-  const sidebarWidth = 224;
+  const sidebarWidth = "clamp(184px, 15vw, 224px)";
 
   useEffect(() => {
     let mounted = true;
