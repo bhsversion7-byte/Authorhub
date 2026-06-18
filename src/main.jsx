@@ -16,6 +16,7 @@ import "./reading-font-options.css";
 import "./sidebar-nav-state-fix.css";
 import "./novel-page-refine.css";
 import "./responsive-stability.css";
+import "./instant-paper-background.css";
 import "./relation-graph-runtime-fix.js";
 import "./modal-empty-qa.js";
 
