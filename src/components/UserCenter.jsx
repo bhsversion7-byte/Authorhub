@@ -108,31 +108,6 @@ export default function UserCenter({
               </div>
             </div>
           )}
-
-          {confirmUnregister && (
-            <div className="inline-confirm compact-confirm unregister-confirm">
-              <strong>确认注销账号？</strong>
-              <div>
-                <button type="button" className="ghost-button" onClick={() => setConfirmUnregister(false)}>
-                  取消
-                </button>
-                <button
-                  type="button"
-                  className="btn-unregister"
-                  onClick={async () => {
-                    if (hasSupabaseConfig && supabase) {
-                      await supabase.auth.updateUser({ data: { account_deletion_requested: true } }).catch(() => {});
-                    }
-                    onClearData();
-                    setConfirmUnregister(false);
-                    onLogout();
-                  }}
-                >
-                  确认注销
-                </button>
-              </div>
-            </div>
-          )}
         </article>
 
         <article className="panel donation-panel user-donation-panel">
@@ -176,6 +151,19 @@ export default function UserCenter({
       </div>
 
       {passwordOpen && <PasswordModal onClose={() => setPasswordOpen(false)} />}
+      {confirmUnregister && (
+        <UnregisterModal
+          onClose={() => setConfirmUnregister(false)}
+          onConfirm={async () => {
+            if (hasSupabaseConfig && supabase) {
+              await supabase.auth.updateUser({ data: { account_deletion_requested: true } }).catch(() => {});
+            }
+            onClearData();
+            setConfirmUnregister(false);
+            onLogout();
+          }}
+        />
+      )}
     </section>
   );
 }
@@ -240,6 +228,44 @@ function PasswordModal({ onClose }) {
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+function UnregisterModal({ onClose, onConfirm }) {
+  useEffect(() => {
+    function onKeyDown(event) {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopPropagation();
+      onClose();
+    }
+
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, [onClose]);
+
+  return (
+    <div className="modal-backdrop user-unregister-backdrop" role="presentation" onMouseDown={onClose}>
+      <section
+        className="confirm-modal user-unregister-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="user-unregister-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <p className="eyebrow">Account</p>
+        <h2 id="user-unregister-title">确认注销账号？</h2>
+        <p>注销后会清空当前账号下的作品数据，并退出登录。这个操作请谨慎确认。</p>
+        <div className="confirm-actions">
+          <button type="button" className="ghost-button" onClick={onClose}>
+            取消
+          </button>
+          <button type="button" className="btn-unregister" onClick={onConfirm}>
+            确认注销
+          </button>
+        </div>
+      </section>
     </div>
   );
 }
