@@ -1,0 +1,12 @@
+.relation-reset-button {
+  background: rgba(255, 250, 244, 0.72) !important;
+  color: rgba(80, 72, 63, 0.82) !important;
+  border: 1px solid rgba(234, 223, 212, 0.72) !important;
+  box-shadow: none !important;
+}
+
+.relation-reset-button:hover {
+  transform: none !important;
+  background: rgba(255, 253, 248, 0.95) !important;
+  color: var(--ink) !important;
+}
