@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
 import { hasSupabaseConfig, makeLocalUser, setLocalAuthUser, supabase } from "../lib/supabaseClient.js";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const CAPTCHA_FETCH_TIMEOUT = 850;
 
 export default function AuthGate({ onAuthed }) {
   const [mode, setMode] = useState("login");
@@ -15,6 +16,8 @@ export default function AuthGate({ onAuthed }) {
   const [message, setMessage] = useState("");
   const [captcha, setCaptcha] = useState(null);
   const [captchaAnswer, setCaptchaAnswer] = useState("");
+  const captchaRequestRef = useRef(0);
+  const captchaAnswerRef = useRef("");
 
   const emailValid = EMAIL_PATTERN.test(email.trim());
   const passwordValid = password.length >= 6;
@@ -28,17 +31,36 @@ export default function AuthGate({ onAuthed }) {
   }, [password]);
 
   useEffect(() => {
+    captchaAnswerRef.current = captchaAnswer;
+  }, [captchaAnswer]);
+
+  useEffect(() => {
     if (mode === "register") loadCaptcha();
   }, [mode]);
 
   async function loadCaptcha() {
+    const requestId = captchaRequestRef.current + 1;
+    captchaRequestRef.current = requestId;
+    captchaAnswerRef.current = "";
     setCaptchaAnswer("");
+
+    const localCaptcha = makeLocalCaptcha();
+    setCaptcha(localCaptcha);
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), CAPTCHA_FETCH_TIMEOUT);
+
     try {
-      const response = await fetch(`/api/captcha?ts=${Date.now()}`, { cache: "no-store" });
+      const response = await fetch(`/api/captcha?ts=${Date.now()}`, { cache: "no-store", signal: controller.signal });
       if (!response.ok) throw new Error("captcha api unavailable");
-      setCaptcha(await response.json());
+      const nextCaptcha = await response.json();
+      if (captchaRequestRef.current === requestId && captchaAnswerRef.current === "" && nextCaptcha?.image && nextCaptcha?.token) {
+        setCaptcha(nextCaptcha);
+      }
     } catch {
-      setCaptcha(makeLocalCaptcha());
+      // Keep the instantly-rendered local captcha. This avoids a blank register form on slow serverless cold starts.
+    } finally {
+      window.clearTimeout(timeout);
     }
   }
 
