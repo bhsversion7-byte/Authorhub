@@ -34,6 +34,11 @@ const TRACKS = [
   },
 ];
 
+const EDGE_GAP = 8;
+const EXPANDED_WIDTH = 420;
+const COLLAPSED_WIDTH = 104;
+const PLAYER_HEIGHT = 86;
+
 export default function FloatingMusicPlayer() {
   const [playing, setPlaying] = useState(false);
   const [trackIndex, setTrackIndex] = useState(0);
@@ -41,9 +46,9 @@ export default function FloatingMusicPlayer() {
   const [playbackIssue, setPlaybackIssue] = useState("");
   const [position, setPosition] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem("author-hub-music-position")) ?? { x: window.innerWidth - 330, y: 24 };
+      return JSON.parse(localStorage.getItem("author-hub-music-position")) ?? getDefaultPosition(false);
     } catch {
-      return { x: window.innerWidth - 330, y: 24 };
+      return getDefaultPosition(false);
     }
   });
   const audioRef = useRef(null);
@@ -57,10 +62,7 @@ export default function FloatingMusicPlayer() {
 
   useEffect(() => {
     function clampIntoViewport() {
-      setPosition((current) => ({
-        x: Math.max(8, Math.min(window.innerWidth - (collapsed ? 72 : 304), current.x)),
-        y: Math.max(8, Math.min(window.innerHeight - 82, current.y)),
-      }));
+      setPosition((current) => getSafePosition(current, collapsed));
     }
     clampIntoViewport();
     window.addEventListener("resize", clampIntoViewport);
@@ -146,6 +148,18 @@ export default function FloatingMusicPlayer() {
     handlePlaybackFailure(trackIndex);
   }
 
+  function toggleCollapsed(event) {
+    event?.stopPropagation();
+    setCollapsed((current) => {
+      const nextCollapsed = !current;
+      setPosition((positionNow) => {
+        if (nextCollapsed) return dockToRight(positionNow);
+        return getSafePosition({ ...positionNow, x: Math.max(EDGE_GAP, window.innerWidth - EXPANDED_WIDTH - 22) }, false);
+      });
+      return nextCollapsed;
+    });
+  }
+
   function onPointerDown(event) {
     if (event.target.closest("button")) return;
     dragRef.current = { startX: event.clientX, startY: event.clientY, originX: position.x, originY: position.y };
@@ -156,10 +170,15 @@ export default function FloatingMusicPlayer() {
     if (!dragRef.current) return;
     const nextX = dragRef.current.originX + event.clientX - dragRef.current.startX;
     const nextY = dragRef.current.originY + event.clientY - dragRef.current.startY;
-    setPosition({
-      x: Math.max(8, Math.min(window.innerWidth - (collapsed ? 54 : 280), nextX)),
-      y: Math.max(8, Math.min(window.innerHeight - 72, nextY)),
-    });
+    setPosition(
+      getSafePosition(
+        {
+          x: collapsed ? window.innerWidth - COLLAPSED_WIDTH - EDGE_GAP : nextX,
+          y: nextY,
+        },
+        collapsed,
+      ),
+    );
   }
 
   function onPointerUp() {
@@ -198,11 +217,30 @@ export default function FloatingMusicPlayer() {
           </div>
         </>
       )}
-      <button type="button" className="music-collapse" onClick={() => setCollapsed((current) => !current)} aria-label={collapsed ? "展开音乐盒" : "收起音乐盒"}>
-        {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+      <button type="button" className="music-collapse" onClick={toggleCollapsed} aria-label={collapsed ? "展开音乐盒" : "向右收起音乐盒"}>
+        {collapsed ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
       </button>
     </div>
   );
+}
+
+function getDefaultPosition(isCollapsed) {
+  return {
+    x: window.innerWidth - (isCollapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH) - 22,
+    y: 24,
+  };
+}
+
+function dockToRight(position) {
+  return getSafePosition({ ...position, x: window.innerWidth - COLLAPSED_WIDTH - EDGE_GAP }, true);
+}
+
+function getSafePosition(position, isCollapsed) {
+  const width = isCollapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH;
+  return {
+    x: Math.max(EDGE_GAP, Math.min(window.innerWidth - width - EDGE_GAP, position.x)),
+    y: Math.max(EDGE_GAP, Math.min(window.innerHeight - PLAYER_HEIGHT, position.y)),
+  };
 }
 
 function findNextPlayableIndex(currentIndex, failedIds) {
