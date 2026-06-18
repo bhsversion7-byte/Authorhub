@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Disc3, Pause, Play, SkipBack, SkipForward } from "lucide-react";
 
 const TRACKS = [
@@ -36,7 +36,7 @@ const TRACKS = [
 
 const EDGE_GAP = 8;
 const EXPANDED_WIDTH = 420;
-const COLLAPSED_WIDTH = 104;
+const COLLAPSED_WIDTH = 96;
 const PLAYER_HEIGHT = 86;
 
 export default function FloatingMusicPlayer() {
@@ -44,27 +44,43 @@ export default function FloatingMusicPlayer() {
   const [trackIndex, setTrackIndex] = useState(0);
   const [collapsed, setCollapsed] = useState(false);
   const [playbackIssue, setPlaybackIssue] = useState("");
-  const [position, setPosition] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("author-hub-music-position")) ?? getDefaultPosition(false);
-    } catch {
-      return getDefaultPosition(false);
-    }
-  });
+  const [dragging, setDragging] = useState(false);
+  const [position, setPosition] = useState(() => getInitialPosition());
   const audioRef = useRef(null);
+  const playerRef = useRef(null);
   const dragRef = useRef(null);
   const failedTrackIdsRef = useRef(new Set());
+  const frameRef = useRef(null);
+  const pendingPositionRef = useRef(null);
   const track = TRACKS[trackIndex];
 
   useEffect(() => {
     localStorage.setItem("author-hub-music-position", JSON.stringify(position));
   }, [position]);
 
+  useLayoutEffect(() => {
+    setPosition((current) => {
+      const measuredWidth = getPlayerWidth(playerRef.current, collapsed);
+      if (collapsed) return dockToRight(current, measuredWidth, collapsed);
+      return getSafePosition({ ...current, x: window.innerWidth - measuredWidth - EDGE_GAP }, collapsed, measuredWidth);
+    });
+  }, [collapsed]);
+
+  useEffect(() => {
+    setPosition((current) => {
+      const measuredWidth = getPlayerWidth(playerRef.current, collapsed);
+      return getSafePosition({ ...current, x: window.innerWidth - measuredWidth - EDGE_GAP }, collapsed, measuredWidth);
+    });
+  }, []);
+
   useEffect(() => {
     function clampIntoViewport() {
-      setPosition((current) => getSafePosition(current, collapsed));
+      setPosition((current) => {
+        const measuredWidth = getPlayerWidth(playerRef.current, collapsed);
+        const next = collapsed ? { ...current, x: window.innerWidth - measuredWidth - EDGE_GAP } : current;
+        return getSafePosition(next, collapsed, measuredWidth);
+      });
     }
-    clampIntoViewport();
     window.addEventListener("resize", clampIntoViewport);
     window.addEventListener("orientationchange", clampIntoViewport);
     return () => {
@@ -72,6 +88,12 @@ export default function FloatingMusicPlayer() {
       window.removeEventListener("orientationchange", clampIntoViewport);
     };
   }, [collapsed]);
+
+  useEffect(() => {
+    return () => {
+      if (frameRef.current) window.cancelAnimationFrame(frameRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -153,8 +175,9 @@ export default function FloatingMusicPlayer() {
     setCollapsed((current) => {
       const nextCollapsed = !current;
       setPosition((positionNow) => {
-        if (nextCollapsed) return dockToRight(positionNow);
-        return getSafePosition({ ...positionNow, x: Math.max(EDGE_GAP, window.innerWidth - EXPANDED_WIDTH - 22) }, false);
+        const measuredWidth = getPlayerWidth(playerRef.current, nextCollapsed);
+        if (nextCollapsed) return dockToRight(positionNow, measuredWidth, nextCollapsed);
+        return getSafePosition({ ...positionNow, x: window.innerWidth - measuredWidth - EDGE_GAP }, nextCollapsed, measuredWidth);
       });
       return nextCollapsed;
     });
@@ -162,32 +185,56 @@ export default function FloatingMusicPlayer() {
 
   function onPointerDown(event) {
     if (event.target.closest("button")) return;
+    setDragging(true);
     dragRef.current = { startX: event.clientX, startY: event.clientY, originX: position.x, originY: position.y };
     event.currentTarget.setPointerCapture?.(event.pointerId);
   }
 
   function onPointerMove(event) {
     if (!dragRef.current) return;
+    const measuredWidth = getPlayerWidth(playerRef.current, collapsed);
     const nextX = dragRef.current.originX + event.clientX - dragRef.current.startX;
     const nextY = dragRef.current.originY + event.clientY - dragRef.current.startY;
-    setPosition(
+    schedulePositionUpdate(
       getSafePosition(
         {
-          x: collapsed ? window.innerWidth - COLLAPSED_WIDTH - EDGE_GAP : nextX,
+          x: collapsed ? window.innerWidth - measuredWidth - EDGE_GAP : nextX,
           y: nextY,
         },
         collapsed,
+        measuredWidth,
       ),
     );
   }
 
   function onPointerUp() {
     dragRef.current = null;
+    pendingPositionRef.current = null;
+    if (frameRef.current) {
+      window.cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
+    }
+    setDragging(false);
+    setPosition((current) => {
+      const measuredWidth = getPlayerWidth(playerRef.current, collapsed);
+      return getSafePosition(collapsed ? { ...current, x: window.innerWidth - measuredWidth - EDGE_GAP } : current, collapsed, measuredWidth);
+    });
+  }
+
+  function schedulePositionUpdate(nextPosition) {
+    pendingPositionRef.current = nextPosition;
+    if (frameRef.current) return;
+    frameRef.current = window.requestAnimationFrame(() => {
+      frameRef.current = null;
+      if (!pendingPositionRef.current) return;
+      setPosition(pendingPositionRef.current);
+    });
   }
 
   return (
     <div
-      className={`floating-music ${playing ? "is-playing" : ""} ${collapsed ? "is-collapsed" : ""} ${playbackIssue ? "has-playback-issue" : ""}`}
+      ref={playerRef}
+      className={`floating-music ${playing ? "is-playing" : ""} ${collapsed ? "is-collapsed" : ""} ${dragging ? "is-dragging" : ""} ${playbackIssue ? "has-playback-issue" : ""}`}
       style={{ left: `${position.x}px`, top: `${position.y}px` }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -224,19 +271,26 @@ export default function FloatingMusicPlayer() {
   );
 }
 
-function getDefaultPosition(isCollapsed) {
-  return {
-    x: window.innerWidth - (isCollapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH) - 22,
-    y: 24,
-  };
+function getInitialPosition() {
+  let stored = null;
+  try {
+    stored = JSON.parse(localStorage.getItem("author-hub-music-position"));
+  } catch {
+    stored = null;
+  }
+  return getSafePosition({ x: window.innerWidth - EXPANDED_WIDTH - EDGE_GAP, y: stored?.y ?? 24 }, false, EXPANDED_WIDTH);
 }
 
-function dockToRight(position) {
-  return getSafePosition({ ...position, x: window.innerWidth - COLLAPSED_WIDTH - EDGE_GAP }, true);
+function getPlayerWidth(element, isCollapsed) {
+  return Math.ceil(element?.offsetWidth || (isCollapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH));
 }
 
-function getSafePosition(position, isCollapsed) {
-  const width = isCollapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH;
+function dockToRight(position, measuredWidth, isCollapsed) {
+  return getSafePosition({ ...position, x: window.innerWidth - measuredWidth - EDGE_GAP }, isCollapsed, measuredWidth);
+}
+
+function getSafePosition(position, isCollapsed, measuredWidth) {
+  const width = measuredWidth || (isCollapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH);
   return {
     x: Math.max(EDGE_GAP, Math.min(window.innerWidth - width - EDGE_GAP, position.x)),
     y: Math.max(EDGE_GAP, Math.min(window.innerHeight - PLAYER_HEIGHT, position.y)),
