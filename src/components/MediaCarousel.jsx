@@ -147,21 +147,21 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
     setActiveIndex((current) => (current + delta + safeImages.length) % safeImages.length);
   }
 
-  function onPointerDown(event) {
-    if (event.target.closest("button, input, label")) return;
+  function beginDrag(event) {
     dragStart.current = event.clientX;
     hasDragged.current = false;
     event.currentTarget.setPointerCapture?.(event.pointerId);
   }
 
-  function onPointerMove(event) {
+  function updateDrag(event) {
     if (dragStart.current === null) return;
     const offset = event.clientX - dragStart.current;
     if (Math.abs(offset) > 8) hasDragged.current = true;
     setDragX(Math.max(-110, Math.min(110, offset)));
   }
 
-  function onPointerUp() {
+  function endDrag(event) {
+    event?.stopPropagation?.();
     if (dragX > 42) move(-1);
     if (dragX < -42) move(1);
     dragStart.current = null;
@@ -169,6 +169,33 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
       hasDragged.current = false;
     }, 0);
     setDragX(0);
+  }
+
+  function onPointerDown(event) {
+    if (event.target.closest("button, input, label")) return;
+    beginDrag(event);
+  }
+
+  function onPointerMove(event) {
+    updateDrag(event);
+  }
+
+  function onPointerUp(event) {
+    endDrag(event);
+  }
+
+  function onHotspotPointerDown(event) {
+    event.stopPropagation();
+    beginDrag(event);
+  }
+
+  function onHotspotPointerMove(event) {
+    event.stopPropagation();
+    updateDrag(event);
+  }
+
+  function onHotspotPointerUp(event) {
+    endDrag(event);
   }
 
   function openPreview(image, index, event) {
@@ -244,6 +271,10 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
                     aria-label={index === activeIndex ? "查看大图" : "切换到这张图片"}
                     style={previewHotspotStyle}
                     onClick={(event) => openPreview(image, index, event)}
+                    onPointerDown={onHotspotPointerDown}
+                    onPointerMove={onHotspotPointerMove}
+                    onPointerUp={onHotspotPointerUp}
+                    onPointerCancel={onHotspotPointerUp}
                   />
                   <button type="button" onClick={(event) => removeImage(index, event)} aria-label="删除图片" style={{ zIndex: 3 }}>
                     <Trash2 size={14} />
@@ -279,7 +310,7 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
 
       {previewImage &&
         createPortal(
-          <div className="modal-backdrop media-preview-backdrop" role="presentation" style={{ zIndex: 140 }} onMouseDown={() => setPreviewImage(null)}>
+          <div className="modal-backdrop media-preview-backdrop" role="presentation" style={{ zIndex: 150 }} onMouseDown={() => setPreviewImage(null)}>
             <section style={previewDialogStyle} role="dialog" aria-modal="true" aria-label={`${label} 大图预览`} onMouseDown={(event) => event.stopPropagation()}>
               <button
                 type="button"
