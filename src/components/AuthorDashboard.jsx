@@ -50,7 +50,7 @@ export default function AuthorDashboard({
       <div className="section-heading">
         <p className="eyebrow">Author profile</p>
         <h1>作者个人主页</h1>
-        <p>这里只保留作者公开信息、创作节奏和全站阅读设置。账号、安全、数据导出与打赏已移至左侧的“用户中心”。</p>
+        <p>可在这里调整作者公开信息、创作节奏和全站阅读设置。</p>
       </div>
 
       <div className="dashboard-grid">
