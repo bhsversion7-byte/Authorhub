@@ -4506,7 +4506,7 @@ body,
   background-color: #F5F1E8 !important;
   background-image:
     url("/texture-1.png"),
-    url("/texture-3.jpg"),
+    url("/texture-3-bg.jpg"),
     linear-gradient(135deg, #FDFBF7 0%, #FAFAFA 50%, #F4F0E6 100%) !important;
   background-repeat: repeat, repeat, no-repeat !important;
   background-size: 200px 200px, 1000px auto, cover !important;
@@ -4856,7 +4856,7 @@ button[type="submit"],
   background-color: #F5F1E8 !important;
   background-image:
     url("/texture-1.png"),
-    url("/texture-3.jpg"),
+    url("/texture-3-bg.jpg"),
     linear-gradient(135deg, #FDFBF7 0%, #FAFAFA 50%, #F4F0E6 100%) !important;
   background-repeat: repeat, repeat, no-repeat !important;
   background-size: 200px 200px, 1000px auto, cover !important;

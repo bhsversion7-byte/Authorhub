@@ -179,6 +179,25 @@ export default function App() {
     }));
   }
 
+  function deleteCharacter(novelId, characterId) {
+    setData((current) => ({
+      ...current,
+      novels: current.novels.map((novel) =>
+        novel.id === novelId
+          ? {
+              ...novel,
+              characters: novel.characters.filter((character) => character.id !== characterId),
+              relationships: (novel.relationships ?? []).filter((relationship) => {
+                const sourceId = getRelationshipEndpointId(relationship.source);
+                const targetId = getRelationshipEndpointId(relationship.target);
+                return sourceId !== characterId && targetId !== characterId;
+              }),
+            }
+          : novel,
+      ),
+    }));
+  }
+
   function addRelationship(novelId, relationship) {
     setData((current) => ({
       ...current,
@@ -286,6 +305,13 @@ export default function App() {
     }));
   }
 
+  function deleteEvent(novelId, eventId) {
+    setData((current) => ({
+      ...current,
+      novels: current.novels.map((novel) => (novel.id === novelId ? { ...novel, timeline: novel.timeline.filter((event) => event.id !== eventId) } : novel)),
+    }));
+  }
+
   if (authReady && !authUser) {
     return (
       <LandingGateway>
@@ -349,8 +375,10 @@ export default function App() {
             onUpdateCharacter={updateCharacter}
             onAddRelationship={addRelationship}
             onUpdateRelationship={updateRelationship}
+            onDeleteCharacter={deleteCharacter}
             onAddEvent={addEvent}
             onUpdateEvent={updateEvent}
+            onDeleteEvent={deleteEvent}
           />
         ) : activeView !== "author" && activeView !== "user" ? (
           <section className="section empty-state">
@@ -450,4 +478,8 @@ function buildMarkdownExport(data) {
   });
 
   return sections.join("\n");
+}
+
+function getRelationshipEndpointId(endpoint) {
+  return typeof endpoint === "object" ? endpoint?.id : endpoint;
 }

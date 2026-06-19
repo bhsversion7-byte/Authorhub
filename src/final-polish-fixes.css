@@ -148,3 +148,290 @@
     0 0 14px rgba(114, 132, 129, 0.24),
     0 12px 28px rgba(44, 36, 24, 0.045) !important;
 }
+
+/* Novel page refinement pass: compact, paper-tactile, and scoped to the writing workspace. */
+body::before {
+  background: #f5f1e8 url("/texture-3-bg.jpg") center center / cover no-repeat !important;
+}
+
+body,
+.app-shell,
+.content-shell,
+.loading-screen,
+.auth-wall {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+.novel-section .novel-hero {
+  align-items: center !important;
+  min-height: clamp(170px, 15vw, 216px) !important;
+  padding-top: clamp(24px, 2.2vw, 34px) !important;
+  padding-bottom: clamp(24px, 2vw, 32px) !important;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(184, 158, 122, 0.09), transparent 36%),
+    radial-gradient(circle at 84% 72%, rgba(111, 126, 96, 0.07), transparent 38%),
+    linear-gradient(135deg, rgba(244, 238, 228, 0.98), rgba(232, 225, 214, 0.94)) !important;
+  border-color: rgba(184, 166, 140, 0.36) !important;
+}
+
+.novel-section .novel-hero > div:first-child {
+  transform: translateY(0.95em) !important;
+}
+
+.novel-section .novel-meta {
+  grid-template-columns: minmax(160px, 210px) minmax(96px, 112px) 58px !important;
+  max-width: 404px !important;
+  gap: 9px 8px !important;
+  transform: translateX(-5%) !important;
+}
+
+.novel-section .story-card,
+.novel-section .theme-card,
+.novel-section .inspector-card {
+  background:
+    radial-gradient(circle at 12% 10%, rgba(184, 158, 122, 0.065), transparent 35%),
+    linear-gradient(135deg, rgba(246, 241, 233, 0.98), rgba(237, 230, 219, 0.93)) !important;
+  border-color: rgba(190, 174, 148, 0.36) !important;
+}
+
+.novel-section :where(.novel-hero, .story-card, .theme-card, .graph-card, .inspector-card, .timeline-panel, .event-editor, .ai-nudge) {
+  transition:
+    transform 220ms cubic-bezier(0.25, 1, 0.5, 1),
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    background 220ms ease !important;
+}
+
+.novel-section :where(.novel-hero, .story-card, .theme-card, .graph-card, .inspector-card, .timeline-panel, .event-editor, .ai-nudge):hover {
+  transform: translateY(-2px) !important;
+  border-color: rgba(190, 174, 148, 0.54) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.94),
+    0 16px 36px rgba(44, 36, 24, 0.055),
+    0 2px 8px rgba(44, 36, 24, 0.025) !important;
+}
+
+.graph-card,
+.relationship-star-chart {
+  background:
+    radial-gradient(circle at 14% 18%, rgba(119, 139, 132, 0.11), transparent 34%),
+    radial-gradient(circle at 80% 78%, rgba(172, 156, 128, 0.075), transparent 40%),
+    linear-gradient(135deg, rgba(228, 230, 222, 0.98), rgba(218, 224, 216, 0.94)) !important;
+  border-color: rgba(164, 174, 157, 0.36) !important;
+}
+
+.graph-card:hover,
+.relationship-star-chart:hover {
+  background:
+    radial-gradient(circle at 14% 18%, rgba(119, 139, 132, 0.11), transparent 34%),
+    radial-gradient(circle at 80% 78%, rgba(172, 156, 128, 0.075), transparent 40%),
+    linear-gradient(135deg, rgba(228, 230, 222, 0.98), rgba(218, 224, 216, 0.94)) !important;
+  border-color: rgba(164, 174, 157, 0.5) !important;
+}
+
+.graph-card::after {
+  background-image: radial-gradient(rgba(115, 132, 125, 0.2) 1px, transparent 1px) !important;
+  background-size: 18px 18px !important;
+  opacity: 0.44 !important;
+}
+
+.graph-toolbar .toolbar-actions button,
+.relation-reset-button {
+  background: rgba(255, 253, 248, 0.86) !important;
+  border: 0.5px solid rgba(210, 194, 172, 0.42) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 8px 18px rgba(44, 36, 24, 0.035) !important;
+}
+
+.media-carousel-head {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.media-carousel-head > span {
+  display: block !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  white-space: nowrap !important;
+  line-height: 1.35 !important;
+}
+
+.media-upload-button {
+  display: inline-flex !important;
+  width: fit-content !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  min-height: 38px !important;
+  height: 38px !important;
+  justify-self: end !important;
+  align-self: center !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 8px 12px !important;
+  white-space: nowrap !important;
+  line-height: 1.1 !important;
+}
+
+.media-upload-button input[type="file"] {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 4 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  cursor: pointer !important;
+}
+
+.character-editor-top {
+  display: grid !important;
+  grid-template-columns: minmax(218px, 0.95fr) minmax(220px, 1fr) !important;
+  gap: 18px !important;
+  align-items: start !important;
+}
+
+.character-attribute-grid {
+  min-width: 0 !important;
+}
+
+.node-color-picker.is-wide {
+  padding: 12px 14px !important;
+  border-radius: 18px !important;
+}
+
+.node-color-picker.is-wide > div {
+  grid-template-columns: repeat(auto-fill, minmax(34px, 34px)) !important;
+  justify-content: start !important;
+  gap: 9px !important;
+}
+
+.node-color-picker.is-wide button {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 10px !important;
+}
+
+.character-action-row,
+.timeline-action-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 10px !important;
+  align-items: center !important;
+}
+
+.primary-button,
+.relation-save-button,
+.connect-box > button:not(.danger-lite-button):not(.text-button) {
+  background: linear-gradient(135deg, #2c2621, #3a3028) !important;
+  color: #fff8ef !important;
+  border-color: rgba(44, 38, 33, 0.18) !important;
+}
+
+.danger-lite-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  min-height: 40px !important;
+  padding: 10px 14px !important;
+  border: 0.5px solid rgba(184, 141, 133, 0.36) !important;
+  border-radius: 999px !important;
+  background: rgba(184, 141, 133, 0.08) !important;
+  color: #7a4a42 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 8px 18px rgba(44, 36, 24, 0.03) !important;
+}
+
+.danger-lite-button:hover,
+.danger-lite-button:focus-visible {
+  background: rgba(184, 141, 133, 0.14) !important;
+  border-color: rgba(184, 141, 133, 0.52) !important;
+  transform: translateY(-1px) !important;
+}
+
+.timeline-node {
+  position: relative !important;
+  cursor: pointer !important;
+}
+
+.timeline-node::before {
+  background: #728481 !important;
+  border-color: rgba(255, 255, 255, 0.86) !important;
+  box-shadow:
+    0 0 0 8px rgba(114, 132, 129, 0.14),
+    0 10px 22px rgba(44, 36, 24, 0.06) !important;
+}
+
+.timeline-node:hover::before,
+.timeline-node.is-active::before,
+.timeline-node.selected::before,
+.timeline-node:hover .timeline-dot,
+.timeline-node.is-active .timeline-dot,
+.timeline-node.selected .timeline-dot {
+  background: #687c79 !important;
+  border-color: rgba(255, 255, 255, 0.9) !important;
+  box-shadow:
+    0 0 0 9px rgba(114, 132, 129, 0.18),
+    0 0 14px rgba(114, 132, 129, 0.28) !important;
+}
+
+.timeline-node-delete {
+  position: absolute !important;
+  top: 9px !important;
+  right: 9px !important;
+  z-index: 5 !important;
+  display: grid !important;
+  width: 26px !important;
+  height: 26px !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border: 0.5px solid rgba(210, 194, 172, 0.36) !important;
+  border-radius: 50% !important;
+  background: rgba(255, 253, 248, 0.74) !important;
+  color: rgba(80, 72, 63, 0.74) !important;
+  opacity: 0 !important;
+  transform: translateY(-2px) scale(0.96) !important;
+  transition: opacity 160ms ease, transform 160ms ease, background 160ms ease !important;
+}
+
+.timeline-node:hover .timeline-node-delete,
+.timeline-node:focus-within .timeline-node-delete {
+  opacity: 1 !important;
+  transform: translateY(0) scale(1) !important;
+}
+
+.timeline-node-delete:hover,
+.timeline-node-delete:focus-visible {
+  background: rgba(184, 141, 133, 0.12) !important;
+  color: #7a4a42 !important;
+}
+
+.timeline-confirm-backdrop,
+.relation-confirm-backdrop {
+  z-index: 140 !important;
+}
+
+@media (max-width: 980px) {
+  .novel-section .novel-hero > div:first-child {
+    transform: none !important;
+  }
+
+  .novel-section .novel-meta {
+    transform: none !important;
+    max-width: 100% !important;
+  }
+
+  .character-editor-top,
+  .character-action-row,
+  .timeline-action-row {
+    grid-template-columns: 1fr !important;
+  }
+}
