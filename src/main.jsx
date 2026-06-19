@@ -17,7 +17,7 @@ import "./sidebar-nav-state-fix.css";
 import "./novel-page-refine.css";
 import "./responsive-stability.css";
 import "./texture-background.css";
-import "./relation-graph-runtime-fix.js";
+import "./final-polish-fixes.css";
 import "./modal-empty-qa.js";
 
 // Deployment retry: carries pending texture-background and responsive-stability updates.

@@ -57,20 +57,20 @@ export default function NovelSection({
           />
         </div>
         <div className="novel-meta" aria-label="作品档案">
-          <label>
-            类型
+          <label className="novel-meta-field">
+            <span>类型</span>
             <input value={novel.genre} onChange={(event) => onNovelChange(novel.id, { genre: event.target.value })} />
           </label>
-          <label>
-            当前字数
+          <label className="novel-meta-field">
+            <span>当前字数</span>
             <input type="number" value={novel.currentWords} onChange={(event) => onNovelChange(novel.id, { currentWords: Number(event.target.value) })} />
           </label>
-          <label>
-            预计总字数
+          <label className="novel-meta-field">
+            <span>预计总字数</span>
             <input type="number" value={novel.targetWords} onChange={(event) => onNovelChange(novel.id, { targetWords: Number(event.target.value) })} />
           </label>
-          <label>
-            完结时间
+          <label className="novel-meta-field">
+            <span>完结时间</span>
             <input type="date" value={novel.finishDate} onChange={(event) => onNovelChange(novel.id, { finishDate: event.target.value })} />
           </label>
           <PublishLinkPill link={publishLink} onChange={updatePublishLink} />

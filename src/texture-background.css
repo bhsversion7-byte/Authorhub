@@ -12,7 +12,7 @@ body::before {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: #f5f1e8 url("/texture-3.jpg") center center / cover no-repeat;
+  background: #f5f1e8 url("/texture-3-bg.jpg") center center / cover no-repeat;
 }
 
 body,
