@@ -20,6 +20,7 @@ import "./texture-background.css";
 import "./relation-graph-runtime-fix.js";
 import "./modal-empty-qa.js";
 
+// Deployment retry: carries pending texture-background and responsive-stability updates.
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ErrorBoundary>
