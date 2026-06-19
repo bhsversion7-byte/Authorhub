@@ -21,8 +21,10 @@ export default function NovelSection({
   onUpdateCharacter,
   onAddRelationship,
   onUpdateRelationship,
+  onDeleteCharacter,
   onAddEvent,
   onUpdateEvent,
+  onDeleteEvent,
 }) {
   const publishLink = useMemo(() => {
     const links = novel.sourceLinks ?? [];
@@ -111,6 +113,7 @@ export default function NovelSection({
         onUpdateCharacter={onUpdateCharacter}
         onAddRelationship={onAddRelationship}
         onUpdateRelationship={onUpdateRelationship}
+        onDeleteCharacter={onDeleteCharacter}
       />
 
       <div className="timeline-shell">
@@ -121,7 +124,7 @@ export default function NovelSection({
             <h3>事件、背景与设定双向关联</h3>
           </div>
         </div>
-        <TimelineFlow novel={novel} onAddEvent={onAddEvent} onUpdateEvent={onUpdateEvent} />
+        <TimelineFlow novel={novel} onAddEvent={onAddEvent} onUpdateEvent={onUpdateEvent} onDeleteEvent={onDeleteEvent} />
       </div>
     </section>
   );

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Copy, ExternalLink, Plus, Save } from "lucide-react";
+import { ChevronLeft, ChevronRight, Copy, ExternalLink, Plus, Save, Trash2, X } from "lucide-react";
 import { copyPromptAndOpen } from "../lib/aiHandoff.js";
 import FocusTextarea from "./FocusTextarea.jsx";
 import MediaCarousel from "./MediaCarousel.jsx";
@@ -17,10 +17,11 @@ function createEvent(novelId) {
   };
 }
 
-export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent }) {
+export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDeleteEvent }) {
   const [selectedId, setSelectedId] = useState(novel.timeline[0]?.id);
   const [slideIndex, setSlideIndex] = useState(0);
   const [handoffState, setHandoffState] = useState("");
+  const [deleteEventCandidate, setDeleteEventCandidate] = useState(null);
   const selectedIndex = useMemo(() => novel.timeline.findIndex((event) => event.id === selectedId), [novel.timeline, selectedId]);
   const selected = useMemo(() => novel.timeline.find((event) => event.id === selectedId) ?? novel.timeline[0], [novel.timeline, selectedId]);
   const [draft, setDraft] = useState(selected ?? null);
@@ -63,6 +64,23 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent }) {
   function saveEvent() {
     if (!draft) return;
     onUpdateEvent(novel.id, draft.id, draft);
+  }
+
+  function requestDeleteEvent(event = draft) {
+    if (!event) return;
+    setDeleteEventCandidate(event);
+  }
+
+  function confirmDeleteEvent() {
+    if (!deleteEventCandidate) return;
+    const remainingEvents = novel.timeline.filter((event) => event.id !== deleteEventCandidate.id);
+    const nextEvent = selectedId === deleteEventCandidate.id ? remainingEvents[0] ?? null : draft;
+    onDeleteEvent?.(novel.id, deleteEventCandidate.id);
+    setDeleteEventCandidate(null);
+    if (selectedId === deleteEventCandidate.id) {
+      setSelectedId(nextEvent?.id);
+      setDraft(nextEvent ? { ...nextEvent } : null);
+    }
   }
 
   function moveTimeline(delta) {
@@ -118,17 +136,34 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent }) {
         <div className="timeline-track-viewport">
           <div className="timeline-track" style={{ "--timeline-index": slideIndex }}>
             {novel.timeline.map((event, index) => (
-              <button
-                type="button"
+              <div
                 key={event.id}
+                role="button"
+                tabIndex={0}
                 className={`timeline-node ${event.id === selectedId ? "is-active" : ""}`}
                 onClick={() => openEvent(event)}
+                onKeyDown={(keyboardEvent) => {
+                  if (keyboardEvent.key !== "Enter" && keyboardEvent.key !== " ") return;
+                  keyboardEvent.preventDefault();
+                  openEvent(event);
+                }}
                 style={{ "--node-color": novel.color, "--node-index": index, animationDelay: `${index * 42}ms` }}
                 aria-current={event.id === selectedId ? "step" : undefined}
               >
+                <button
+                  type="button"
+                  className="timeline-node-delete"
+                  onClick={(clickEvent) => {
+                    clickEvent.stopPropagation();
+                    requestDeleteEvent(event);
+                  }}
+                  aria-label={`删除时间点 ${event.title}`}
+                >
+                  <X size={13} />
+                </button>
                 <span>{event.date}</span>
                 <strong>{event.title}</strong>
-              </button>
+              </div>
             ))}
           </div>
         </div>
@@ -178,11 +213,34 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent }) {
                 </button>
               </div>
             </div>
-            <button type="button" className="primary-button" onClick={saveEvent}>
-              <Save size={16} />
-              保存时间点
-            </button>
+            <div className="timeline-action-row">
+              <button type="button" className="primary-button" onClick={saveEvent}>
+                <Save size={16} />
+                保存时间点
+              </button>
+              <button type="button" className="danger-lite-button" onClick={() => requestDeleteEvent()}>
+                <Trash2 size={15} />
+                删除时间点
+              </button>
+            </div>
           </div>
+        </div>
+      )}
+      {deleteEventCandidate && (
+        <div className="modal-backdrop timeline-confirm-backdrop" role="presentation" onMouseDown={() => setDeleteEventCandidate(null)}>
+          <section className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-event-title" onMouseDown={(event) => event.stopPropagation()}>
+            <p className="eyebrow">Delete timeline point</p>
+            <h2 id="delete-event-title">是否确定删除该时间点？</h2>
+            <p>该操作将永久删除“{deleteEventCandidate.title}”及其背景、剧情、图片参考和关联资料。</p>
+            <div className="confirm-actions">
+              <button type="button" className="ghost-button" onClick={() => setDeleteEventCandidate(null)}>
+                取消
+              </button>
+              <button type="button" className="danger-button" onClick={confirmDeleteEvent}>
+                确定删除
+              </button>
+            </div>
+          </section>
         </div>
       )}
     </div>

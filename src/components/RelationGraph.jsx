@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
-import { Check, Link2, Plus, RotateCcw, Save, Sparkles, X, ZoomIn } from "lucide-react";
+import { Check, Link2, Plus, RotateCcw, Save, Sparkles, Trash2, X, ZoomIn } from "lucide-react";
 import FocusTextarea from "./FocusTextarea.jsx";
 import MediaCarousel from "./MediaCarousel.jsx";
 
@@ -38,7 +38,7 @@ function emptyCharacter(novelId) {
   };
 }
 
-export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter, onAddRelationship, onUpdateRelationship }) {
+export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter, onAddRelationship, onUpdateRelationship, onDeleteCharacter }) {
   const svgRef = useRef(null);
   const relationRef = useRef(null);
   const nodeSelectionRef = useRef(null);
@@ -62,6 +62,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
   const [customTags, setCustomTags] = useState(() => getInitialCustomTags(novel.characters));
   const [detailPane, setDetailPane] = useState(36);
   const [resizing, setResizing] = useState(false);
+  const [deleteCharacterCandidate, setDeleteCharacterCandidate] = useState(null);
 
   const allTags = useMemo(() => [...ROLE_TAGS, ...customTags.filter((tag) => !ROLE_TAGS.includes(tag))], [customTags]);
   const draftRelationshipKey =
@@ -390,7 +391,24 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
   }
 
   function handleSaveCharacter() {
+    if (!draft) return;
     onUpdateCharacter(novel.id, draft.id, draft);
+  }
+
+  function requestDeleteCharacter() {
+    if (!draft) return;
+    setDeleteCharacterCandidate(draft);
+  }
+
+  function confirmDeleteCharacter() {
+    if (!deleteCharacterCandidate) return;
+    const remainingCharacters = novel.characters.filter((character) => character.id !== deleteCharacterCandidate.id);
+    const nextCharacter = remainingCharacters[0] ?? null;
+    onDeleteCharacter?.(novel.id, deleteCharacterCandidate.id);
+    clearRelationshipSelection();
+    setDeleteCharacterCandidate(null);
+    setSelectedId(nextCharacter?.id);
+    setDraft(nextCharacter ? { ...nextCharacter, tag: getCharacterTag(nextCharacter) } : null);
   }
 
   function handleAddRelationship() {
@@ -632,10 +650,16 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
                 <FocusTextarea label="隐藏设定" value={draft.secret} onChange={(secret) => setDraft({ ...draft, secret })} />
               </div>
               <p className="field-disclaimer">请勿上传违反法律法规或侵犯他人版权的内容。</p>
-              <button type="button" className="primary-button" onClick={handleSaveCharacter}>
-                <Save size={16} />
-                保存人物
-              </button>
+              <div className="character-action-row">
+                <button type="button" className="primary-button" onClick={handleSaveCharacter}>
+                  <Save size={16} />
+                  保存人物
+                </button>
+                <button type="button" className="danger-lite-button" onClick={requestDeleteCharacter}>
+                  <Trash2 size={15} />
+                  删除人物
+                </button>
+              </div>
               <div className="connect-box">
                 <div className="panel-title">
                   <Link2 size={17} />
@@ -658,11 +682,11 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
                   ))}
                 </select>
                 <input value={connectLabel} onChange={(event) => updateRelationshipDraft({ label: event.target.value })} placeholder="关系标签" />
-                <button type="button" onClick={handleAddRelationship}>
+                <button type="button" className="primary-button relation-save-button" onClick={handleAddRelationship}>
                   <Check size={15} />
                   {selectedRelationshipIndex === null ? "添加连线" : "保存关系"}
                 </button>
-                <button type="button" className="text-button" onClick={clearRelationshipSelection}>
+                <button type="button" className="danger-lite-button relation-clear-button" onClick={clearRelationshipSelection}>
                   <X size={14} />
                   清空关系选择
                 </button>
@@ -673,6 +697,23 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
           <p>暂无人物。</p>
         )}
       </aside>
+      {deleteCharacterCandidate && (
+        <div className="modal-backdrop relation-confirm-backdrop" role="presentation" onMouseDown={() => setDeleteCharacterCandidate(null)}>
+          <section className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-character-title" onMouseDown={(event) => event.stopPropagation()}>
+            <p className="eyebrow">Delete character</p>
+            <h2 id="delete-character-title">是否确定删除该人物？</h2>
+            <p>该操作将永久删除“{deleteCharacterCandidate.name}”的人物卡片，并同步清空与此人物相关的所有关系连线。</p>
+            <div className="confirm-actions">
+              <button type="button" className="ghost-button" onClick={() => setDeleteCharacterCandidate(null)}>
+                取消
+              </button>
+              <button type="button" className="danger-button" onClick={confirmDeleteCharacter}>
+                确定删除
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
