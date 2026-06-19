@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
-import { Check, Link2, Plus, Save, Sparkles, X, ZoomIn } from "lucide-react";
+import { Check, Link2, Plus, RotateCcw, Save, Sparkles, X, ZoomIn } from "lucide-react";
 import FocusTextarea from "./FocusTextarea.jsx";
 import MediaCarousel from "./MediaCarousel.jsx";
 
@@ -45,6 +45,9 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
   const linkSelectionRef = useRef(null);
   const labelSelectionRef = useRef(null);
   const linksRef = useRef([]);
+  const zoomRef = useRef(null);
+  const dimsRef = useRef({ width: 0, height: 0 });
+  const nodesRef = useRef([]);
 
   const [selectedId, setSelectedId] = useState(novel.characters[0]?.id);
   const [hoverId, setHoverId] = useState("");
@@ -122,6 +125,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     const bounds = svgElement.getBoundingClientRect();
     const width = Math.max(640, bounds.width || 900);
     const height = Math.max(520, bounds.height || 620);
+    dimsRef.current = { width, height };
     svg.attr("viewBox", [0, 0, width, height]);
 
     const defs = svg.append("defs");
@@ -166,6 +170,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     linksRef.current = links;
 
     const zoom = d3.zoom().scaleExtent([0.45, 2.8]).on("zoom", (event) => graphLayer.attr("transform", event.transform));
+    zoomRef.current = zoom;
     svg.call(zoom);
 
     const link = graphLayer
@@ -321,6 +326,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     nodeSelectionRef.current = node;
     linkSelectionRef.current = link;
     labelSelectionRef.current = label;
+    nodesRef.current = nodes;
     return () => simulation.stop();
   }, [
     novel.id,
@@ -365,6 +371,22 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     const character = emptyCharacter(novel.id);
     onAddCharacter(novel.id, character);
     setSelectedId(character.id);
+  }
+
+  function focusSelectedNodeView() {
+    const svgElement = svgRef.current;
+    const zoom = zoomRef.current;
+    const { width, height } = dimsRef.current;
+    const node = nodesRef.current.find((character) => character.id === selectedId);
+    if (!svgElement || !zoom || !node) return;
+    focusNode(d3.select(svgElement), zoom, width, height, node);
+  }
+
+  function resetGraphView() {
+    const svgElement = svgRef.current;
+    const zoom = zoomRef.current;
+    if (!svgElement || !zoom) return;
+    d3.select(svgElement).transition().duration(520).ease(d3.easeCubicOut).call(zoom.transform, d3.zoomIdentity);
   }
 
   function handleSaveCharacter() {
@@ -517,9 +539,13 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
               <Plus size={16} />
               新增人物
             </button>
-            <button type="button" onClick={() => selected && setSelectedId(selected.id)}>
+            <button type="button" onClick={focusSelectedNodeView}>
               <ZoomIn size={16} />
               聚焦
+            </button>
+            <button type="button" className="relation-reset-button" onClick={resetGraphView}>
+              <RotateCcw size={16} />
+              重置视图
             </button>
           </div>
         </div>
