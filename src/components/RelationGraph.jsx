@@ -534,9 +534,11 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     setTagText("");
   }
 
-  function removeCustomTag(tag, event) {
+  function removeTag(tag, event) {
     event.stopPropagation();
-    setCustomTags((current) => current.filter((item) => item !== tag));
+    if (!ROLE_TAGS.includes(tag)) {
+      setCustomTags((current) => current.filter((item) => item !== tag));
+    }
     if (draft?.tag === tag) chooseTag("主要配角");
   }
 
@@ -608,7 +610,9 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
                       {allTags.map((tag) => (
                         <button type="button" key={tag} className={draft.tag === tag ? "is-selected" : ""} onClick={() => chooseTag(tag)}>
                           {tag}
-                          {!ROLE_TAGS.includes(tag) && <i onClick={(event) => removeCustomTag(tag, event)}>×</i>}
+                          <i className="tag-chip-remove" onClick={(event) => removeTag(tag, event)} aria-label={`移除标签 ${tag}`}>
+                            ×
+                          </i>
                         </button>
                       ))}
                     </div>
@@ -649,8 +653,8 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
               </div>
 
               <div className="character-long-fields">
-                <FocusTextarea label="背景故事" value={draft.background} onChange={(background) => setDraft({ ...draft, background })} />
-                <FocusTextarea label="隐藏设定" value={draft.secret} onChange={(secret) => setDraft({ ...draft, secret })} />
+                <FocusTextarea label="背景故事" value={draft.background} onChange={(background) => setDraft({ ...draft, background })} onSave={handleSaveCharacter} />
+                <FocusTextarea label="隐藏设定" value={draft.secret} onChange={(secret) => setDraft({ ...draft, secret })} onSave={handleSaveCharacter} />
               </div>
               <p className="field-disclaimer">请勿上传违反法律法规或侵犯他人版权的内容。</p>
               <div className="character-action-row">
