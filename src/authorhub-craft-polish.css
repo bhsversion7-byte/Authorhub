@@ -1,0 +1,420 @@
+/* Craft pass: tighten remaining cascade drift without changing feature structure. */
+:root {
+  --craft-roast: #2b1010;
+  --craft-pine: #4e6663;
+  --craft-tannin: #4d3a2a;
+  --craft-soil: #605030;
+  --craft-clay: #bdb3a6;
+  --craft-chalk: #d9ccc0;
+  --craft-linen: #d7bfa8;
+  --craft-almond: #e5e2d0;
+  --craft-moss: #c0c5b0;
+  --craft-sea: #9db6c0;
+  --craft-dusk: #b28e8c;
+  --craft-graph: #d9ccc0;
+  --craft-graph-dot: rgba(96, 80, 48, 0.16);
+  --craft-novel-hero-a: #e4d6c2;
+  --craft-novel-hero-b: #d7bfa8;
+  --craft-graph-maillard: #ded1be;
+}
+
+body,
+body[data-ambient],
+body[data-theme="light"] {
+  background:
+    linear-gradient(135deg, rgba(246, 241, 232, 0.18), rgba(230, 222, 208, 0.06)),
+    url("/texture-3-wide.jpg") center center / cover fixed no-repeat,
+    #f3eee4 !important;
+}
+
+.app-shell,
+.content-shell {
+  background: transparent !important;
+}
+
+html {
+  background:
+    linear-gradient(135deg, rgba(246, 241, 232, 0.14), rgba(230, 222, 208, 0.06)),
+    url("/texture-3-wide.jpg") center center / cover fixed no-repeat,
+    #f3eee4 !important;
+}
+
+body::before {
+  content: "" !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: -1 !important;
+  pointer-events: none !important;
+  background:
+    radial-gradient(circle at 74% 14%, rgba(196, 176, 142, 0.13), transparent 34%),
+    url("/texture-3-wide.jpg") center center / cover fixed no-repeat !important;
+  opacity: 0.94 !important;
+  filter: contrast(1.03) saturate(0.92) brightness(1.02) !important;
+}
+
+.landing-gateway.mode-auth {
+  background:
+    radial-gradient(circle at 23% 16%, rgba(215, 191, 168, 0.28), transparent 34%),
+    radial-gradient(circle at 82% 24%, rgba(192, 197, 176, 0.18), transparent 38%),
+    linear-gradient(135deg, #f3eadc 0%, #e8ddce 100%) !important;
+}
+
+.landing-gateway.mode-auth::before,
+.landing-gateway.mode-auth .landing-book-stage {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+.landing-gateway .landing-auth-panel {
+  background:
+    radial-gradient(circle at 50% 48%, rgba(255, 253, 248, 0.36), transparent 36%),
+    linear-gradient(135deg, rgba(243, 234, 220, 0.76), rgba(232, 221, 206, 0.72)) !important;
+}
+
+.landing-gateway .landing-auth-panel .auth-wall {
+  background: transparent !important;
+}
+
+/* Auth is not the landing/page paper scene. Keep it warm, quiet, and task-focused. */
+.auth-wall {
+  background:
+    radial-gradient(circle at 18% 14%, rgba(215, 191, 168, 0.24), transparent 32%),
+    radial-gradient(circle at 82% 18%, rgba(192, 197, 176, 0.18), transparent 34%),
+    linear-gradient(135deg, #f6f0e7 0%, #eee5d9 100%) !important;
+}
+
+.auth-wall::before {
+  background: none !important;
+  filter: none !important;
+}
+
+/* Loading: keep the paper background, remove the accidental white halo. */
+.loading-screen::before {
+  background:
+    linear-gradient(135deg, rgba(246, 241, 232, 0.18), rgba(230, 222, 208, 0.06)),
+    url("/texture-3-wide.jpg") center center / cover no-repeat !important;
+  opacity: 0.98 !important;
+}
+
+.loading-orbit,
+.auth-loading-orbit,
+.loading-spinner {
+  box-shadow:
+    inset 0 0 0 2px rgba(44, 38, 30, 0.16),
+    0 8px 18px rgba(44, 38, 30, 0.06) !important;
+  outline: 0 !important;
+}
+
+.loading-orbit::before,
+.loading-orbit::after,
+.auth-loading-orbit::before,
+.auth-loading-orbit::after,
+.loading-spinner::before,
+.loading-spinner::after {
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* Sidebar edge affordance: invisible until the pointer is actually in the sidebar zone. */
+.sidebar-collapse-toggle {
+  top: 50% !important;
+  right: -7px !important;
+  width: 16px !important;
+  height: 48px !important;
+  transform: translateY(-50%) !important;
+  opacity: 0 !important;
+  border: 0 !important;
+  background: rgba(44, 38, 30, 0.018) !important;
+  color: rgba(44, 38, 30, 0.14) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(8px) !important;
+  transition:
+    opacity 180ms var(--ease),
+    background 180ms var(--ease),
+    color 180ms var(--ease) !important;
+}
+
+.sidebar:hover .sidebar-collapse-toggle,
+.sidebar:focus-within .sidebar-collapse-toggle,
+.sidebar-collapse-toggle:hover,
+.sidebar-collapse-toggle:focus-visible {
+  opacity: 0.42 !important;
+}
+
+/* Novel header: lower contrast than a banner, richer than washed paper. */
+.novel-section .novel-hero {
+  min-height: clamp(126px, 13vw, 164px) !important;
+  padding-block: clamp(18px, 2.1vw, 25px) !important;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 253, 246, 0.46), transparent 31%),
+    radial-gradient(circle at 90% 60%, rgba(139, 69, 19, 0.09), transparent 42%),
+    linear-gradient(135deg, rgba(228, 214, 194, 0.96), rgba(215, 191, 168, 0.76)) !important;
+  border-color: rgba(96, 80, 48, 0.18) !important;
+}
+
+.novel-section .novel-hero::before {
+  opacity: 0.18 !important;
+  mix-blend-mode: multiply !important;
+}
+
+.novel-section .novel-hero:hover {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 253, 246, 0.46), transparent 31%),
+    radial-gradient(circle at 90% 60%, rgba(139, 69, 19, 0.09), transparent 42%),
+    linear-gradient(135deg, rgba(228, 214, 194, 0.96), rgba(215, 191, 168, 0.76)) !important;
+}
+
+.novel-section .novel-hero > div:first-child {
+  transform: translateY(1.08em) !important;
+}
+
+.novel-section .novel-meta {
+  transform: translate(-7%, 0.08em) scale(0.98) !important;
+}
+
+/* Non-timeline novel cards: recognisable but restrained material differences. */
+.novel-section :where(.story-card, .theme-card, .ai-nudge, .inspector-card) {
+  background:
+    radial-gradient(circle at 16% 10%, rgba(255, 253, 247, 0.5), transparent 36%),
+    linear-gradient(135deg, rgba(229, 226, 208, 0.9), rgba(189, 179, 166, 0.7)) !important;
+  border-color: rgba(96, 80, 48, 0.2) !important;
+}
+
+.novel-section .theme-card {
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 253, 247, 0.5), transparent 36%),
+    linear-gradient(135deg, rgba(192, 197, 176, 0.78), rgba(229, 226, 208, 0.7)) !important;
+}
+
+.novel-section .story-grid > article.panel.story-card:nth-child(1),
+.novel-section .story-grid > article.panel.story-card:nth-child(1):hover {
+  background:
+    radial-gradient(circle at 14% 10%, rgba(255, 253, 247, 0.5), transparent 34%),
+    radial-gradient(circle at 88% 82%, rgba(114, 132, 129, 0.09), transparent 38%),
+    linear-gradient(135deg, rgba(229, 226, 208, 0.92), rgba(217, 204, 192, 0.78)) !important;
+  background-color: rgba(229, 226, 208, 0.92) !important;
+  border-color: rgba(96, 80, 48, 0.2) !important;
+}
+
+.novel-section .story-grid > article.panel.story-card:nth-child(2),
+.novel-section .story-grid > article.panel.story-card:nth-child(2):hover {
+  background:
+    radial-gradient(circle at 16% 12%, rgba(255, 253, 247, 0.48), transparent 35%),
+    radial-gradient(circle at 88% 72%, rgba(78, 102, 99, 0.09), transparent 38%),
+    linear-gradient(135deg, rgba(215, 191, 168, 0.72), rgba(192, 197, 176, 0.62)) !important;
+  background-color: rgba(215, 191, 168, 0.72) !important;
+  border-color: rgba(78, 102, 99, 0.2) !important;
+}
+
+.novel-section .story-grid > article.panel.story-card::before {
+  opacity: 0.28 !important;
+  filter: contrast(0.86) brightness(1.06) saturate(0.82) !important;
+  mix-blend-mode: multiply !important;
+}
+
+.novel-section :where(.story-card, .theme-card, .inspector-card)::before {
+  opacity: 0.24 !important;
+  mix-blend-mode: multiply !important;
+}
+
+.novel-section .story-grid > article.panel.story-card::before {
+  opacity: 0.28 !important;
+  filter: contrast(0.86) brightness(1.06) saturate(0.82) !important;
+  mix-blend-mode: multiply !important;
+}
+
+/* Relation graph: card and dot field share one base color; no darker header/footer bands. */
+.graph-card.relation-graph,
+.graph-card.relation-graph:hover,
+.relationship-star-chart,
+.relationship-star-chart:hover {
+  --ah-graph-dot-soft: rgba(96, 80, 48, 0.15);
+  background:
+    linear-gradient(135deg, rgba(222, 209, 190, 0.96), rgba(222, 209, 190, 0.96)) !important;
+  border-color: rgba(96, 80, 48, 0.18) !important;
+}
+
+.graph-card.relation-graph::before,
+.relationship-star-chart::before {
+  inset: 0 !important;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(255, 253, 247, 0.12), transparent 34%),
+    url("/texture-card-3.jpg") center center / 210px 210px repeat !important;
+  opacity: 0.2 !important;
+  mix-blend-mode: multiply !important;
+}
+
+.graph-card.relation-graph::after,
+.relationship-star-chart::after {
+  inset: 58px 0 48px 0 !important;
+  background-color: transparent !important;
+  background-image:
+    radial-gradient(rgba(96, 80, 48, 0.15) 1px, transparent 1.12px) !important;
+  background-size: 18px 18px !important;
+  background-position: 0 0 !important;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
+}
+
+.graph-toolbar {
+  background: transparent !important;
+}
+
+.graph-hint {
+  bottom: 28px !important;
+  right: 12px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+
+.inspector-card {
+  background:
+    radial-gradient(circle at 12% 10%, rgba(255, 253, 247, 0.48), transparent 35%),
+    linear-gradient(135deg, rgba(192, 197, 176, 0.58), rgba(217, 204, 192, 0.72)) !important;
+  border-color: rgba(78, 102, 99, 0.2) !important;
+}
+
+/* Theme tags: x appears only on hover and warns with a tiny tremble. */
+.theme-tag-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-height: 30px;
+  padding: 6px 19px 6px 12px;
+  border: 1px solid rgba(180, 154, 126, 0.36);
+  border-radius: 999px;
+  background: rgba(255, 253, 248, 0.64);
+  color: var(--ink);
+  line-height: 1.15;
+}
+
+.tag-chip-board button {
+  overflow: visible !important;
+}
+
+.tag-chip-remove {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.tag-chip-board button:hover .tag-chip-remove,
+.tag-chip-board button:focus-within .tag-chip-remove {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+.theme-tag-remove {
+  position: absolute !important;
+  top: -4px !important;
+  right: -4px !important;
+  display: grid !important;
+  width: 14px !important;
+  height: 14px !important;
+  min-width: 14px !important;
+  min-height: 14px !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  background: rgba(255, 253, 248, 0.74) !important;
+  color: rgba(99, 70, 58, 0.82) !important;
+  opacity: 0 !important;
+  box-shadow: 0 3px 8px rgba(44, 36, 24, 0.08) !important;
+  transition: opacity 160ms var(--ease), transform 160ms var(--ease) !important;
+}
+
+.theme-tag-chip:hover .theme-tag-remove,
+.theme-tag-chip:focus-within .theme-tag-remove {
+  opacity: 1 !important;
+}
+
+.theme-tag-chip:has(.theme-tag-remove:hover) {
+  animation: tagDeleteTremble 180ms linear infinite !important;
+}
+
+/* Destructive buttons keep the same rectangular language as save buttons. */
+.danger-lite-button,
+.btn-unregister,
+.confirm-modal .danger-button,
+.character-action-row .danger-lite-button,
+.timeline-action-row .danger-lite-button,
+.relation-action-row .danger-lite-button,
+.user-action-board .btn-unregister {
+  border-radius: 12px !important;
+  width: auto !important;
+  aspect-ratio: auto !important;
+}
+
+.character-action-row button,
+.timeline-action-row button,
+.relation-action-row button {
+  border-radius: 12px !important;
+  min-height: 38px !important;
+  padding: 7px 12px !important;
+}
+
+.danger-lite-button,
+.danger-lite-button:hover,
+.danger-lite-button:focus-visible {
+  border-color: rgba(184, 141, 133, 0.4) !important;
+  background: rgba(184, 141, 133, 0.11) !important;
+  color: #7a4a42 !important;
+}
+
+.relation-layout .inspector-card .connect-box .relation-action-row button.relation-clear-button,
+.relation-layout .inspector-card .connect-box .relation-action-row button.relation-clear-button:hover,
+.relation-layout .inspector-card .connect-box .relation-action-row button.relation-clear-button:focus-visible,
+.character-action-row button.danger-lite-button,
+.timeline-action-row button.danger-lite-button {
+  border-color: rgba(184, 141, 133, 0.4) !important;
+  background: rgba(184, 141, 133, 0.11) !important;
+  color: #7a4a42 !important;
+}
+
+.confirm-modal .danger-button,
+.confirm-modal .danger-button:hover,
+.confirm-modal .danger-button:focus-visible {
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, #c7928b, #b77e78) !important;
+  color: #fff8ef !important;
+}
+
+/* User center action order: clear / logout row, unregister centered below. */
+.user-action-board {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.user-action-board .user-clear-data-button {
+  order: 5 !important;
+}
+
+.user-action-board .user-logout-button {
+  order: 6 !important;
+}
+
+.user-action-board .btn-unregister {
+  order: 7 !important;
+  grid-column: 1 / -1 !important;
+  width: min(48%, 260px) !important;
+  justify-self: center !important;
+}
+
+body[data-theme="dark"] .auth-wall {
+  background:
+    radial-gradient(circle at 18% 14%, rgba(126, 94, 62, 0.18), transparent 32%),
+    linear-gradient(135deg, #171514 0%, #24201c 100%) !important;
+}
+
+body[data-theme="dark"] .graph-card.relation-graph,
+body[data-theme="dark"] .relationship-star-chart {
+  background: linear-gradient(135deg, rgba(48, 42, 35, 0.96), rgba(48, 42, 35, 0.96)) !important;
+}
+
+body[data-theme="dark"] .graph-card.relation-graph::after,
+body[data-theme="dark"] .relationship-star-chart::after {
+  background-color: rgba(48, 42, 35, 0.96) !important;
+  background-image: radial-gradient(rgba(208, 177, 138, 0.16) 1px, transparent 1.12px) !important;
+}

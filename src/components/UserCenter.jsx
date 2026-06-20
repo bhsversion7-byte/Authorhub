@@ -79,17 +79,17 @@ export default function UserCenter({
               <FileText size={15} />
               导出 Markdown
             </button>
-            <button type="button" onClick={() => setConfirmClear(true)}>
+            <button type="button" className="user-clear-data-button" onClick={() => setConfirmClear(true)}>
               <Trash2 size={15} />
               清空数据
+            </button>
+            <button type="button" className="user-logout-button" onClick={onLogout}>
+              <LogOut size={15} />
+              安全登出
             </button>
             <button type="button" className="btn-unregister" onClick={() => setConfirmUnregister(true)}>
               <UserX size={15} />
               注销账号
-            </button>
-            <button type="button" onClick={onLogout}>
-              <LogOut size={15} />
-              安全登出
             </button>
           </div>
 
