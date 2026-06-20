@@ -20,6 +20,7 @@ import "./texture-background.css";
 import "./final-polish-fixes.css";
 import "./authorhub-refine-pass.css";
 import "./authorhub-detail-polish.css";
+import "./authorhub-craft-polish.css";
 import "./modal-empty-qa.js";
 
 // Deployment retry: carries pending texture-background and responsive-stability updates.
