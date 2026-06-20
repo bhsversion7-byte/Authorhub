@@ -1,108 +1,150 @@
-/* Craft pass: tighten remaining cascade drift without changing feature structure. */
+/*
+  AuthorHub final material contract.
+  This file is intentionally loaded last. It does not introduce new feature
+  structure; it resolves old cascade drift by giving each surface one semantic
+  color and one texture rule.
+*/
+
 :root {
-  --craft-roast: #2b1010;
-  --craft-pine: #4e6663;
-  --craft-tannin: #4d3a2a;
-  --craft-soil: #605030;
-  --craft-clay: #bdb3a6;
-  --craft-chalk: #d9ccc0;
-  --craft-linen: #d7bfa8;
-  --craft-almond: #e5e2d0;
-  --craft-moss: #c0c5b0;
-  --craft-sea: #9db6c0;
-  --craft-dusk: #b28e8c;
-  --craft-graph: #d9ccc0;
-  --craft-graph-dot: rgba(96, 80, 48, 0.16);
-  --craft-novel-hero-a: #e4d6c2;
-  --craft-novel-hero-b: #d7bfa8;
-  --craft-graph-maillard: #ded1be;
+  --ah-bg-paper: #eee7dc;
+  --ah-bg-paper-deep: #dfd7ca;
+  --ah-ink-deep: #2c2a29;
+  --ah-ink-soft: #756a60;
+
+  /* User-requested novel-page materials. */
+  --mat-graph: #d9dddc;       /* 冷浆熟宣灰 */
+  --mat-graph-dot: rgba(116, 125, 123, 0.32);
+  --mat-outline: #e3e4e0;     /* 淡灰宣纸白 */
+  --mat-setting: #b9c1be;     /* 莫兰迪哑光青岩灰 */
+  --mat-theme: #d8c8de;       /* 知性丁香淡紫色 */
+  --mat-novel-route: #b08a4c;  /* 暗枫糖琥珀金 */
+  --mat-inspector: #e8dfd1;   /* 薄雾苍米色 */
+
+  --mat-paper-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    inset 0 -1px 2px rgba(44, 36, 24, 0.025),
+    0 14px 34px rgba(44, 36, 24, 0.045),
+    0 4px 14px rgba(44, 36, 24, 0.03);
+}
+
+html {
+  background:
+    linear-gradient(135deg, rgba(246, 241, 232, 0.16), rgba(223, 215, 202, 0.14)),
+    url("/texture-3-wide.jpg") center center / cover fixed no-repeat,
+    var(--ah-bg-paper) !important;
 }
 
 body,
 body[data-ambient],
 body[data-theme="light"] {
   background:
-    linear-gradient(135deg, rgba(246, 241, 232, 0.18), rgba(230, 222, 208, 0.06)),
+    linear-gradient(135deg, rgba(246, 241, 232, 0.12), rgba(223, 215, 202, 0.08)),
     url("/texture-3-wide.jpg") center center / cover fixed no-repeat,
-    #f3eee4 !important;
-}
-
-.app-shell,
-.content-shell {
-  background: transparent !important;
-}
-
-html {
-  background:
-    linear-gradient(135deg, rgba(246, 241, 232, 0.14), rgba(230, 222, 208, 0.06)),
-    url("/texture-3-wide.jpg") center center / cover fixed no-repeat,
-    #f3eee4 !important;
+    var(--ah-bg-paper) !important;
+  color: var(--ah-ink-deep) !important;
 }
 
 body::before {
   content: "" !important;
   position: fixed !important;
   inset: 0 !important;
-  z-index: -1 !important;
+  z-index: 0 !important;
   pointer-events: none !important;
   background:
-    radial-gradient(circle at 74% 14%, rgba(196, 176, 142, 0.13), transparent 34%),
+    linear-gradient(90deg, rgba(238, 231, 221, 0.06), rgba(255, 255, 255, 0.04)),
     url("/texture-3-wide.jpg") center center / cover fixed no-repeat !important;
-  opacity: 0.94 !important;
-  filter: contrast(1.03) saturate(0.92) brightness(1.02) !important;
+  opacity: 0.48 !important;
+  mix-blend-mode: multiply !important;
+  filter: contrast(1.18) brightness(0.98) saturate(0.82) !important;
 }
 
-.landing-gateway.mode-auth {
-  background:
-    radial-gradient(circle at 23% 16%, rgba(215, 191, 168, 0.28), transparent 34%),
-    radial-gradient(circle at 82% 24%, rgba(192, 197, 176, 0.18), transparent 38%),
-    linear-gradient(135deg, #f3eadc 0%, #e8ddce 100%) !important;
+.app-shell,
+.landing-gateway {
+  position: relative !important;
+  z-index: 1 !important;
 }
 
-.landing-gateway.mode-auth::before,
-.landing-gateway.mode-auth .landing-book-stage {
-  opacity: 0 !important;
-  visibility: hidden !important;
-}
-
-.landing-gateway .landing-auth-panel {
-  background:
-    radial-gradient(circle at 50% 48%, rgba(255, 253, 248, 0.36), transparent 36%),
-    linear-gradient(135deg, rgba(243, 234, 220, 0.76), rgba(232, 221, 206, 0.72)) !important;
-}
-
-.landing-gateway .landing-auth-panel .auth-wall {
+.app-shell,
+.content-shell,
+.novel-section {
   background: transparent !important;
 }
 
-/* Auth is not the landing/page paper scene. Keep it warm, quiet, and task-focused. */
-.auth-wall {
+/* Auth is a quiet task surface, not the cinematic landing stage. */
+.landing-gateway.mode-auth {
+  display: grid !important;
+  place-items: center !important;
+  min-height: 100vh !important;
   background:
-    radial-gradient(circle at 18% 14%, rgba(215, 191, 168, 0.24), transparent 32%),
-    radial-gradient(circle at 82% 18%, rgba(192, 197, 176, 0.18), transparent 34%),
-    linear-gradient(135deg, #f6f0e7 0%, #eee5d9 100%) !important;
+    radial-gradient(circle at 24% 16%, rgba(176, 138, 76, 0.16), transparent 32%),
+    radial-gradient(circle at 78% 22%, rgba(116, 125, 123, 0.12), transparent 36%),
+    linear-gradient(135deg, #f1eadf 0%, #e7ded1 100%) !important;
 }
 
-.auth-wall::before {
-  background: none !important;
-  filter: none !important;
+.landing-gateway.mode-auth .landing-stage,
+.landing-gateway.mode-auth .landing-copy,
+.landing-gateway.mode-auth .landing-book-stage,
+.landing-gateway.mode-auth .landing-noise,
+.landing-gateway.mode-auth .landing-scratch-layer,
+.landing-gateway.mode-auth .landing-aura {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
-/* Loading: keep the paper background, remove the accidental white halo. */
+.landing-gateway.mode-auth .landing-auth-panel {
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  width: min(92vw, 680px) !important;
+  min-height: auto !important;
+  background: transparent !important;
+}
+
+.auth-wall,
+.landing-gateway.mode-auth .auth-wall {
+  min-height: auto !important;
+  width: 100% !important;
+  background: transparent !important;
+}
+
+.auth-wall::before,
+.landing-gateway.mode-auth .auth-wall::before {
+  display: none !important;
+}
+
+/* Loading surfaces use the same paper, but no text pill and no white halo. */
+.loading-screen {
+  background:
+    linear-gradient(135deg, rgba(246, 241, 232, 0.18), rgba(223, 215, 202, 0.1)),
+    url("/texture-3-wide.jpg") center center / cover fixed no-repeat,
+    var(--ah-bg-paper) !important;
+}
+
 .loading-screen::before {
   background:
-    linear-gradient(135deg, rgba(246, 241, 232, 0.18), rgba(230, 222, 208, 0.06)),
-    url("/texture-3-wide.jpg") center center / cover no-repeat !important;
-  opacity: 0.98 !important;
+    url("/texture-3-wide.jpg") center center / cover fixed no-repeat !important;
+  opacity: 0.36 !important;
+  mix-blend-mode: multiply !important;
+  filter: contrast(1.18) brightness(0.98) !important;
+}
+
+.loading-screen p {
+  display: block !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .loading-orbit,
 .auth-loading-orbit,
 .loading-spinner {
-  box-shadow:
-    inset 0 0 0 2px rgba(44, 38, 30, 0.16),
-    0 8px 18px rgba(44, 38, 30, 0.06) !important;
+  background: conic-gradient(from 0deg, rgba(44, 42, 41, 0.78), rgba(44, 42, 41, 0.18), rgba(44, 42, 41, 0.78)) !important;
+  box-shadow: none !important;
   outline: 0 !important;
+  filter: none !important;
 }
 
 .loading-orbit::before,
@@ -115,145 +157,176 @@ body::before {
   filter: none !important;
 }
 
-/* Sidebar edge affordance: invisible until the pointer is actually in the sidebar zone. */
+/* Sidebar collapse handle: appears when the pointer is inside the sidebar zone. */
 .sidebar-collapse-toggle {
   top: 50% !important;
   right: -7px !important;
   width: 16px !important;
-  height: 48px !important;
+  height: 54px !important;
   transform: translateY(-50%) !important;
   opacity: 0 !important;
   border: 0 !important;
-  background: rgba(44, 38, 30, 0.018) !important;
-  color: rgba(44, 38, 30, 0.14) !important;
+  background: rgba(44, 38, 30, 0.012) !important;
+  color: rgba(44, 38, 30, 0.08) !important;
   box-shadow: none !important;
   backdrop-filter: blur(8px) !important;
-  transition:
-    opacity 180ms var(--ease),
-    background 180ms var(--ease),
-    color 180ms var(--ease) !important;
+  transition: opacity 180ms var(--ease), color 180ms var(--ease), background 180ms var(--ease) !important;
 }
 
 .sidebar:hover .sidebar-collapse-toggle,
-.sidebar:focus-within .sidebar-collapse-toggle,
+.sidebar:focus-within .sidebar-collapse-toggle {
+  opacity: 0.28 !important;
+  color: rgba(44, 38, 30, 0.22) !important;
+}
+
 .sidebar-collapse-toggle:hover,
 .sidebar-collapse-toggle:focus-visible {
   opacity: 0.42 !important;
+  background: rgba(255, 253, 248, 0.3) !important;
+  color: rgba(44, 38, 30, 0.34) !important;
 }
 
-/* Novel header: lower contrast than a banner, richer than washed paper. */
-.novel-section .novel-hero {
-  min-height: clamp(126px, 13vw, 164px) !important;
-  padding-block: clamp(18px, 2.1vw, 25px) !important;
+/* Shared card physics: soft paper lift without metallic gradients. */
+.novel-section :where(.novel-hero, .story-card, .theme-card, .graph-card, .inspector-card, .ai-nudge) {
+  box-shadow: var(--mat-paper-shadow) !important;
+  border: 1px solid rgba(92, 82, 70, 0.16) !important;
+}
+
+.novel-section :where(.novel-hero, .story-card, .theme-card, .graph-card, .inspector-card, .ai-nudge):hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    0 16px 38px rgba(44, 36, 24, 0.055),
+    0 4px 16px rgba(44, 36, 24, 0.035) !important;
+  transform: translateY(-1px) !important;
+}
+
+.novel-section :where(.novel-hero, .story-card, .theme-card, .graph-card, .inspector-card)::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: inherit !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+
+.novel-section :where(.novel-hero, .story-card, .theme-card, .graph-card, .inspector-card) > * {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Novel Section: antique brass route label, compact and warm. */
+.novel-section .novel-hero,
+.novel-section .novel-hero:hover {
+  min-height: clamp(114px, 11.2vw, 142px) !important;
+  padding-block: clamp(15px, 1.8vw, 22px) !important;
   background:
-    radial-gradient(circle at 12% 18%, rgba(255, 253, 246, 0.46), transparent 31%),
-    radial-gradient(circle at 90% 60%, rgba(139, 69, 19, 0.09), transparent 42%),
-    linear-gradient(135deg, rgba(228, 214, 194, 0.96), rgba(215, 191, 168, 0.76)) !important;
-  border-color: rgba(96, 80, 48, 0.18) !important;
+    linear-gradient(135deg, rgba(238, 225, 198, 0.92), rgba(215, 193, 151, 0.72)),
+    linear-gradient(90deg, rgba(176, 138, 76, 0.12), rgba(255, 255, 255, 0.08)) !important;
+  border-color: rgba(139, 105, 55, 0.24) !important;
 }
 
 .novel-section .novel-hero::before {
-  opacity: 0.18 !important;
-  mix-blend-mode: multiply !important;
-}
-
-.novel-section .novel-hero:hover {
   background:
-    radial-gradient(circle at 12% 18%, rgba(255, 253, 246, 0.46), transparent 31%),
-    radial-gradient(circle at 90% 60%, rgba(139, 69, 19, 0.09), transparent 42%),
-    linear-gradient(135deg, rgba(228, 214, 194, 0.96), rgba(215, 191, 168, 0.76)) !important;
+    url("/texture-card-1.jpg") center center / 190px 190px repeat !important;
+  opacity: 0.24 !important;
+  mix-blend-mode: multiply !important;
+  filter: contrast(1.04) saturate(0.7) brightness(1.02) !important;
 }
 
 .novel-section .novel-hero > div:first-child {
-  transform: translateY(1.08em) !important;
+  transform: translateY(0.95em) !important;
 }
 
 .novel-section .novel-meta {
-  transform: translate(-7%, 0.08em) scale(0.98) !important;
+  transform: translate(-5%, 0.06em) scale(0.98) !important;
 }
 
-/* Non-timeline novel cards: recognisable but restrained material differences. */
-.novel-section :where(.story-card, .theme-card, .ai-nudge, .inspector-card) {
-  background:
-    radial-gradient(circle at 16% 10%, rgba(255, 253, 247, 0.5), transparent 36%),
-    linear-gradient(135deg, rgba(229, 226, 208, 0.9), rgba(189, 179, 166, 0.7)) !important;
-  border-color: rgba(96, 80, 48, 0.2) !important;
+.novel-section .novel-hero .eyebrow {
+  color: #8b6937 !important;
 }
 
-.novel-section .theme-card {
-  background:
-    radial-gradient(circle at 18% 12%, rgba(255, 253, 247, 0.5), transparent 36%),
-    linear-gradient(135deg, rgba(192, 197, 176, 0.78), rgba(229, 226, 208, 0.7)) !important;
-}
-
+/* Outline: grey rice paper with grain. */
 .novel-section .story-grid > article.panel.story-card:nth-child(1),
 .novel-section .story-grid > article.panel.story-card:nth-child(1):hover {
   background:
-    radial-gradient(circle at 14% 10%, rgba(255, 253, 247, 0.5), transparent 34%),
-    radial-gradient(circle at 88% 82%, rgba(114, 132, 129, 0.09), transparent 38%),
-    linear-gradient(135deg, rgba(229, 226, 208, 0.92), rgba(217, 204, 192, 0.78)) !important;
-  background-color: rgba(229, 226, 208, 0.92) !important;
-  border-color: rgba(96, 80, 48, 0.2) !important;
+    linear-gradient(135deg, rgba(227, 228, 224, 0.96), rgba(214, 216, 211, 0.88)) !important;
+  background-color: var(--mat-outline) !important;
+  border-color: rgba(93, 90, 84, 0.18) !important;
 }
 
+.novel-section .story-grid > article.panel.story-card:nth-child(1)::before {
+  background: url("/texture-card-3.jpg") center center / 178px 178px repeat !important;
+  opacity: 0.34 !important;
+  mix-blend-mode: multiply !important;
+  filter: contrast(1.15) saturate(0.55) brightness(1.04) !important;
+}
+
+/* Setting: matte blue-stone grey, visually distinct from outline. */
 .novel-section .story-grid > article.panel.story-card:nth-child(2),
 .novel-section .story-grid > article.panel.story-card:nth-child(2):hover {
   background:
-    radial-gradient(circle at 16% 12%, rgba(255, 253, 247, 0.48), transparent 35%),
-    radial-gradient(circle at 88% 72%, rgba(78, 102, 99, 0.09), transparent 38%),
-    linear-gradient(135deg, rgba(215, 191, 168, 0.72), rgba(192, 197, 176, 0.62)) !important;
-  background-color: rgba(215, 191, 168, 0.72) !important;
-  border-color: rgba(78, 102, 99, 0.2) !important;
+    linear-gradient(135deg, rgba(185, 193, 190, 0.96), rgba(174, 183, 180, 0.9)) !important;
+  background-color: var(--mat-setting) !important;
+  border-color: rgba(78, 102, 99, 0.22) !important;
 }
 
-.novel-section .story-grid > article.panel.story-card::before {
+.novel-section .story-grid > article.panel.story-card:nth-child(2)::before {
+  background: url("/texture-card-3.jpg") center center / 206px 206px repeat !important;
   opacity: 0.28 !important;
-  filter: contrast(0.86) brightness(1.06) saturate(0.82) !important;
   mix-blend-mode: multiply !important;
+  filter: contrast(1.05) saturate(0.45) brightness(1.02) !important;
 }
 
-.novel-section :where(.story-card, .theme-card, .inspector-card)::before {
-  opacity: 0.24 !important;
-  mix-blend-mode: multiply !important;
+/* Theme tags: the single soft emotional highlight. */
+.novel-section .theme-card,
+.novel-section .theme-card:hover {
+  background:
+    linear-gradient(135deg, rgba(216, 200, 222, 0.94), rgba(226, 214, 230, 0.86)) !important;
+  background-color: var(--mat-theme) !important;
+  border-color: rgba(128, 104, 138, 0.22) !important;
 }
 
-.novel-section .story-grid > article.panel.story-card::before {
-  opacity: 0.28 !important;
-  filter: contrast(0.86) brightness(1.06) saturate(0.82) !important;
-  mix-blend-mode: multiply !important;
+.novel-section .theme-card::before {
+  background: url("/texture-card-2.jpg") center center / 100% 100% no-repeat !important;
+  opacity: 0.18 !important;
+  mix-blend-mode: soft-light !important;
+  filter: saturate(0.75) contrast(1.05) !important;
 }
 
-/* Relation graph: card and dot field share one base color; no darker header/footer bands. */
+/* Relation graph: one color contract for the card and the SVG dotted canvas. */
 .graph-card.relation-graph,
 .graph-card.relation-graph:hover,
 .relationship-star-chart,
 .relationship-star-chart:hover {
-  --ah-graph-dot-soft: rgba(96, 80, 48, 0.15);
-  background:
-    linear-gradient(135deg, rgba(222, 209, 190, 0.96), rgba(222, 209, 190, 0.96)) !important;
-  border-color: rgba(96, 80, 48, 0.18) !important;
+  --ah-graph-dot-soft: var(--mat-graph-dot);
+  background: linear-gradient(135deg, var(--mat-graph), var(--mat-graph)) !important;
+  background-color: var(--mat-graph) !important;
+  border-color: rgba(99, 108, 106, 0.2) !important;
 }
 
 .graph-card.relation-graph::before,
 .relationship-star-chart::before {
   inset: 0 !important;
   background:
-    radial-gradient(circle at 18% 16%, rgba(255, 253, 247, 0.12), transparent 34%),
-    url("/texture-card-3.jpg") center center / 210px 210px repeat !important;
-  opacity: 0.2 !important;
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0)),
+    url("/texture-card-2.jpg") center center / 100% 100% no-repeat !important;
+  opacity: 0.16 !important;
   mix-blend-mode: multiply !important;
+  filter: saturate(0.5) contrast(1.04) brightness(1.02) !important;
 }
 
 .graph-card.relation-graph::after,
 .relationship-star-chart::after {
-  inset: 58px 0 48px 0 !important;
-  background-color: transparent !important;
-  background-image:
-    radial-gradient(rgba(96, 80, 48, 0.15) 1px, transparent 1.12px) !important;
-  background-size: 18px 18px !important;
+  content: none !important;
+  display: none !important;
+}
+
+.relation-svg {
+  background-color: var(--mat-graph) !important;
+  background-image: radial-gradient(var(--mat-graph-dot) 1.25px, transparent 1.25px) !important;
+  background-size: 24px 24px !important;
+  background-repeat: repeat !important;
   background-position: 0 0 !important;
-  opacity: 1 !important;
-  mix-blend-mode: normal !important;
 }
 
 .graph-toolbar {
@@ -261,23 +334,37 @@ body::before {
 }
 
 .graph-hint {
-  bottom: 28px !important;
-  right: 12px !important;
+  bottom: 42px !important;
+  right: 16px !important;
   background: transparent !important;
   box-shadow: none !important;
   border: 0 !important;
   padding: 0 !important;
   border-radius: 0 !important;
+  color: rgba(90, 82, 74, 0.72) !important;
 }
 
-.inspector-card {
+/* Character detail workbench: warm linen paper that hosts colored planets. */
+.novel-section .inspector-card,
+.novel-section .inspector-card:hover,
+.inspector-card,
+.inspector-card:hover {
   background:
-    radial-gradient(circle at 12% 10%, rgba(255, 253, 247, 0.48), transparent 35%),
-    linear-gradient(135deg, rgba(192, 197, 176, 0.58), rgba(217, 204, 192, 0.72)) !important;
-  border-color: rgba(78, 102, 99, 0.2) !important;
+    linear-gradient(135deg, rgba(232, 223, 209, 0.96), rgba(225, 215, 200, 0.9)) !important;
+  background-color: var(--mat-inspector) !important;
+  border-color: rgba(134, 115, 88, 0.2) !important;
 }
 
-/* Theme tags: x appears only on hover and warns with a tiny tremble. */
+.novel-section .inspector-card::before,
+.inspector-card::before {
+  inset: 0 !important;
+  background: url("/texture-card-3.jpg") center center / 184px 184px repeat !important;
+  opacity: 0.22 !important;
+  mix-blend-mode: multiply !important;
+  filter: contrast(1.08) saturate(0.58) brightness(1.03) !important;
+}
+
+/* Theme and character tag deletion affordance. */
 .theme-tag-chip {
   position: relative;
   display: inline-flex;
@@ -285,9 +372,9 @@ body::before {
   max-width: 100%;
   min-height: 30px;
   padding: 6px 19px 6px 12px;
-  border: 1px solid rgba(180, 154, 126, 0.36);
+  border: 1px solid rgba(128, 104, 138, 0.28);
   border-radius: 999px;
-  background: rgba(255, 253, 248, 0.64);
+  background: rgba(255, 253, 248, 0.62);
   color: var(--ink);
   line-height: 1.15;
 }
@@ -307,6 +394,11 @@ body::before {
   pointer-events: auto !important;
 }
 
+.tag-chip-board button:has(.tag-chip-remove:hover),
+.theme-tag-chip:has(.theme-tag-remove:hover) {
+  animation: tagDeleteTremble 180ms linear infinite !important;
+}
+
 .theme-tag-remove {
   position: absolute !important;
   top: -4px !important;
@@ -319,7 +411,7 @@ body::before {
   place-items: center !important;
   padding: 0 !important;
   border-radius: 50% !important;
-  background: rgba(255, 253, 248, 0.74) !important;
+  background: rgba(255, 253, 248, 0.78) !important;
   color: rgba(99, 70, 58, 0.82) !important;
   opacity: 0 !important;
   box-shadow: 0 3px 8px rgba(44, 36, 24, 0.08) !important;
@@ -329,10 +421,6 @@ body::before {
 .theme-tag-chip:hover .theme-tag-remove,
 .theme-tag-chip:focus-within .theme-tag-remove {
   opacity: 1 !important;
-}
-
-.theme-tag-chip:has(.theme-tag-remove:hover) {
-  animation: tagDeleteTremble 180ms linear infinite !important;
 }
 
 /* Destructive buttons keep the same rectangular language as save buttons. */
@@ -358,19 +446,14 @@ body::before {
 
 .danger-lite-button,
 .danger-lite-button:hover,
-.danger-lite-button:focus-visible {
-  border-color: rgba(184, 141, 133, 0.4) !important;
-  background: rgba(184, 141, 133, 0.11) !important;
-  color: #7a4a42 !important;
-}
-
+.danger-lite-button:focus-visible,
 .relation-layout .inspector-card .connect-box .relation-action-row button.relation-clear-button,
 .relation-layout .inspector-card .connect-box .relation-action-row button.relation-clear-button:hover,
 .relation-layout .inspector-card .connect-box .relation-action-row button.relation-clear-button:focus-visible,
 .character-action-row button.danger-lite-button,
 .timeline-action-row button.danger-lite-button {
-  border-color: rgba(184, 141, 133, 0.4) !important;
-  background: rgba(184, 141, 133, 0.11) !important;
+  border-color: rgba(184, 141, 133, 0.42) !important;
+  background: rgba(184, 141, 133, 0.12) !important;
   color: #7a4a42 !important;
 }
 
@@ -402,19 +485,26 @@ body::before {
   justify-self: center !important;
 }
 
-body[data-theme="dark"] .auth-wall {
+body[data-theme="dark"] {
   background:
-    radial-gradient(circle at 18% 14%, rgba(126, 94, 62, 0.18), transparent 32%),
-    linear-gradient(135deg, #171514 0%, #24201c 100%) !important;
+    linear-gradient(135deg, rgba(29, 27, 25, 0.92), rgba(20, 21, 20, 0.96)),
+    url("/texture-3-wide.jpg") center center / cover fixed no-repeat,
+    #171514 !important;
+}
+
+body[data-theme="dark"]::before {
+  opacity: 0.15 !important;
+  mix-blend-mode: overlay !important;
+  filter: contrast(0.9) brightness(0.75) !important;
+}
+
+body[data-theme="dark"] .relation-svg {
+  background-color: #30342f !important;
+  background-image: radial-gradient(rgba(208, 177, 138, 0.16) 1.25px, transparent 1.25px) !important;
 }
 
 body[data-theme="dark"] .graph-card.relation-graph,
 body[data-theme="dark"] .relationship-star-chart {
-  background: linear-gradient(135deg, rgba(48, 42, 35, 0.96), rgba(48, 42, 35, 0.96)) !important;
-}
-
-body[data-theme="dark"] .graph-card.relation-graph::after,
-body[data-theme="dark"] .relationship-star-chart::after {
-  background-color: rgba(48, 42, 35, 0.96) !important;
-  background-image: radial-gradient(rgba(208, 177, 138, 0.16) 1px, transparent 1.12px) !important;
+  background: linear-gradient(135deg, #30342f, #30342f) !important;
+  background-color: #30342f !important;
 }
