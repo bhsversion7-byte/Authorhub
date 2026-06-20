@@ -9,33 +9,33 @@ const PLAYER_VOLUME = 0.22;
 const TRACKS = [
   {
     id: 1,
-    title: "12th Street Rag",
-    artist: "Library of Congress Public Domain",
-    src: "https://citizen-dj.labs.loc.gov/audio/samplepacks/loc-jukebox-jazz/12th-Street-rag_jukebox-38191_002_00-00-30.mp3",
+    title: "Two to Two",
+    artist: "Free 20s Jazz Collection · Public Domain",
+    src: "https://archive.org/download/Free_20s_Jazz_Collection/2to2_64kb.mp3",
   },
   {
     id: 2,
-    title: "After You've Gone",
-    artist: "Library of Congress Public Domain",
-    src: "https://citizen-dj.labs.loc.gov/audio/samplepacks/loc-jukebox-jazz/After-youve-gone_jukebox-313413_001_00-01-00.mp3",
+    title: "South",
+    artist: "Bennie Moten · Public Domain",
+    src: "https://archive.org/download/Free_20s_Jazz_Collection/Bennie_Motens_KC_Jazz_Band-South_1924_64kb.mp3",
   },
   {
     id: 3,
-    title: "At the Jazz Band Ball",
-    artist: "Library of Congress Public Domain",
-    src: "https://citizen-dj.labs.loc.gov/audio/samplepacks/loc-jukebox-jazz/At-the-jazz-band-ball_jukebox-28219_001_00-00-30.mp3",
+    title: "Dardanella",
+    artist: "Raderman Jazz Orchestra · Public Domain",
+    src: "https://archive.org/download/Free_20s_Jazz_Collection/Raderman_Jazz_Orch-Dardanella_64kb.mp3",
   },
   {
     id: 4,
-    title: "Avalon",
-    artist: "Library of Congress Public Domain",
-    src: "https://citizen-dj.labs.loc.gov/audio/samplepacks/loc-jukebox-jazz/Avalon_jukebox-37794_001_00-00-00.mp3",
+    title: "Whispering",
+    artist: "Paul Whiteman · Public Domain",
+    src: "https://archive.org/download/Free_20s_Jazz_Collection/Whiteman-Whispering_11KHz_64kb.mp3",
   },
   {
     id: 5,
-    title: "Bluin' the Blues",
-    artist: "Library of Congress Public Domain",
-    src: "https://citizen-dj.labs.loc.gov/audio/samplepacks/loc-jukebox-jazz/Bluin-the-blues_jukebox-185940_001_00-00-00.mp3",
+    title: "Panama",
+    artist: "Free 20s Jazz Collection · Public Domain",
+    src: "https://archive.org/download/Free_20s_Jazz_Collection/panama_64kb.mp3",
   },
 ];
 

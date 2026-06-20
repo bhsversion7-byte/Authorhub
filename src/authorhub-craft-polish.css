@@ -508,3 +508,281 @@ body[data-theme="dark"] .relationship-star-chart {
   background: linear-gradient(135deg, #30342f, #30342f) !important;
   background-color: #30342f !important;
 }
+
+/* 2026-06-20 stability pass: final overrides for loading, auth, graph, meta, dark inputs and sidebar affordance. */
+:root {
+  --mat-graph: #d7dcdb;
+  --mat-graph-dot: rgba(111, 121, 119, 0.28);
+  --ah-paper-live: #f3eee4;
+}
+
+html,
+body,
+body[data-theme="light"] {
+  background:
+    url("/texture-3-wide.jpg") center center / cover fixed no-repeat,
+    var(--ah-paper-live) !important;
+}
+
+body::before {
+  background: url("/texture-3-wide.jpg") center center / cover fixed no-repeat !important;
+  opacity: 0.34 !important;
+  mix-blend-mode: multiply !important;
+  filter: contrast(1.12) brightness(1.02) saturate(0.72) !important;
+}
+
+.app-shell,
+.content-shell,
+.novel-section {
+  background: transparent !important;
+}
+
+.landing-gateway.mode-auth,
+body[data-theme="dark"] .landing-gateway.mode-auth {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(191, 165, 123, 0.18), transparent 32%),
+    radial-gradient(circle at 72% 24%, rgba(97, 113, 118, 0.22), transparent 34%),
+    linear-gradient(135deg, #181613 0%, #272018 52%, #121313 100%) !important;
+}
+
+.landing-gateway.mode-auth .auth-card {
+  background: rgba(246, 239, 226, 0.94) !important;
+  color: var(--ah-ink-deep) !important;
+}
+
+.loading-screen {
+  background:
+    url("/texture-3-wide.jpg") center center / cover fixed no-repeat,
+    var(--ah-paper-live) !important;
+}
+
+.loading-screen::before {
+  background: url("/texture-3-wide.jpg") center center / cover fixed no-repeat !important;
+  opacity: 0.34 !important;
+  mix-blend-mode: multiply !important;
+  filter: contrast(1.12) brightness(1.02) saturate(0.72) !important;
+}
+
+.loading-screen p,
+.loading-screen :where(span, strong) {
+  display: block !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: rgba(44, 42, 41, 0.76) !important;
+}
+
+.loading-orbit,
+.auth-loading-orbit,
+.loading-spinner {
+  width: 74px !important;
+  height: 74px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background:
+    repeating-conic-gradient(
+      from 0deg,
+      rgba(44, 42, 41, 0.92) 0deg 4deg,
+      transparent 4deg 8.6deg
+    ) !important;
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px)) !important;
+  mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px)) !important;
+  box-shadow: none !important;
+  filter: none !important;
+  animation: ahDotOrbitSpin 0.92s linear infinite !important;
+}
+
+.loading-orbit::before,
+.loading-orbit::after,
+.auth-loading-orbit::before,
+.auth-loading-orbit::after,
+.loading-spinner::before,
+.loading-spinner::after {
+  content: none !important;
+  display: none !important;
+}
+
+@keyframes ahDotOrbitSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.sidebar {
+  background:
+    linear-gradient(180deg, rgba(229, 219, 202, 0.94), rgba(220, 211, 195, 0.92)) !important;
+}
+
+.sidebar-collapse-toggle {
+  right: -8px !important;
+  opacity: 0 !important;
+  border: 0 !important;
+  background: rgba(44, 38, 30, 0.02) !important;
+  color: rgba(44, 38, 30, 0.1) !important;
+  box-shadow: none !important;
+}
+
+.sidebar:hover .sidebar-collapse-toggle,
+.sidebar:focus-within .sidebar-collapse-toggle {
+  opacity: 0.56 !important;
+  color: rgba(44, 38, 30, 0.34) !important;
+  background: rgba(255, 253, 248, 0.2) !important;
+}
+
+.sidebar-collapse-toggle:hover,
+.sidebar-collapse-toggle:focus-visible {
+  opacity: 0.76 !important;
+  color: rgba(44, 38, 30, 0.48) !important;
+  background: rgba(255, 253, 248, 0.34) !important;
+}
+
+.novel-section .novel-meta {
+  grid-template-columns: minmax(142px, 174px) minmax(92px, 108px) 56px !important;
+  grid-template-rows: repeat(2, minmax(40px, auto)) !important;
+  max-width: 344px !important;
+  gap: 4px 7px !important;
+  align-items: center !important;
+  transform: translate(-7%, 0.05em) scale(0.98) !important;
+}
+
+.novel-section .novel-meta > label {
+  gap: 0 !important;
+  line-height: 1.12 !important;
+}
+
+.novel-section .novel-meta > label:nth-of-type(1) {
+  grid-column: 1 !important;
+  grid-row: 2 !important;
+}
+
+.novel-section .novel-meta > label:nth-of-type(2) {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+}
+
+.novel-section .novel-meta > label:nth-of-type(3) {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+}
+
+.novel-section .novel-meta > label:nth-of-type(4) {
+  grid-column: 2 !important;
+  grid-row: 2 !important;
+}
+
+.novel-section .novel-meta .publish-link {
+  grid-column: 3 !important;
+  grid-row: 1 / span 2 !important;
+  align-self: center !important;
+}
+
+.novel-section .novel-meta > label > span {
+  margin: 0 0 1px !important;
+  font-size: 10.5px !important;
+  line-height: 1.1 !important;
+  color: rgba(106, 91, 73, 0.7) !important;
+}
+
+.novel-section .novel-meta > label input {
+  min-height: 25px !important;
+  margin: 0 !important;
+  padding: 2px 8px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: rgba(255, 253, 248, 0.28) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 7px 18px rgba(44, 36, 24, 0.018) !important;
+  line-height: 1.1 !important;
+}
+
+.novel-section .novel-meta > label input:hover,
+.novel-section .novel-meta > label input:focus {
+  background: rgba(255, 253, 248, 0.52) !important;
+  border: 0 !important;
+}
+
+.graph-card.relation-graph,
+.graph-card.relation-graph:hover,
+.relationship-star-chart,
+.relationship-star-chart:hover {
+  background: var(--mat-graph) !important;
+  background-color: var(--mat-graph) !important;
+  border-color: rgba(104, 114, 111, 0.24) !important;
+}
+
+.graph-card.relation-graph::before,
+.graph-card.relation-graph::after,
+.relationship-star-chart::before,
+.relationship-star-chart::after {
+  content: none !important;
+  display: none !important;
+}
+
+.relation-svg {
+  background-color: var(--mat-graph) !important;
+  background-image: radial-gradient(var(--mat-graph-dot) 1.25px, transparent 1.25px) !important;
+  background-size: 24px 24px !important;
+  background-position: 0 0 !important;
+}
+
+.graph-hint {
+  right: 28px !important;
+  bottom: 30px !important;
+  max-width: calc(100% - 56px) !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: rgba(90, 82, 74, 0.72) !important;
+}
+
+.danger-lite-button,
+.confirm-modal .danger-button,
+.btn-unregister {
+  font-weight: 800 !important;
+}
+
+body[data-theme="dark"],
+body[data-theme="dark"] #root {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(191, 165, 123, 0.12), transparent 32%),
+    radial-gradient(circle at 72% 24%, rgba(97, 113, 118, 0.18), transparent 34%),
+    linear-gradient(135deg, #181613 0%, #272018 52%, #121313 100%) !important;
+  color: #f5eadc !important;
+}
+
+body[data-theme="dark"]::before {
+  opacity: 0.08 !important;
+  mix-blend-mode: overlay !important;
+  filter: contrast(0.92) brightness(0.72) saturate(0.65) !important;
+}
+
+body[data-theme="dark"] :where(input, textarea, select) {
+  background: rgba(255, 248, 232, 0.1) !important;
+  border-color: rgba(230, 210, 184, 0.2) !important;
+  color: #f5eadc !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+body[data-theme="dark"] .user-info-grid input,
+body[data-theme="dark"] .auth-field input,
+body[data-theme="dark"] .novel-section .novel-meta > label input {
+  background: rgba(255, 248, 232, 0.14) !important;
+  color: #fff4e4 !important;
+}
+
+body[data-theme="dark"] :where(.user-info-grid label, .novel-meta span, .auth-copy, .auth-check, .auth-switch, .auth-link) {
+  color: rgba(245, 234, 220, 0.76) !important;
+}
+
+body[data-theme="dark"] .user-center-section .user-info-grid label {
+  color: rgba(245, 234, 220, 0.78) !important;
+}
+
+body[data-theme="dark"] .user-center-section .user-info-grid label input {
+  background-color: rgba(255, 248, 232, 0.14) !important;
+  background-image: linear-gradient(135deg, rgba(255, 248, 232, 0.08), rgba(255, 248, 232, 0.03)) !important;
+  color: #fff4e4 !important;
+  border-color: rgba(230, 210, 184, 0.22) !important;
+}

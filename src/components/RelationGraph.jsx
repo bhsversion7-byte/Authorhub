@@ -341,11 +341,31 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     pendingNodeId,
     connectFrom,
     connectTo,
-    connectLabel,
     selectedRelationshipIndex,
     activeRelationshipKey,
     previewRelationshipKey,
   ]);
+
+  useEffect(() => {
+    const label = labelSelectionRef.current;
+    if (!label || !connectFrom || !connectTo || connectFrom === connectTo) return;
+
+    const nextLabel = connectLabel || "关系";
+    label.each((relationship) => {
+      const source = getNodeId(relationship.source);
+      const target = getNodeId(relationship.target);
+      const isSamePair = (source === connectFrom && target === connectTo) || (source === connectTo && target === connectFrom);
+      const isSelectedEdge = selectedRelationshipIndex !== null && relationship.index === selectedRelationshipIndex;
+      const isPreviewEdge = selectedRelationshipIndex === null && relationship.isPreview && isSamePair;
+      if (isSelectedEdge || isPreviewEdge) relationship.label = nextLabel;
+    });
+
+    label
+      .select("rect")
+      .attr("x", (relationship) => -Math.max(38, String(relationship.label).length * 13) / 2)
+      .attr("width", (relationship) => Math.max(38, String(relationship.label).length * 13));
+    label.select("text").text((relationship) => relationship.label);
+  }, [connectLabel, connectFrom, connectTo, selectedRelationshipIndex]);
 
   useEffect(() => {
     const node = nodeSelectionRef.current;
