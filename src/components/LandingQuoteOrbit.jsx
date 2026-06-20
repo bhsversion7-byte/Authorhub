@@ -115,9 +115,9 @@ const QUOTES = [
 export default function LandingQuoteOrbit() {
   return (
     <div className="landing-quote-orbit" aria-hidden="false">
-      {QUOTES.map((quote, index) => (
+      {QUOTES.map((quote) => (
         <div key={quote.id} className={`landing-quote-track quote-zone-${quote.zone}`} style={quote.style}>
-          <FloatingTypewriterQuote quote={quote} index={index} />
+          <FloatingTypewriterQuote quote={quote} />
         </div>
       ))}
     </div>

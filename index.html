@@ -14,7 +14,8 @@
       html,
       body {
         min-height: 100%;
-        background: #f5f1e8 url("/texture-3-wide.jpg") center center / cover fixed no-repeat;
+        background: #f5f1e8 url("/texture-3-wide.jpg") center center / cover no-repeat;
+        background-attachment: scroll;
       }
 
       #root {
@@ -23,12 +24,8 @@
       }
 
       body::before {
-        content: "";
-        position: fixed;
-        inset: 0;
-        z-index: -1;
-        pointer-events: none;
-        background: #f5f1e8 url("/texture-3-wide.jpg") center center / cover no-repeat;
+        content: none;
+        display: none;
       }
     </style>
     <link rel="icon" href="/authorhub-logo.png" />
