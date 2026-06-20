@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import * as d3 from "d3";
 import { Check, Link2, Plus, RotateCcw, Save, Sparkles, Trash2, X, ZoomIn } from "lucide-react";
 import FocusTextarea from "./FocusTextarea.jsx";
@@ -63,6 +64,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
   const [detailPane, setDetailPane] = useState(36);
   const [resizing, setResizing] = useState(false);
   const [deleteCharacterCandidate, setDeleteCharacterCandidate] = useState(null);
+  const [confirmClearRelationship, setConfirmClearRelationship] = useState(false);
 
   const allTags = useMemo(() => [...ROLE_TAGS, ...customTags.filter((tag) => !ROLE_TAGS.includes(tag))], [customTags]);
   const draftRelationshipKey =
@@ -514,6 +516,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     setConnectLabel("关系");
     setPendingNodeId("");
     setHoverLinkKey("");
+    setConfirmClearRelationship(false);
   }
 
   function chooseTag(tag) {
@@ -682,14 +685,16 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
                   ))}
                 </select>
                 <input value={connectLabel} onChange={(event) => updateRelationshipDraft({ label: event.target.value })} placeholder="关系标签" />
-                <button type="button" className="primary-button relation-save-button" onClick={handleAddRelationship}>
-                  <Check size={15} />
-                  {selectedRelationshipIndex === null ? "添加连线" : "保存关系"}
-                </button>
-                <button type="button" className="danger-lite-button relation-clear-button" onClick={clearRelationshipSelection}>
-                  <X size={14} />
-                  清空关系选择
-                </button>
+                <div className="relation-action-row">
+                  <button type="button" className="primary-button relation-save-button" onClick={handleAddRelationship}>
+                    <Check size={15} />
+                    {selectedRelationshipIndex === null ? "添加连线" : "保存关系"}
+                  </button>
+                  <button type="button" className="danger-lite-button relation-clear-button" onClick={() => setConfirmClearRelationship(true)}>
+                    <X size={14} />
+                    清空关系选择
+                  </button>
+                </div>
               </div>
             </div>
           </>
@@ -697,7 +702,8 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
           <p>暂无人物。</p>
         )}
       </aside>
-      {deleteCharacterCandidate && (
+      {deleteCharacterCandidate &&
+        createPortal(
         <div className="modal-backdrop relation-confirm-backdrop" role="presentation" onMouseDown={() => setDeleteCharacterCandidate(null)}>
           <section className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-character-title" onMouseDown={(event) => event.stopPropagation()}>
             <p className="eyebrow">Delete character</p>
@@ -712,8 +718,28 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
               </button>
             </div>
           </section>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
+      {confirmClearRelationship &&
+        createPortal(
+          <div className="modal-backdrop relation-confirm-backdrop" role="presentation" onMouseDown={() => setConfirmClearRelationship(false)}>
+            <section className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="clear-relation-title" onMouseDown={(event) => event.stopPropagation()}>
+              <p className="eyebrow">Clear relation draft</p>
+              <h2 id="clear-relation-title">清空当前关系选择？</h2>
+              <p>这只会清空右侧正在编辑的起点、终点和羁绊描述，不会删除已经保存的关系线。</p>
+              <div className="confirm-actions">
+                <button type="button" className="ghost-button" onClick={() => setConfirmClearRelationship(false)}>
+                  取消
+                </button>
+                <button type="button" className="danger-button" onClick={clearRelationshipSelection}>
+                  确定清空
+                </button>
+              </div>
+            </section>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

@@ -18,6 +18,7 @@ import "./novel-page-refine.css";
 import "./responsive-stability.css";
 import "./texture-background.css";
 import "./final-polish-fixes.css";
+import "./authorhub-refine-pass.css";
 import "./modal-empty-qa.js";
 
 // Deployment retry: carries pending texture-background and responsive-stability updates.

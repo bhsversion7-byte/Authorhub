@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, Copy, ExternalLink, Plus, Save, Trash2, X } from "lucide-react";
 import { copyPromptAndOpen } from "../lib/aiHandoff.js";
 import FocusTextarea from "./FocusTextarea.jsx";
@@ -226,7 +227,8 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
           </div>
         </div>
       )}
-      {deleteEventCandidate && (
+      {deleteEventCandidate &&
+        createPortal(
         <div className="modal-backdrop timeline-confirm-backdrop" role="presentation" onMouseDown={() => setDeleteEventCandidate(null)}>
           <section className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-event-title" onMouseDown={(event) => event.stopPropagation()}>
             <p className="eyebrow">Delete timeline point</p>
@@ -241,8 +243,9 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
               </button>
             </div>
           </section>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
     </div>
   );
 }

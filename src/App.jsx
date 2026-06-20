@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { EyeOff, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import AuthGate from "./components/AuthGate.jsx";
 import AuthorDashboard from "./components/AuthorDashboard.jsx";
 import FloatingMusicPlayer from "./components/FloatingMusicPlayer.jsx";
@@ -24,8 +24,9 @@ export default function App() {
   const [authReady, setAuthReady] = useState(false);
   const [justRegistered, setJustRegistered] = useState(false);
   const [privacyBlur, setPrivacyBlur] = useState(() => localStorage.getItem("author-hub-privacy-blur") === "true");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  const sidebarWidth = "clamp(184px, 15vw, 224px)";
+  const sidebarWidth = sidebarCollapsed ? "72px" : "clamp(184px, 15vw, 224px)";
 
   useEffect(() => {
     let mounted = true;
@@ -330,15 +331,17 @@ export default function App() {
   }
 
   return (
-    <div className={`app-shell ${privacyBlur ? "privacy-blur" : ""}`}>
+    <div className={`app-shell ${privacyBlur ? "privacy-blur" : ""} ${sidebarCollapsed ? "is-sidebar-collapsed" : ""}`} style={{ "--sidebar-current-width": sidebarWidth }}>
       <Sidebar
         novels={novels}
         width={sidebarWidth}
         activeView={activeView}
         appearance={appearance}
+        collapsed={sidebarCollapsed}
         onSelect={selectView}
         onAddNovel={addNovel}
         onDeleteNovel={requestDeleteNovel}
+        onToggleCollapse={() => setSidebarCollapsed((current) => !current)}
       />
       <main
         className={`content-shell font-${appearance.fontFamily ?? "sans"}`}
@@ -364,6 +367,8 @@ export default function App() {
             onExportMarkdown={exportMarkdownData}
             onClearData={clearAllUserData}
             onLogout={logout}
+            appearance={appearance}
+            onAppearanceChange={updateAppearance}
           />
         )}
         {activeNovel ? (
@@ -391,10 +396,6 @@ export default function App() {
           </section>
         ) : null}
       </main>
-      <button type="button" className="privacy-float" onClick={() => setPrivacyBlur((current) => !current)} title="按 Esc 也可快速隐藏敏感内容">
-        <EyeOff size={14} />
-        {privacyBlur ? "恢复显示" : "隐私模糊"}
-      </button>
       <FloatingMusicPlayer />
       <div className="ambient-top" aria-hidden="true" />
       {deleteCandidate && (
