@@ -1,7 +1,8 @@
 import React, { useEffect, useId, useRef, useState } from "react";
-import { Maximize2, Minimize2 } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Maximize2, Minimize2, Save } from "lucide-react";
 
-export default function FocusTextarea({ label, value, onChange, rows = 5, placeholder }) {
+export default function FocusTextarea({ label, value, onChange, onSave, rows = 5, placeholder }) {
   const [focused, setFocused] = useState(false);
   const textareaRef = useRef(null);
   const titleId = useId();
@@ -35,7 +36,8 @@ export default function FocusTextarea({ label, value, onChange, rows = 5, placeh
         </button>
       </div>
       <textarea value={value} rows={rows} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />
-      {focused && (
+      {focused &&
+        createPortal(
         <div className="zen-overlay" role="presentation" onMouseDown={() => setFocused(false)}>
           <div className="zen-editor" role="dialog" aria-modal="true" aria-labelledby={titleId} onMouseDown={(event) => event.stopPropagation()}>
             <div className="zen-editor-head">
@@ -43,15 +45,30 @@ export default function FocusTextarea({ label, value, onChange, rows = 5, placeh
                 <p className="eyebrow">Focus editor</p>
                 <h3 id={titleId}>{label}</h3>
               </div>
-              <button type="button" onClick={() => setFocused(false)} aria-label="退出专注编辑">
-                <Minimize2 size={17} />
-                退出
-              </button>
+              <div className="zen-editor-actions">
+                <button type="button" className="zen-exit-button" onClick={() => setFocused(false)} aria-label="退出专注编辑">
+                  <Minimize2 size={17} />
+                  退出
+                </button>
+                <button
+                  type="button"
+                  className="zen-save-button"
+                  onClick={() => {
+                    onSave?.();
+                    setFocused(false);
+                  }}
+                  aria-label={`保存${label}`}
+                >
+                  <Save size={17} />
+                  保存
+                </button>
+              </div>
             </div>
             <textarea ref={textareaRef} value={value} onChange={(event) => onChange(event.target.value)} />
           </div>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
     </div>
   );
 }

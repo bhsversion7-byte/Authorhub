@@ -186,8 +186,8 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
                 <input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} />
               </label>
             </div>
-            <FocusTextarea label="发生背景" value={draft.background} onChange={(background) => setDraft({ ...draft, background })} />
-            <FocusTextarea label="具体剧情" value={draft.plot} onChange={(plot) => setDraft({ ...draft, plot })} />
+            <FocusTextarea label="发生背景" value={draft.background} onChange={(background) => setDraft({ ...draft, background })} onSave={saveEvent} />
+            <FocusTextarea label="具体剧情" value={draft.plot} onChange={(plot) => setDraft({ ...draft, plot })} onSave={saveEvent} />
             <p className="field-disclaimer">请勿上传违法违规或侵犯他人版权的内容。</p>
             <MediaCarousel label="时间线参考图片" images={draft.images ?? []} onChange={(images) => setDraft({ ...draft, images })} />
             <div className="ai-nudge">
