@@ -12,10 +12,14 @@
     <link rel="prefetch" href="/donation-alipay.jpg" as="image" />
     <style>
       html,
-      body,
+      body {
+        min-height: 100%;
+        background: #f5f1e8 url("/texture-3-bg.jpg") center center / cover fixed no-repeat;
+      }
+
       #root {
         min-height: 100%;
-        background-color: #f5f1e8;
+        background: transparent;
       }
 
       body::before {

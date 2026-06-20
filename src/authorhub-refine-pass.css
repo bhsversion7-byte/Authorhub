@@ -1,0 +1,527 @@
+/* AuthorHub refine pass
+   Last-loaded guardrail layer for layout stability, graph material, destructive dialogs,
+   sidebar collapse, and global dark mode. Keep this file narrow and intentional. */
+
+:root {
+  --ah-paper-bg: #f5f1e8;
+  --ah-ink: #2c2a29;
+  --ah-muted: #776b5f;
+  --ah-line: rgba(190, 174, 148, 0.42);
+  --ah-card-hover-border: rgba(185, 160, 124, 0.58);
+  --ah-danger: #b88d85;
+  --ah-danger-ink: #fff8ef;
+  --ah-graph-base: #e9dfd0;
+  --ah-graph-base-2: #ded1be;
+  --ah-graph-dot: rgba(132, 105, 78, 0.22);
+  --ah-graph-wash: rgba(165, 126, 83, 0.105);
+  --ah-dark-bg: #171512;
+  --ah-dark-surface: rgba(38, 34, 30, 0.94);
+  --ah-dark-surface-2: rgba(45, 40, 35, 0.92);
+  --ah-dark-ink: #f5eadc;
+  --ah-dark-muted: #c8b9a8;
+  --ah-dark-line: rgba(230, 210, 184, 0.18);
+}
+
+html {
+  background: var(--ah-paper-bg) url("/texture-3-bg.jpg") center center / cover fixed no-repeat !important;
+}
+
+body,
+#root {
+  background: transparent !important;
+}
+
+body::before,
+.loading-screen::before,
+.auth-wall::before {
+  content: "" !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: -1 !important;
+  pointer-events: none !important;
+  background:
+    radial-gradient(circle at 74% 12%, rgba(196, 176, 142, 0.12), transparent 34%),
+    rgba(245, 241, 232, 0.1) url("/texture-3-bg.jpg") center center / cover no-repeat !important;
+}
+
+.loading-screen {
+  position: relative !important;
+  min-height: 100vh !important;
+  isolation: isolate !important;
+  background: transparent !important;
+  color: var(--ah-ink) !important;
+}
+
+.loading-screen p {
+  padding: 10px 16px !important;
+  border-radius: 999px !important;
+  background: rgba(255, 253, 248, 0.72) !important;
+  box-shadow: 0 12px 34px rgba(44, 36, 24, 0.06) !important;
+}
+
+/* Remove the obsolete floating privacy control. Privacy remains available in the author page. */
+.privacy-float {
+  display: none !important;
+}
+
+/* Sidebar collapse: layout-owned, not transform-only. */
+.app-shell {
+  --sidebar-current-width: clamp(184px, 15vw, 224px);
+}
+
+@media (min-width: 981px) {
+  .app-shell > .sidebar,
+  .sidebar {
+    width: var(--sidebar-current-width) !important;
+  }
+
+  .content-shell {
+    margin-left: var(--sidebar-current-width) !important;
+    max-width: calc(100vw - var(--sidebar-current-width)) !important;
+    transition:
+      margin-left 260ms cubic-bezier(0.25, 1, 0.5, 1),
+      max-width 260ms cubic-bezier(0.25, 1, 0.5, 1) !important;
+  }
+}
+
+.sidebar-collapse-toggle {
+  position: absolute !important;
+  top: 14px !important;
+  right: -14px !important;
+  z-index: 40 !important;
+  display: grid !important;
+  width: 28px !important;
+  height: 46px !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border: 0.5px solid rgba(214, 201, 181, 0.54) !important;
+  border-radius: 999px !important;
+  background: rgba(255, 253, 248, 0.58) !important;
+  color: rgba(64, 57, 49, 0.74) !important;
+  box-shadow: 0 12px 28px rgba(44, 36, 24, 0.06) !important;
+  backdrop-filter: blur(10px) !important;
+  cursor: pointer !important;
+}
+
+.sidebar-collapse-toggle:hover,
+.sidebar-collapse-toggle:focus-visible {
+  background: rgba(255, 253, 248, 0.86) !important;
+  color: var(--ah-ink) !important;
+  transform: translateX(-1px) !important;
+}
+
+.sidebar.is-collapsed {
+  padding-inline: 12px !important;
+}
+
+.sidebar.is-collapsed .brand {
+  justify-content: center !important;
+}
+
+.sidebar.is-collapsed .brand-text,
+.sidebar.is-collapsed .nav-label,
+.sidebar.is-collapsed .nav-item span,
+.sidebar.is-collapsed .novel-delete-button,
+.sidebar.is-collapsed .add-novel-button span {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+}
+
+.sidebar.is-collapsed .nav-item,
+.sidebar.is-collapsed .novel-nav-item,
+.sidebar.is-collapsed .add-novel-button {
+  justify-content: center !important;
+  min-width: 0 !important;
+  padding-inline: 0 !important;
+}
+
+.sidebar.is-collapsed .novel-select-button {
+  justify-content: center !important;
+  padding-inline: 0 !important;
+}
+
+.sidebar.is-collapsed .logo-wrapper {
+  width: 42px !important;
+  height: 42px !important;
+}
+
+/* Novel hero: less top-heavy, warmer, and less muddy. */
+.novel-section .novel-hero {
+  min-height: clamp(188px, 16vw, 238px) !important;
+  padding-top: clamp(38px, 3.4vw, 54px) !important;
+  padding-bottom: clamp(28px, 2.4vw, 40px) !important;
+  background:
+    radial-gradient(circle at 13% 20%, rgba(188, 141, 91, 0.13), transparent 35%),
+    radial-gradient(circle at 89% 82%, rgba(114, 132, 129, 0.08), transparent 34%),
+    linear-gradient(135deg, rgba(246, 239, 228, 0.98), rgba(232, 221, 205, 0.95)) !important;
+  border-color: rgba(179, 145, 103, 0.34) !important;
+}
+
+.novel-section .novel-hero > div:first-child {
+  transform: translateY(1.22em) !important;
+}
+
+.novel-section .novel-title-input {
+  margin-top: 6px !important;
+}
+
+.novel-section .novel-meta {
+  transform: translateX(-9%) !important;
+}
+
+/* Graph card: Maillard paper, dot grid uses the exact same color family. */
+.graph-card,
+.relationship-star-chart {
+  background:
+    radial-gradient(circle at 18% 17%, rgba(171, 133, 91, 0.115), transparent 36%),
+    radial-gradient(circle at 82% 79%, rgba(114, 94, 72, 0.09), transparent 42%),
+    linear-gradient(135deg, rgba(233, 223, 208, 0.98), rgba(222, 209, 190, 0.95)) !important;
+  border-color: rgba(166, 132, 92, 0.34) !important;
+  overflow: hidden !important;
+}
+
+.graph-card:hover,
+.relationship-star-chart:hover {
+  background:
+    radial-gradient(circle at 18% 17%, rgba(171, 133, 91, 0.115), transparent 36%),
+    radial-gradient(circle at 82% 79%, rgba(114, 94, 72, 0.09), transparent 42%),
+    linear-gradient(135deg, rgba(233, 223, 208, 0.98), rgba(222, 209, 190, 0.95)) !important;
+  border-color: rgba(166, 132, 92, 0.52) !important;
+  transform: translateY(-2px) !important;
+}
+
+.graph-card::before,
+.relationship-star-chart::before {
+  background:
+    radial-gradient(circle, transparent 68%, rgba(233, 223, 208, 0.96) 100%),
+    url("/texture-card-2.jpg") !important;
+  opacity: 0.22 !important;
+  filter: contrast(0.58) brightness(1.18) saturate(0.38) !important;
+  mix-blend-mode: multiply !important;
+}
+
+.graph-card::after,
+.relationship-star-chart::after {
+  background-image:
+    radial-gradient(var(--ah-graph-dot) 1.1px, transparent 1.1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent 18%, transparent 82%, rgba(44, 36, 24, 0.026)) !important;
+  background-size: 18px 18px, 100% 100% !important;
+  background-position: 0 0, center !important;
+  opacity: 0.62 !important;
+  mix-blend-mode: multiply !important;
+}
+
+.graph-hint {
+  position: absolute !important;
+  right: 22px !important;
+  bottom: 16px !important;
+  z-index: 4 !important;
+  max-width: min(520px, calc(100% - 44px)) !important;
+  padding: 6px 10px !important;
+  border-radius: 999px !important;
+  background: rgba(255, 253, 248, 0.55) !important;
+  color: rgba(97, 79, 62, 0.74) !important;
+  font-size: 11px !important;
+  line-height: 1.45 !important;
+  text-align: right !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.graph-toolbar .toolbar-actions button,
+.relation-reset-button {
+  background: rgba(255, 253, 248, 0.88) !important;
+  color: var(--ah-ink) !important;
+}
+
+/* Inspector and timeline controls must fit the resizable pane. */
+.relation-layout {
+  align-items: stretch !important;
+}
+
+.inspector-card {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.inspector-scroll {
+  min-width: 0 !important;
+  padding-right: 16px !important;
+}
+
+.character-editor-top {
+  grid-template-columns: minmax(190px, 0.9fr) minmax(0, 1fr) !important;
+}
+
+.character-attribute-grid,
+.tag-composer,
+.tag-chip-board,
+.tag-compose-row {
+  min-width: 0 !important;
+}
+
+.tag-chip-board {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+.tag-chip-board button {
+  max-width: 100% !important;
+}
+
+.character-quick-fields label,
+.event-core-grid label,
+.connect-box select,
+.connect-box input {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.node-color-picker.is-wide {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 11px 12px !important;
+}
+
+.node-color-picker.is-wide > div {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(28px, 30px)) !important;
+  gap: 8px !important;
+  justify-content: start !important;
+}
+
+.node-color-picker.is-wide button {
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 9px !important;
+}
+
+.character-action-row,
+.timeline-action-row,
+.relation-action-row {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  align-items: stretch !important;
+}
+
+.character-action-row button,
+.timeline-action-row button,
+.relation-action-row button {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 42px !important;
+  justify-content: center !important;
+}
+
+.danger-lite-button,
+.danger-lite-button:hover,
+.danger-lite-button:focus-visible {
+  border-color: rgba(184, 141, 133, 0.4) !important;
+  background: rgba(184, 141, 133, 0.11) !important;
+  color: #7a4a42 !important;
+}
+
+.connect-box {
+  min-width: 0 !important;
+}
+
+.connect-box > .relation-action-row {
+  margin-top: 2px !important;
+}
+
+.media-upload-button {
+  min-width: 92px !important;
+  max-width: 118px !important;
+}
+
+/* Viewport-owned confirm dialogs. */
+.modal-backdrop,
+.timeline-confirm-backdrop,
+.relation-confirm-backdrop,
+.user-unregister-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147482000 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 24px !important;
+  background: rgba(45, 38, 30, 0.12) !important;
+  backdrop-filter: blur(10px) saturate(0.92) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(0.92) !important;
+}
+
+.confirm-modal {
+  width: min(460px, calc(100vw - 40px)) !important;
+  max-height: calc(100vh - 48px) !important;
+  overflow: auto !important;
+  border-radius: 22px !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.52), transparent 34%),
+    linear-gradient(135deg, rgba(253, 251, 247, 0.97), rgba(240, 232, 220, 0.92)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.94),
+    0 30px 90px rgba(44, 36, 24, 0.18) !important;
+}
+
+.confirm-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.confirm-modal .danger-button,
+.confirm-modal .danger-button:hover,
+.confirm-modal .danger-button:focus-visible {
+  background: linear-gradient(135deg, #c7928b, #b77e78) !important;
+  color: var(--ah-danger-ink) !important;
+  border-color: rgba(151, 82, 76, 0.2) !important;
+  box-shadow: 0 12px 26px rgba(184, 125, 118, 0.2) !important;
+}
+
+/* User center day/night switch. */
+.theme-mode-switch {
+  gap: 9px !important;
+  border-radius: 999px !important;
+  background: rgba(255, 253, 248, 0.74) !important;
+  color: var(--ah-ink) !important;
+}
+
+.theme-mode-switch span {
+  display: grid !important;
+  width: 27px !important;
+  height: 27px !important;
+  place-items: center !important;
+  border-radius: 50% !important;
+  background: rgba(255, 253, 248, 0.9) !important;
+  box-shadow: 0 4px 12px rgba(44, 36, 24, 0.06) !important;
+}
+
+.theme-mode-switch.is-dark {
+  background: #141312 !important;
+  color: #fff8ef !important;
+}
+
+.theme-mode-switch.is-dark span {
+  background: #fff8ef !important;
+  color: #141312 !important;
+}
+
+/* Global dark mode: preserve function zones, invert ink/surfaces, keep texture restrained. */
+body[data-theme="dark"],
+body[data-theme="dark"] #root {
+  background-color: var(--ah-dark-bg) !important;
+  color: var(--ah-dark-ink) !important;
+}
+
+body[data-theme="dark"]::before,
+body[data-theme="dark"] .loading-screen::before,
+body[data-theme="dark"] .auth-wall::before {
+  background:
+    radial-gradient(circle at 72% 10%, rgba(127, 103, 74, 0.18), transparent 35%),
+    linear-gradient(135deg, rgba(23, 21, 18, 0.94), rgba(17, 18, 17, 0.98)),
+    url("/texture-3-bg.jpg") center center / cover no-repeat !important;
+  filter: brightness(0.42) saturate(0.72) contrast(1.04) !important;
+}
+
+body[data-theme="dark"] .sidebar,
+body[data-theme="dark"] .panel,
+body[data-theme="dark"] .novel-hero,
+body[data-theme="dark"] .story-card,
+body[data-theme="dark"] .theme-card,
+body[data-theme="dark"] .graph-card,
+body[data-theme="dark"] .relationship-star-chart,
+body[data-theme="dark"] .inspector-card,
+body[data-theme="dark"] .timeline-panel,
+body[data-theme="dark"] .event-editor,
+body[data-theme="dark"] .ai-nudge,
+body[data-theme="dark"] .confirm-modal {
+  color: var(--ah-dark-ink) !important;
+  background:
+    radial-gradient(circle at 16% 8%, rgba(192, 154, 115, 0.08), transparent 36%),
+    linear-gradient(135deg, var(--ah-dark-surface), var(--ah-dark-surface-2)) !important;
+  border-color: var(--ah-dark-line) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 18px 44px rgba(0, 0, 0, 0.26) !important;
+}
+
+body[data-theme="dark"] .graph-card,
+body[data-theme="dark"] .relationship-star-chart {
+  background:
+    radial-gradient(circle at 18% 17%, rgba(166, 124, 82, 0.11), transparent 36%),
+    radial-gradient(circle at 82% 79%, rgba(114, 94, 72, 0.09), transparent 42%),
+    linear-gradient(135deg, rgba(45, 38, 31, 0.96), rgba(34, 31, 28, 0.94)) !important;
+}
+
+body[data-theme="dark"] .graph-card::after,
+body[data-theme="dark"] .relationship-star-chart::after {
+  background-image:
+    radial-gradient(rgba(208, 177, 138, 0.16) 1.1px, transparent 1.1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.08)) !important;
+  mix-blend-mode: overlay !important;
+}
+
+body[data-theme="dark"] :where(input, textarea, select) {
+  color: var(--ah-dark-ink) !important;
+  background: rgba(27, 25, 23, 0.74) !important;
+  border-color: rgba(230, 210, 184, 0.2) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045) !important;
+}
+
+body[data-theme="dark"] :where(.eyebrow, .field-disclaimer, .graph-hint, .media-empty, .ai-nudge p, .panel-title span, .nav-label) {
+  color: var(--ah-dark-muted) !important;
+}
+
+body[data-theme="dark"] :where(h1, h2, h3, h4, strong, .novel-title-input, .novel-subtitle-input) {
+  color: var(--ah-dark-ink) !important;
+}
+
+body[data-theme="dark"] .primary-button,
+body[data-theme="dark"] .relation-save-button {
+  background: linear-gradient(135deg, #ead8c0, #d6b58f) !important;
+  color: #171512 !important;
+}
+
+body[data-theme="dark"] .danger-lite-button {
+  background: rgba(184, 141, 133, 0.18) !important;
+  color: #f3c9c4 !important;
+}
+
+body[data-theme="dark"] .timeline-node:hover,
+body[data-theme="dark"] .timeline-node.is-active {
+  background: linear-gradient(135deg, rgba(41, 48, 45, 0.92), rgba(34, 38, 36, 0.86)) !important;
+  color: var(--ah-dark-ink) !important;
+}
+
+@media (max-width: 1120px) {
+  .character-editor-top {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .confirm-actions,
+  .character-action-row,
+  .timeline-action-row,
+  .relation-action-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .novel-section .novel-hero > div:first-child,
+  .novel-section .novel-meta {
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content-shell,
+  .sidebar-collapse-toggle,
+  .novel-section :where(.novel-hero, .story-card, .theme-card, .graph-card, .inspector-card, .timeline-panel, .event-editor, .ai-nudge) {
+    transition-duration: 1ms !important;
+  }
+}

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { FileJson, FileText, KeyRound, LogOut, Mail, ShieldCheck, Trash2, UserX, WalletCards } from "lucide-react";
+import { FileJson, FileText, KeyRound, LogOut, Mail, Moon, ShieldCheck, Sun, Trash2, UserX, WalletCards } from "lucide-react";
 import { hasSupabaseConfig, supabase } from "../lib/supabaseClient.js";
 
 const DONATION_QR = {
@@ -15,6 +15,8 @@ export default function UserCenter({
   onExportMarkdown,
   onClearData,
   onLogout,
+  appearance,
+  onAppearanceChange,
 }) {
   const [donationTab, setDonationTab] = useState("wechat");
   const [qrUnlocked, setQrUnlocked] = useState(false);
@@ -56,6 +58,15 @@ export default function UserCenter({
           </div>
 
           <div className="user-action-board">
+            <button
+              type="button"
+              className={`theme-mode-switch ${appearance?.darkMode ? "is-dark" : ""}`}
+              onClick={() => onAppearanceChange?.({ darkMode: !appearance?.darkMode })}
+              aria-pressed={Boolean(appearance?.darkMode)}
+            >
+              <span>{appearance?.darkMode ? <Moon size={15} /> : <Sun size={15} />}</span>
+              {appearance?.darkMode ? "Night mode" : "Day mode"}
+            </button>
             <button type="button" onClick={() => setPasswordOpen(true)}>
               <KeyRound size={15} />
               修改密码

@@ -1,16 +1,25 @@
 import React, { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { BookOpen, Home, Plus, UserRound, X } from "lucide-react";
+import { BookOpen, ChevronLeft, ChevronRight, Home, Plus, UserRound, X } from "lucide-react";
 
 const BOOK_ICON_COLORS = ["#4A6357", "#7A3E3E", "#2E4C6D", "#8C6239", "#6C5E7A", "#6F7D5E"];
 
-export default function Sidebar({ novels, width, activeView, appearance, onSelect, onAddNovel, onDeleteNovel }) {
+export default function Sidebar({ novels, width, activeView, appearance, collapsed = false, onSelect, onAddNovel, onDeleteNovel, onToggleCollapse }) {
   const [logoOpen, setLogoOpen] = useState(false);
   const novelCountLabel = useMemo(() => `手稿索引：已创作${novels.length}本小说`, [novels.length]);
   const fontClass = `font-${appearance?.fontFamily ?? "sans"}`;
 
   return (
-    <aside className={`sidebar ${fontClass}`} style={{ width }}>
+    <aside className={`sidebar ${fontClass} ${collapsed ? "is-collapsed" : ""}`} style={{ width }}>
+      <button
+        type="button"
+        className="sidebar-collapse-toggle"
+        onClick={onToggleCollapse}
+        aria-label={collapsed ? "展开左侧导航" : "收起左侧导航"}
+        title={collapsed ? "展开导航" : "收起导航"}
+      >
+        {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
+      </button>
       <div className="brand">
         <button type="button" className="logo-wrapper" onClick={() => setLogoOpen(true)} aria-label="放大查看 AuthorHub Logo">
           <img className="brand-logo logo-image" src="/authorhub-logo.png" alt="AuthorHub" />
