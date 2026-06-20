@@ -11,7 +11,6 @@ const LANDING_HIDDEN_UNTIL_KEY = "author-hub-landing-hidden-until";
 const LANDING_SKIP_MS = 30 * 24 * 60 * 60 * 1000;
 const BOOK_PROGRESS_MIN = 0.035;
 const BOOK_PROGRESS_MAX = 0.46;
-const BOOK_AUTOPLAY_SPEED = 0.000095;
 const BOOK_PAGE_JUMP = (BOOK_PROGRESS_MAX - BOOK_PROGRESS_MIN) / 4.8;
 
 function shouldSkipLanding() {
@@ -32,7 +31,6 @@ export default function LandingGateway({ children }) {
   const [rememberLanding, setRememberLanding] = useState(false);
   const transitionTimer = useRef(null);
   const bookProgressDirection = useRef(1);
-  const manualBookHoldUntil = useRef(0);
 
   const isFolding = landingMode === "FOLDING";
   const isAuthVisible = landingMode === "AUTH";
@@ -40,38 +38,6 @@ export default function LandingGateway({ children }) {
   useEffect(() => {
     return () => window.clearTimeout(transitionTimer.current);
   }, []);
-
-  useEffect(() => {
-    if (isAuthVisible) return undefined;
-
-    let frame = 0;
-    let lastTime = performance.now();
-
-    function tick(now) {
-      const delta = Math.min(64, now - lastTime);
-      lastTime = now;
-
-      if (now >= manualBookHoldUntil.current) {
-        setBookProgress((current) => {
-          let next = current + bookProgressDirection.current * delta * BOOK_AUTOPLAY_SPEED;
-          if (next >= BOOK_PROGRESS_MAX) {
-            next = BOOK_PROGRESS_MAX;
-            bookProgressDirection.current = -1;
-          }
-          if (next <= BOOK_PROGRESS_MIN) {
-            next = BOOK_PROGRESS_MIN;
-            bookProgressDirection.current = 1;
-          }
-          return next;
-        });
-      }
-
-      frame = requestAnimationFrame(tick);
-    }
-
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [isAuthVisible]);
 
   const bookProps = useMemo(
     () => ({
@@ -109,7 +75,6 @@ export default function LandingGateway({ children }) {
     event.stopPropagation();
     if (landingMode !== "FULL") return;
 
-    manualBookHoldUntil.current = performance.now() + 360;
     setBookProgress((current) => {
       let next = current + bookProgressDirection.current * BOOK_PAGE_JUMP;
       if (next >= BOOK_PROGRESS_MAX) {

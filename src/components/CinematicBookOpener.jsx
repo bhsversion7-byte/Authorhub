@@ -569,9 +569,9 @@ export default function CinematicBookOpener({
       <div className="cinematic-book-canvas-wrap" aria-hidden="true">
         <Canvas
           shadows
-          dpr={[1.25, 2]}
+          dpr={[1, 1.35]}
           camera={{ position: [0.46, 0.36, 7.0], fov: 43, near: 0.02, far: 80 }}
-          gl={{ antialias: true, alpha: true, powerPreference: "high-performance", stencil: false, depth: true }}
+          gl={{ antialias: true, alpha: true, powerPreference: "default", stencil: false, depth: true }}
           onCreated={({ gl }) => {
             gl.setClearColor(0x000000, 0);
             gl.outputColorSpace = THREE.SRGBColorSpace;

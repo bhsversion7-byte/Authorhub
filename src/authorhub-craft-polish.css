@@ -786,3 +786,84 @@ body[data-theme="dark"] .user-center-section .user-info-grid label input {
   color: #fff4e4 !important;
   border-color: rgba(230, 210, 184, 0.22) !important;
 }
+
+/* 2026-06-21 cascade stability contract.
+   Root cause addressed: full-viewport fixed pseudo layers with blend/filter
+   were competing across legacy patch files and could trigger Windows GPU
+   repaint flicker. Keep texture visible through normal backgrounds only. */
+html,
+body,
+body[data-ambient],
+body[data-theme="light"],
+#root {
+  background:
+    url("/texture-3-wide.jpg") center center / cover no-repeat,
+    var(--ah-paper-live, #f3eee4) !important;
+  background-attachment: scroll !important;
+  background-blend-mode: normal !important;
+}
+
+body::before,
+body[data-theme="dark"]::before,
+.loading-screen::before,
+.auth-wall::before {
+  content: none !important;
+  display: none !important;
+  opacity: 0 !important;
+  mix-blend-mode: normal !important;
+  filter: none !important;
+  background: none !important;
+}
+
+.ambient-top,
+.paper-texture-overlay {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.app-shell,
+.content-shell,
+.novel-section,
+.loading-screen {
+  background-color: transparent !important;
+  background-attachment: scroll !important;
+}
+
+.loading-screen {
+  background:
+    url("/texture-3-wide.jpg") center center / cover no-repeat,
+    var(--ah-paper-live, #f3eee4) !important;
+}
+
+body[data-theme="dark"],
+body[data-theme="dark"] #root,
+body[data-theme="dark"] .loading-screen {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(191, 165, 123, 0.12), transparent 32%),
+    radial-gradient(circle at 72% 24%, rgba(97, 113, 118, 0.18), transparent 34%),
+    linear-gradient(135deg, #181613 0%, #272018 52%, #121313 100%) !important;
+  background-attachment: scroll !important;
+  color: #f5eadc !important;
+}
+
+.graph-card.relation-graph,
+.graph-card.relation-graph:hover,
+.relationship-star-chart,
+.relationship-star-chart:hover,
+.relation-svg {
+  background-color: var(--mat-graph, #d7dcdb) !important;
+}
+
+.graph-card.relation-graph,
+.graph-card.relation-graph:hover,
+.relationship-star-chart,
+.relationship-star-chart:hover {
+  background-image: none !important;
+}
+
+.relation-svg {
+  background-image: radial-gradient(var(--mat-graph-dot, rgba(111, 121, 119, 0.28)) 1.25px, transparent 1.25px) !important;
+  background-size: 24px 24px !important;
+  background-repeat: repeat !important;
+}
