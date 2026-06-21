@@ -1,19 +1,19 @@
 @font-face {
   font-family: "Xiangcui-Kesong";
-  src: url("/fonts/Xiangcui-Kesong.woff2") format("woff2");
-  font-display: swap;
+  src: local("Xiangcui-Kesong"), local("香萃刻宋");
+  font-display: optional;
 }
 
 @font-face {
   font-family: "Victoria Typewriter Regular";
-  src: url("/fonts/Victoria-Typewriter.woff2") format("woff2");
+  src: url("/fonts/Victoria%20Typewriter%20Regular.woff2") format("woff2");
   font-display: swap;
 }
 
 @font-face {
   font-family: "Bozhen-Typewriter";
-  src: url("/fonts/Bozhen-Typewriter.woff2") format("woff2");
-  font-display: swap;
+  src: local("Bozhen-Typewriter"), local("迫真打字油印体"), local("迫真打字油印體");
+  font-display: optional;
 }
 
 .landing-gateway {

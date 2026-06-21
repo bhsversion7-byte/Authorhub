@@ -32,8 +32,8 @@ export default function Sidebar({ novels, width, activeView, appearance, collaps
 
       {logoOpen &&
         createPortal(
-          <div className="logo-preview-modal" role="dialog" aria-modal="true" aria-label="AuthorHub Logo 预览" onMouseDown={() => setLogoOpen(false)}>
-            <div className="logo-preview-dialog" onMouseDown={(event) => event.stopPropagation()}>
+          <div className="logo-lightbox-overlay" role="dialog" aria-modal="true" aria-label="AuthorHub Logo 预览" onMouseDown={() => setLogoOpen(false)}>
+            <div className="lightbox-content" onMouseDown={(event) => event.stopPropagation()}>
               <button type="button" className="logo-preview-close" onClick={() => setLogoOpen(false)} aria-label="关闭 Logo 预览">
                 <X size={16} />
               </button>

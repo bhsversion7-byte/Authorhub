@@ -86,7 +86,6 @@ export default function NovelSection({
             <h3>大纲</h3>
           </div>
           <textarea value={novel.outline} onChange={(event) => onNovelChange(novel.id, { outline: event.target.value })} />
-          <p className="field-disclaimer">请勿上传违法违规或侵犯他人版权的内容。</p>
         </article>
 
         <article className="panel story-card">
@@ -95,7 +94,6 @@ export default function NovelSection({
             <h3>设定集</h3>
           </div>
           <textarea value={novel.setting} onChange={(event) => onNovelChange(novel.id, { setting: event.target.value })} />
-          <p className="field-disclaimer">请勿上传违法违规或侵犯他人版权的内容。</p>
         </article>
 
         <article className="panel theme-card">

@@ -1,11 +1,12 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import CinematicBookOpener from "./CinematicBookOpener.jsx";
+import React, { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import LandingQuoteOrbit from "./LandingQuoteOrbit.jsx";
 import "../landing-font-local.css";
 import "../landing.css";
 import "../landing-tuning.css";
 import "../landing-quote-refine.css";
 import "../landing-frame-fix.css";
+
+const CinematicBookOpener = lazy(() => import("./CinematicBookOpener.jsx"));
 
 const LANDING_HIDDEN_UNTIL_KEY = "author-hub-landing-hidden-until";
 const LANDING_SKIP_MS = 30 * 24 * 60 * 60 * 1000;
@@ -119,7 +120,9 @@ export default function LandingGateway({ children }) {
           onClick={advanceBookPage}
           onKeyDown={handleBookKeyDown}
         >
-          <CinematicBookOpener {...bookProps} />
+          <Suspense fallback={<div className="landing-book-fallback" aria-hidden="true" />}>
+            <CinematicBookOpener {...bookProps} />
+          </Suspense>
         </div>
 
         {!isAuthVisible && (
