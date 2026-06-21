@@ -1,18 +1,19 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Sparkles } from "lucide-react";
 import AuthGate from "./components/AuthGate.jsx";
-import AuthorDashboard from "./components/AuthorDashboard.jsx";
 import FloatingMusicPlayer from "./components/FloatingMusicPlayer.jsx";
 import LandingGateway from "./components/LandingGateway.jsx";
-import NovelSection from "./components/NovelSection.jsx";
 import Sidebar from "./components/Sidebar.jsx";
 import TourProvider from "./components/TourProvider.jsx";
-import UserCenter from "./components/UserCenter.jsx";
 import { getLocalAuthUser, hasSupabaseConfig, setLocalAuthUser, supabase } from "./lib/supabaseClient.js";
 import { loadAuthorHubData, saveAuthorHubData } from "./lib/shimoAdapter.js";
 
+const AuthorDashboard = lazy(() => import("./components/AuthorDashboard.jsx"));
+const NovelSection = lazy(() => import("./components/NovelSection.jsx"));
+const UserCenter = lazy(() => import("./components/UserCenter.jsx"));
+
 const BOOK_COLORS = ["#4A6357", "#7A3E3E", "#2E4C6D", "#8C6239", "#6C5E7A", "#6F7D5E"];
-const ESCAPE_BLOCKING_SELECTOR = ".modal-backdrop, .zen-overlay, .logo-preview-modal, .publish-popover";
+const ESCAPE_BLOCKING_SELECTOR = ".modal-backdrop, .zen-overlay, .logo-lightbox-overlay, .publish-popover";
 const TEXT_ENTRY_SELECTOR = "input, textarea, select, [contenteditable='true']";
 
 export default function App() {
@@ -347,54 +348,63 @@ export default function App() {
         className={`content-shell font-${appearance.fontFamily ?? "sans"}`}
         style={{ marginLeft: sidebarWidth, "--editor-font-size": `${appearance.fontSize ?? 14}px` }}
       >
-        {activeView === "author" && (
-          <AuthorDashboard
-            author={data.author}
-            novels={novels}
-            appearance={appearance}
-            privacyBlur={privacyBlur}
-            onAuthorChange={updateAuthor}
-            onAppearanceChange={updateAppearance}
-            onPrivacyBlurChange={setPrivacyBlur}
-          />
-        )}
-        {activeView === "user" && (
-          <UserCenter
-            authUser={authUser}
-            author={data.author}
-            onAuthorChange={updateAuthor}
-            onExportJson={exportJsonData}
-            onExportMarkdown={exportMarkdownData}
-            onClearData={clearAllUserData}
-            onLogout={logout}
-            appearance={appearance}
-            onAppearanceChange={updateAppearance}
-          />
-        )}
-        {activeNovel ? (
-          <NovelSection
-            key={activeNovel.id}
-            novel={activeNovel}
-            onNovelChange={updateNovel}
-            onAddCharacter={addCharacter}
-            onUpdateCharacter={updateCharacter}
-            onAddRelationship={addRelationship}
-            onUpdateRelationship={updateRelationship}
-            onDeleteCharacter={deleteCharacter}
-            onAddEvent={addEvent}
-            onUpdateEvent={updateEvent}
-            onDeleteEvent={deleteEvent}
-          />
-        ) : activeView !== "author" && activeView !== "user" ? (
-          <section className="section empty-state">
-            <Sparkles size={22} />
-            <h2>这里还没有小说</h2>
-            <p>点击左侧的“新增小说”，创建你的第一组人物星图、时间线和设定集。</p>
-            <button type="button" className="primary-button compact-action" onClick={addNovel}>
-              新增小说
-            </button>
-          </section>
-        ) : null}
+        <Suspense
+          fallback={
+            <section className="section empty-state app-section-loading">
+              <Sparkles size={22} />
+              <h2>正在整理手稿</h2>
+            </section>
+          }
+        >
+          {activeView === "author" && (
+            <AuthorDashboard
+              author={data.author}
+              novels={novels}
+              appearance={appearance}
+              privacyBlur={privacyBlur}
+              onAuthorChange={updateAuthor}
+              onAppearanceChange={updateAppearance}
+              onPrivacyBlurChange={setPrivacyBlur}
+            />
+          )}
+          {activeView === "user" && (
+            <UserCenter
+              authUser={authUser}
+              author={data.author}
+              onAuthorChange={updateAuthor}
+              onExportJson={exportJsonData}
+              onExportMarkdown={exportMarkdownData}
+              onClearData={clearAllUserData}
+              onLogout={logout}
+              appearance={appearance}
+              onAppearanceChange={updateAppearance}
+            />
+          )}
+          {activeNovel ? (
+            <NovelSection
+              key={activeNovel.id}
+              novel={activeNovel}
+              onNovelChange={updateNovel}
+              onAddCharacter={addCharacter}
+              onUpdateCharacter={updateCharacter}
+              onAddRelationship={addRelationship}
+              onUpdateRelationship={updateRelationship}
+              onDeleteCharacter={deleteCharacter}
+              onAddEvent={addEvent}
+              onUpdateEvent={updateEvent}
+              onDeleteEvent={deleteEvent}
+            />
+          ) : activeView !== "author" && activeView !== "user" ? (
+            <section className="section empty-state">
+              <Sparkles size={22} />
+              <h2>这里还没有小说</h2>
+              <p>点击左侧的“新增小说”，创建你的第一组人物星图、时间线和设定集。</p>
+              <button type="button" className="primary-button compact-action" onClick={addNovel}>
+                新增小说
+              </button>
+            </section>
+          ) : null}
+        </Suspense>
       </main>
       <FloatingMusicPlayer />
       {deleteCandidate && (
