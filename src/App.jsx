@@ -397,7 +397,6 @@ export default function App() {
         ) : null}
       </main>
       <FloatingMusicPlayer />
-      <div className="ambient-top" aria-hidden="true" />
       {deleteCandidate && (
         <div className="modal-backdrop" role="presentation" onMouseDown={() => setDeleteCandidate(null)}>
           <section className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-novel-title" onMouseDown={(event) => event.stopPropagation()}>

@@ -44,24 +44,69 @@ body[data-theme="light"] {
   color: var(--ah-ink-deep) !important;
 }
 
-body::before {
-  content: "" !important;
-  position: fixed !important;
-  inset: 0 !important;
-  z-index: 0 !important;
-  pointer-events: none !important;
-  background:
-    linear-gradient(90deg, rgba(238, 231, 221, 0.06), rgba(255, 255, 255, 0.04)),
-    url("/texture-3-wide.jpg") center center / cover fixed no-repeat !important;
-  opacity: 0.48 !important;
-  mix-blend-mode: multiply !important;
-  filter: contrast(1.18) brightness(0.98) saturate(0.82) !important;
-}
-
 .app-shell,
 .landing-gateway {
   position: relative !important;
   z-index: 1 !important;
+}
+
+/* Logo preview is viewport-owned. Keep this functional modal outside the
+   sidebar cascade so clicking the brand never creates a squeezed preview. */
+.logo-lightbox-overlay,
+.sidebar .logo-lightbox-overlay,
+.app-shell .logo-lightbox-overlay,
+body > .logo-lightbox-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  min-width: 100vw !important;
+  max-width: none !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: clamp(20px, 5vw, 56px) !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: auto !important;
+  transform: none !important;
+  translate: none !important;
+  z-index: 2147483000 !important;
+  pointer-events: auto !important;
+  cursor: zoom-out !important;
+  background:
+    radial-gradient(circle at 50% 36%, rgba(253, 251, 247, 0.84), rgba(242, 235, 224, 0.62) 42%, rgba(44, 36, 24, 0.18) 100%) !important;
+  backdrop-filter: blur(18px) saturate(0.94) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(0.94) !important;
+}
+
+.logo-lightbox-overlay .lightbox-content,
+.sidebar .logo-lightbox-overlay .lightbox-content {
+  width: min(820px, calc(100vw - 40px)) !important;
+  max-width: min(820px, calc(100vw - 40px)) !important;
+  min-width: 0 !important;
+  margin: auto !important;
+  display: grid !important;
+  justify-items: center !important;
+  gap: 16px !important;
+  border-radius: 28px !important;
+  background:
+    linear-gradient(135deg, rgba(253, 251, 247, 0.92), rgba(239, 232, 220, 0.84)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.03),
+    0 28px 80px rgba(44, 36, 24, 0.12),
+    0 4px 20px rgba(44, 36, 24, 0.05) !important;
+}
+
+.logo-lightbox-overlay .logo-image-zoomed {
+  width: min(62vw, 520px) !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: 72dvh !important;
+  object-fit: contain !important;
 }
 
 .app-shell,
