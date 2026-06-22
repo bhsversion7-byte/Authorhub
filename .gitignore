@@ -26,6 +26,10 @@ dist/
 !public/donation-wechat.png
 !public/donation-alipay.jpg
 !public/bookinside.jpg
+# README screenshots (drop real captures here to replace the placeholders)
+!docs/screenshots/*.png
+!docs/screenshots/*.jpg
+!docs/screenshots/*.gif
 *.sqlite
 *.db
 localStorage*.json
