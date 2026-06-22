@@ -80,10 +80,6 @@ export function flushCloudSave() {
   });
 }
 
-export function resetAuthorHubData(user) {
-  window.localStorage.removeItem(storageKey(user));
-}
-
 function loadLocalData(user) {
   try {
     const cached = window.localStorage.getItem(storageKey(user));
@@ -165,10 +161,3 @@ function inferCharacterTag(character, index) {
   if (index === 1 || /主角2|受/.test(role)) return "主角2";
   return "主要配角";
 }
-
-export const shimoConnection = {
-  provider: "Document Connector",
-  mode: "mock",
-  desktopUrl: "",
-  notes: "这里预留文档 API/导出文件接入。拿到授权后，可把文件夹、文档正文和表格字段映射为 novels / characters / timelines。",
-};
