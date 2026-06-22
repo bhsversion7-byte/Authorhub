@@ -153,15 +153,7 @@ body > .logo-lightbox-overlay {
   mask-image: radial-gradient(ellipse at 58% 50%, rgba(0, 0, 0, 0.82) 0 28%, rgba(0, 0, 0, 0.34) 46%, transparent 72%) !important;
 }
 
-.landing-book-fallback {
-  width: min(48vw, 680px);
-  height: min(46vh, 440px);
-  border-radius: 32px;
-  background:
-    radial-gradient(circle at 48% 42%, rgba(232, 218, 189, 0.2), transparent 44%),
-    linear-gradient(135deg, rgba(255, 248, 232, 0.12), rgba(120, 139, 156, 0.05));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
-}
+
 
 .cinematic-book-opener {
   position: relative;
@@ -220,24 +212,9 @@ body > .logo-lightbox-overlay {
   box-shadow: none !important;
 }
 
-.loading-orbit,
-.auth-loading-orbit,
-.loading-spinner {
-  background: conic-gradient(from 0deg, rgba(44, 42, 41, 0.78), rgba(44, 42, 41, 0.18), rgba(44, 42, 41, 0.78)) !important;
-  box-shadow: none !important;
-  outline: 0 !important;
-  filter: none !important;
-}
 
-.loading-orbit::before,
-.loading-orbit::after,
-.auth-loading-orbit::before,
-.auth-loading-orbit::after,
-.loading-spinner::before,
-.loading-spinner::after {
-  box-shadow: none !important;
-  filter: none !important;
-}
+
+
 
 /* Sidebar collapse handle: appears when the pointer is inside the sidebar zone. */
 .sidebar-collapse-toggle {
@@ -656,35 +633,9 @@ body[data-theme="dark"] .landing-gateway.mode-auth {
   color: rgba(44, 42, 41, 0.76) !important;
 }
 
-.loading-orbit,
-.auth-loading-orbit,
-.loading-spinner {
-  width: 74px !important;
-  height: 74px !important;
-  border: 0 !important;
-  border-radius: 50% !important;
-  background:
-    repeating-conic-gradient(
-      from 0deg,
-      rgba(44, 42, 41, 0.92) 0deg 4deg,
-      transparent 4deg 8.6deg
-    ) !important;
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px)) !important;
-  mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px)) !important;
-  box-shadow: none !important;
-  filter: none !important;
-  animation: ahDotOrbitSpin 0.92s linear infinite !important;
-}
 
-.loading-orbit::before,
-.loading-orbit::after,
-.auth-loading-orbit::before,
-.auth-loading-orbit::after,
-.loading-spinner::before,
-.loading-spinner::after {
-  content: none !important;
-  display: none !important;
-}
+
+
 
 @keyframes ahDotOrbitSpin {
   to {
@@ -972,12 +923,7 @@ body[data-theme="dark"]::before,
   background: none !important;
 }
 
-.ambient-top,
-.paper-texture-overlay {
-  display: none !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-}
+
 
 .app-shell,
 .content-shell,

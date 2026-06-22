@@ -271,10 +271,7 @@
     align-items: stretch !important;
   }
 
-  .privacy-float {
-    right: 12px !important;
-    bottom: 12px !important;
-  }
+  
 
   .floating-music:not(.is-collapsed) {
     width: min(276px, calc(100vw - 20px)) !important;

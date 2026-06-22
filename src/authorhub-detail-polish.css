@@ -313,16 +313,6 @@ body::before,
   border-radius: 0 !important;
 }
 
-.loading-orbit,
-.auth-loading-orbit,
-.loading-spinner {
-  animation: authorhubSpin 780ms linear infinite !important;
-  box-shadow:
-    inset 0 0 0 2px rgba(44, 38, 30, 0.12),
-    0 0 0 5px rgba(255, 253, 248, 0.34),
-    0 8px 20px rgba(44, 38, 30, 0.08) !important;
-}
-
 @keyframes authorhubSpin {
   to { transform: rotate(360deg); }
 }
