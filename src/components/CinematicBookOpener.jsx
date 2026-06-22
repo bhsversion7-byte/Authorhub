@@ -9,10 +9,10 @@ const PAGE_COUNT = 20;
 const COVER_THICKNESS = 0.058;
 const COVER_FACE_OFFSET = 0.056;
 const STACK_THICKNESS = 0.28;
-const BOOK_ASSET_VERSION = "book-assets-20260618-0318";
+const BOOK_ASSET_VERSION = "book-assets-20260623-jpg";
 
 const BOOK_ASSETS = {
-  inside: `/bookinside.png?v=${BOOK_ASSET_VERSION}`,
+  inside: `/bookinside.jpg?v=${BOOK_ASSET_VERSION}`,
 };
 
 const AUTHORHUB_COLORS = {
