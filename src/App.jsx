@@ -1,20 +1,21 @@
-import React, { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Sparkles } from "lucide-react";
-import AuthGate from "./components/AuthGate.jsx";
 import FloatingMusicPlayer from "./components/FloatingMusicPlayer.jsx";
-import LandingGateway from "./components/LandingGateway.jsx";
 import Sidebar from "./components/Sidebar.jsx";
 import TourProvider from "./components/TourProvider.jsx";
 import { getLocalAuthUser, hasSupabaseConfig, setLocalAuthUser, supabase } from "./lib/supabaseClient.js";
 import { loadAuthorHubData, saveAuthorHubData } from "./lib/shimoAdapter.js";
 
+const AuthGate = lazy(() => import("./components/AuthGate.jsx"));
 const AuthorDashboard = lazy(() => import("./components/AuthorDashboard.jsx"));
+const LandingGateway = lazy(() => import("./components/LandingGateway.jsx"));
 const NovelSection = lazy(() => import("./components/NovelSection.jsx"));
 const UserCenter = lazy(() => import("./components/UserCenter.jsx"));
 
 const BOOK_COLORS = ["#4A6357", "#7A3E3E", "#2E4C6D", "#8C6239", "#6C5E7A", "#6F7D5E"];
 const ESCAPE_BLOCKING_SELECTOR = ".modal-backdrop, .zen-overlay, .logo-lightbox-overlay, .publish-popover";
 const TEXT_ENTRY_SELECTOR = "input, textarea, select, [contenteditable='true']";
+const THEME_MODE_KEY = "author-hub-theme-mode";
 
 export default function App() {
   const [data, setData] = useState(null);
@@ -56,7 +57,19 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (authUser && !data) loadAuthorHubData(authUser).then(setData);
+    if (authUser && !data) {
+      loadAuthorHubData(authUser).then((loadedData) => {
+        const storedTheme = getStoredThemeMode();
+        if (!storedTheme) return setData(loadedData);
+        setData({
+          ...loadedData,
+          appearance: {
+            ...loadedData.appearance,
+            darkMode: storedTheme === "dark",
+          },
+        });
+      });
+    }
     if (!authUser) setData(null);
   }, [authUser, data]);
 
@@ -66,7 +79,9 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    document.body.dataset.theme = data?.appearance?.darkMode ? "dark" : "light";
+    const storedTheme = getStoredThemeMode();
+    const darkMode = data?.appearance?.darkMode ?? storedTheme === "dark";
+    document.body.dataset.theme = darkMode ? "dark" : "light";
   }, [data?.appearance?.darkMode]);
 
   useEffect(() => {
@@ -130,16 +145,19 @@ export default function App() {
     setActiveView("author");
   }
 
-  function selectView(viewId) {
+  const selectView = useCallback((viewId) => {
     setActiveView(viewId);
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }
+  }, []);
 
   function updateAuthor(nextAuthor) {
     setData((current) => ({ ...current, author: nextAuthor }));
   }
 
   function updateAppearance(patch) {
+    if (Object.prototype.hasOwnProperty.call(patch, "darkMode")) {
+      storeThemeMode(patch.darkMode ? "dark" : "light");
+    }
     setData((current) => ({
       ...current,
       appearance: { ...current.appearance, ...patch },
@@ -316,23 +334,32 @@ export default function App() {
 
   if (authReady && !authUser) {
     return (
-      <LandingGateway>
-        <AuthGate onAuthed={handleAuthed} />
-      </LandingGateway>
+      <Suspense fallback={<LandingShellFallback />}>
+        <LandingGateway>
+          <AuthGate onAuthed={handleAuthed} />
+        </LandingGateway>
+      </Suspense>
     );
   }
 
   if (!data) {
     return (
-      <main className="loading-screen">
-        <div className="loading-orbit" />
-        <p>{authReady ? "正在整理你的隐私创作空间..." : "正在确认安全会话..."}</p>
+      <main className="loading-screen" aria-label="正在整理隐私空间中">
+        <div className="privacy-loader" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+        <p>正在整理隐私空间中</p>
       </main>
     );
   }
 
   return (
-    <div className={`app-shell ${privacyBlur ? "privacy-blur" : ""} ${sidebarCollapsed ? "is-sidebar-collapsed" : ""}`} style={{ "--sidebar-current-width": sidebarWidth }}>
+    <div
+      className={`app-shell ${privacyBlur ? "privacy-blur" : ""} ${sidebarCollapsed ? "is-sidebar-collapsed" : ""}`}
+      style={{ "--sidebar-current-width": sidebarWidth, "--editor-font-size": `${appearance.fontSize ?? 14}px` }}
+    >
       <Sidebar
         novels={novels}
         width={sidebarWidth}
@@ -348,14 +375,7 @@ export default function App() {
         className={`content-shell font-${appearance.fontFamily ?? "sans"}`}
         style={{ marginLeft: sidebarWidth, "--editor-font-size": `${appearance.fontSize ?? 14}px` }}
       >
-        <Suspense
-          fallback={
-            <section className="section empty-state app-section-loading">
-              <Sparkles size={22} />
-              <h2>正在整理手稿</h2>
-            </section>
-          }
-        >
+        <Suspense fallback={null}>
           {activeView === "author" && (
             <AuthorDashboard
               author={data.author}
@@ -429,10 +449,24 @@ export default function App() {
           step={tourStep}
           setStep={setTourStep}
           onDone={finishTour}
-          onSelectDemo={() => selectView(novels[0]?.id ?? "author")}
+          onSelectView={selectView}
+          demoNovelId={novels[0]?.id ?? "author"}
         />
       )}
     </div>
+  );
+}
+
+function LandingShellFallback() {
+  return (
+    <main
+      aria-label="正在打开 AuthorHub"
+      style={{
+        minHeight: "100vh",
+        background:
+          "radial-gradient(circle at 70% 46%, rgba(242, 153, 74, 0.16), transparent 24%), linear-gradient(135deg, #0f1317 0%, #12161a 48%, #171214 100%)",
+      }}
+    />
   );
 }
 
@@ -492,4 +526,21 @@ function buildMarkdownExport(data) {
 
 function getRelationshipEndpointId(endpoint) {
   return typeof endpoint === "object" ? endpoint?.id : endpoint;
+}
+
+function getStoredThemeMode() {
+  try {
+    const mode = localStorage.getItem(THEME_MODE_KEY);
+    return mode === "dark" || mode === "light" ? mode : null;
+  } catch {
+    return null;
+  }
+}
+
+function storeThemeMode(mode) {
+  try {
+    localStorage.setItem(THEME_MODE_KEY, mode);
+  } catch {
+    // Theme persistence is a local preference only.
+  }
 }

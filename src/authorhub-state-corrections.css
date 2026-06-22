@@ -1,0 +1,684 @@
+/* Final state layer: interaction and dark-mode corrections only. */
+
+.content-shell :where(
+  .profile-panel,
+  .progress-panel,
+  .appearance-panel,
+  .novel-hero,
+  .story-card,
+  .theme-card,
+  .timeline-panel,
+  .event-editor,
+  .ai-nudge,
+  .graph-card,
+  .inspector-card
+) {
+  transition:
+    transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.28s var(--ease),
+    box-shadow 0.28s var(--ease) !important;
+}
+
+.content-shell :where(
+  .profile-panel,
+  .progress-panel,
+  .appearance-panel,
+  .novel-hero,
+  .story-card,
+  .theme-card,
+  .timeline-panel,
+  .event-editor,
+  .ai-nudge,
+  .graph-card,
+  .inspector-card
+):hover {
+  transform: translateY(-2px) scale(1.002) !important;
+  border-color: rgba(108, 139, 136, 0.34) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 14px 28px rgba(44, 38, 33, 0.08) !important;
+}
+
+.content-shell .author-section :where(.profile-panel, .progress-panel, .appearance-panel):hover,
+.content-shell .novel-section :where(.novel-hero, .story-card, .theme-card, .timeline-panel, .event-editor, .ai-nudge):hover,
+.content-shell .relation-layout :where(.graph-card, .inspector-card):hover {
+  transform: translateY(-2px) scale(1.002) !important;
+  border-color: rgba(108, 139, 136, 0.34) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 14px 28px rgba(44, 38, 33, 0.08) !important;
+}
+
+.content-shell .novel-section .story-grid > article.panel.story-card:hover {
+  transform: translateY(-2px) scale(1.002) !important;
+  border-color: rgba(108, 139, 136, 0.34) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 14px 28px rgba(44, 38, 33, 0.08) !important;
+}
+
+.author-section .profile-panel:hover {
+  background-color: #e6ddcf !important;
+  background-image: linear-gradient(135deg, rgba(249, 244, 235, 0.62), rgba(230, 221, 207, 0.95)) !important;
+}
+
+.author-section .progress-panel:hover,
+.novel-section .timeline-panel:hover {
+  background-color: #dbe2d5 !important;
+  background-image: linear-gradient(145deg, rgba(232, 239, 226, 0.72), rgba(219, 226, 213, 0.96)) !important;
+}
+
+.author-section .appearance-panel:hover {
+  background-color: #dde2dd !important;
+  background-image: linear-gradient(145deg, rgba(237, 242, 240, 0.68), rgba(221, 226, 221, 0.96)) !important;
+}
+
+.novel-section .novel-hero:hover {
+  background-color: #f3e5ab !important;
+  background-image: none !important;
+}
+
+.novel-section .story-grid > article.panel.story-card:nth-child(1):hover {
+  background-color: #f2eadc !important;
+  background-image: linear-gradient(135deg, rgba(255, 253, 248, 0.66), rgba(242, 234, 220, 0.92)) !important;
+}
+
+.novel-section .story-grid > article.panel.story-card:nth-child(2):hover {
+  background-color: #ece8dd !important;
+  background-image: linear-gradient(140deg, rgba(250, 247, 240, 0.78), rgba(236, 232, 221, 0.94)) !important;
+}
+
+.novel-section .theme-card:hover {
+  background-color: #ede4df !important;
+  background-image: linear-gradient(145deg, rgba(248, 241, 235, 0.82), rgba(237, 228, 223, 0.96)) !important;
+}
+
+body[data-theme="dark"] .author-section .profile-panel,
+body[data-theme="dark"] .author-section .profile-panel:hover {
+  background-color: #433a30 !important;
+  background-image: linear-gradient(135deg, rgba(70, 61, 50, 0.96), rgba(50, 44, 37, 0.97)) !important;
+}
+
+body[data-theme="dark"] .author-section .progress-panel,
+body[data-theme="dark"] .author-section .progress-panel:hover {
+  background-color: #2f3d34 !important;
+  background-image: linear-gradient(145deg, rgba(49, 63, 53, 0.96), rgba(37, 48, 42, 0.98)) !important;
+}
+
+body[data-theme="dark"] .author-section .appearance-panel,
+body[data-theme="dark"] .author-section .appearance-panel:hover {
+  background-color: #343d38 !important;
+  background-image: linear-gradient(145deg, rgba(55, 65, 59, 0.96), rgba(40, 48, 44, 0.98)) !important;
+}
+
+body[data-theme="dark"] .content-shell :where(
+  .profile-panel,
+  .progress-panel,
+  .appearance-panel,
+  .novel-hero,
+  .story-card,
+  .theme-card,
+  .timeline-panel,
+  .event-editor,
+  .ai-nudge,
+  .graph-card,
+  .inspector-card
+):hover {
+  border-color: rgba(230, 210, 184, 0.32) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 232, 0.08),
+    0 14px 30px rgba(0, 0, 0, 0.22) !important;
+}
+
+body[data-theme="dark"] .node-color-picker.is-wide {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+body[data-theme="dark"] .node-color-picker.is-wide > span {
+  color: rgba(255, 239, 217, 0.76) !important;
+}
+
+body[data-theme="dark"] .timeline-node {
+  background: linear-gradient(145deg, rgba(67, 61, 53, 0.9), rgba(50, 46, 40, 0.92)) !important;
+  border-color: rgba(230, 210, 184, 0.22) !important;
+  color: rgba(255, 244, 228, 0.92) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 232, 0.08),
+    0 10px 22px rgba(0, 0, 0, 0.14) !important;
+}
+
+body[data-theme="dark"] .timeline-node span {
+  color: rgba(236, 218, 196, 0.78) !important;
+}
+
+body[data-theme="dark"] .timeline-node strong {
+  color: rgba(255, 248, 239, 0.96) !important;
+}
+
+body[data-theme="dark"] .timeline-node:hover {
+  transform: translateY(-2px) scale(1.01) !important;
+  border-color: rgba(230, 210, 184, 0.34) !important;
+  background: linear-gradient(145deg, rgba(72, 65, 56, 0.95), rgba(54, 49, 43, 0.96)) !important;
+}
+
+body[data-theme="dark"] .timeline-node.is-active {
+  background: linear-gradient(145deg, rgba(39, 55, 48, 0.98), rgba(31, 43, 38, 0.98)) !important;
+  border-color: rgba(190, 220, 205, 0.48) !important;
+  outline: 1px solid rgba(190, 220, 205, 0.28) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 232, 0.08),
+    0 12px 28px rgba(0, 0, 0, 0.18) !important;
+}
+
+body[data-theme="dark"] .timeline-arrow {
+  background: rgba(255, 248, 232, 0.72) !important;
+  border-color: rgba(255, 248, 232, 0.2) !important;
+  color: rgba(49, 41, 34, 0.9) !important;
+}
+
+body[data-theme="dark"] .event-editor-main {
+  background: rgba(72, 66, 58, 0.72) !important;
+  border-color: rgba(230, 210, 184, 0.2) !important;
+}
+
+body[data-theme="dark"] .event-core-grid label,
+body[data-theme="dark"] .focus-textarea label,
+body[data-theme="dark"] .event-editor-main .media-carousel > label {
+  color: rgba(255, 239, 217, 0.82) !important;
+}
+
+body[data-theme="dark"] .event-editor-main :where(input, textarea) {
+  background: rgba(255, 248, 232, 0.13) !important;
+  border-color: rgba(230, 210, 184, 0.2) !important;
+  color: rgba(255, 248, 239, 0.95) !important;
+}
+
+/* Loading: self-contained, visible in the privacy-space handoff state. */
+.loading-screen {
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 14px !important;
+}
+
+.loading-screen .privacy-loader {
+  position: relative !important;
+  width: 54px !important;
+  height: 54px !important;
+  display: grid !important;
+  place-items: center !important;
+  color: rgba(74, 99, 87, 0.88) !important;
+  filter: drop-shadow(0 10px 20px rgba(44, 38, 30, 0.12)) !important;
+}
+
+.loading-screen > p {
+  display: block !important;
+  margin: 0 !important;
+  color: rgba(74, 64, 52, 0.74) !important;
+  font-weight: 700 !important;
+}
+
+.loading-screen .privacy-loader span {
+  position: absolute !important;
+  display: block !important;
+  border-radius: 999px !important;
+  transform-origin: center !important;
+  pointer-events: none !important;
+}
+
+.loading-screen .privacy-loader span:nth-child(1) {
+  inset: 0 !important;
+  border: 2px solid rgba(74, 99, 87, 0.16) !important;
+  border-top-color: currentColor !important;
+  border-right-color: rgba(74, 99, 87, 0.46) !important;
+  animation: privacyLoaderSpin 1.15s linear infinite !important;
+}
+
+.loading-screen .privacy-loader span:nth-child(2) {
+  inset: 10px !important;
+  border: 2px solid rgba(167, 132, 92, 0.14) !important;
+  border-left-color: rgba(167, 132, 92, 0.58) !important;
+  border-bottom-color: rgba(167, 132, 92, 0.28) !important;
+  animation: privacyLoaderSpin 1.65s linear infinite reverse !important;
+}
+
+.loading-screen .privacy-loader span:nth-child(3) {
+  width: 8px !important;
+  height: 8px !important;
+  background: currentColor !important;
+  opacity: 0.82 !important;
+  animation: privacyLoaderPulse 1.2s ease-in-out infinite !important;
+}
+
+body[data-theme="dark"] .loading-screen .privacy-loader {
+  color: rgba(230, 210, 184, 0.88) !important;
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.28)) !important;
+}
+
+body[data-theme="dark"] .loading-screen > p {
+  color: rgba(255, 239, 217, 0.78) !important;
+}
+
+@keyframes privacyLoaderSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes privacyLoaderPulse {
+  0%,
+  100% {
+    transform: scale(0.72);
+    opacity: 0.44;
+  }
+
+  50% {
+    transform: scale(1);
+    opacity: 0.92;
+  }
+}
+
+/* Card hover keeps motion and border only; color surfaces stay anchored. */
+.novel-section .story-grid > article.panel.story-card:nth-child(1):hover {
+  background:
+    linear-gradient(135deg, rgba(227, 228, 224, 0.96), rgba(214, 216, 211, 0.88)) !important;
+  background-color: var(--mat-outline) !important;
+}
+
+.novel-section .story-grid > article.panel.story-card:nth-child(2):hover {
+  background:
+    linear-gradient(135deg, rgba(185, 193, 190, 0.96), rgba(174, 183, 180, 0.9)) !important;
+  background-color: var(--mat-setting) !important;
+}
+
+.novel-section .theme-card:hover {
+  background:
+    linear-gradient(135deg, rgba(216, 200, 222, 0.94), rgba(226, 214, 230, 0.86)) !important;
+  background-color: var(--mat-theme) !important;
+}
+
+body[data-theme="dark"] .author-section .profile-panel:hover,
+body[data-theme="dark"] .author-section .progress-panel:hover,
+body[data-theme="dark"] .author-section .appearance-panel:hover,
+body[data-theme="dark"] .novel-section .story-grid > article.panel.story-card:nth-child(1):hover,
+body[data-theme="dark"] .novel-section .story-grid > article.panel.story-card:nth-child(2):hover,
+body[data-theme="dark"] .novel-section .theme-card:hover,
+body[data-theme="dark"] .novel-section .timeline-panel:hover {
+  filter: none !important;
+}
+
+/* Dark timeline should remain the green companion of the light timeline, not brown. */
+body[data-theme="dark"] .novel-section .timeline-panel,
+body[data-theme="dark"] .novel-section .timeline-panel:hover {
+  background-color: #2f3d34 !important;
+  background-image: linear-gradient(145deg, rgba(49, 63, 53, 0.96), rgba(37, 48, 42, 0.98)) !important;
+}
+
+body[data-theme="dark"] .event-editor-main {
+  background: rgba(37, 48, 42, 0.72) !important;
+  border-color: rgba(190, 220, 205, 0.18) !important;
+}
+
+body[data-theme="dark"] .timeline-node {
+  background: linear-gradient(145deg, rgba(44, 57, 50, 0.92), rgba(35, 45, 40, 0.94)) !important;
+  border-color: rgba(190, 220, 205, 0.18) !important;
+}
+
+body[data-theme="dark"] .timeline-node:hover {
+  background: linear-gradient(145deg, rgba(44, 57, 50, 0.92), rgba(35, 45, 40, 0.94)) !important;
+}
+
+body[data-theme="dark"] .timeline-node.is-active {
+  background: linear-gradient(145deg, rgba(31, 54, 46, 0.98), rgba(27, 43, 38, 0.98)) !important;
+  border-color: rgba(190, 220, 205, 0.52) !important;
+}
+
+/* Shared destructive action style: delete character, clear relationship, delete timeline point. */
+.character-action-row .danger-lite-button,
+.timeline-action-row .danger-lite-button,
+.relation-action-row .relation-clear-button {
+  background: linear-gradient(135deg, #a45d52, #87463f) !important;
+  border: 1px solid rgba(255, 248, 239, 0.58) !important;
+  color: #fff8ef !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 239, 0.18),
+    0 8px 18px rgba(132, 70, 63, 0.14) !important;
+}
+
+.character-action-row .danger-lite-button:hover,
+.timeline-action-row .danger-lite-button:hover,
+.relation-action-row .relation-clear-button:hover,
+.character-action-row .danger-lite-button:focus-visible,
+.timeline-action-row .danger-lite-button:focus-visible,
+.relation-action-row .relation-clear-button:focus-visible {
+  background: linear-gradient(135deg, #a45d52, #87463f) !important;
+  border-color: rgba(255, 248, 239, 0.76) !important;
+  color: #fff8ef !important;
+}
+
+body[data-theme="dark"] .character-action-row .danger-lite-button,
+body[data-theme="dark"] .timeline-action-row .danger-lite-button,
+body[data-theme="dark"] .relation-action-row .relation-clear-button,
+body[data-theme="dark"] .character-action-row .danger-lite-button:hover,
+body[data-theme="dark"] .timeline-action-row .danger-lite-button:hover,
+body[data-theme="dark"] .relation-action-row .relation-clear-button:hover {
+  background: linear-gradient(135deg, #a45d52, #87463f) !important;
+  border: 1px solid rgba(255, 248, 239, 0.52) !important;
+  color: #fff8ef !important;
+}
+
+/* Dark mode readability: floating music, add buttons, and focused text editor. */
+body[data-theme="dark"] .floating-music {
+  background: rgba(255, 248, 239, 0.95) !important;
+  border-color: rgba(230, 210, 184, 0.36) !important;
+}
+
+body[data-theme="dark"] .floating-music .track-window span {
+  color: rgba(44, 38, 33, 0.96) !important;
+}
+
+body[data-theme="dark"] .floating-music .track-window small {
+  color: rgba(44, 38, 33, 0.68) !important;
+}
+
+body[data-theme="dark"] .floating-music .music-collapse {
+  color: rgba(44, 38, 33, 0.72) !important;
+}
+
+body[data-theme="dark"] .sidebar .add-novel-button,
+body[data-theme="dark"] .timeline-header > button {
+  background: rgba(255, 248, 232, 0.86) !important;
+  border-color: rgba(255, 248, 232, 0.24) !important;
+  color: rgba(44, 38, 33, 0.9) !important;
+}
+
+body[data-theme="dark"] .sidebar .add-novel-button:hover,
+body[data-theme="dark"] .timeline-header > button:hover {
+  color: rgba(44, 38, 33, 0.96) !important;
+}
+
+body[data-theme="dark"] .sidebar .add-novel-button :where(span, svg),
+body[data-theme="dark"] .timeline-header > button :where(span, svg) {
+  color: inherit !important;
+  stroke: currentColor !important;
+}
+
+body[data-theme="dark"] .zen-overlay {
+  background: rgba(17, 18, 18, 0.62) !important;
+  backdrop-filter: blur(18px) saturate(0.96) !important;
+}
+
+body[data-theme="dark"] .zen-editor {
+  background: linear-gradient(145deg, rgba(55, 65, 59, 0.96), rgba(38, 43, 39, 0.98)) !important;
+  border-color: rgba(230, 210, 184, 0.26) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 232, 0.1),
+    0 28px 70px rgba(0, 0, 0, 0.34) !important;
+}
+
+body[data-theme="dark"] .zen-editor .eyebrow,
+body[data-theme="dark"] .zen-editor h3,
+body[data-theme="dark"] .zen-editor textarea {
+  color: rgba(255, 248, 239, 0.95) !important;
+}
+
+body[data-theme="dark"] .zen-editor textarea {
+  background: rgba(255, 248, 232, 0.13) !important;
+  border-color: rgba(230, 210, 184, 0.22) !important;
+}
+
+body[data-theme="dark"] .zen-exit-button {
+  background: rgba(255, 248, 232, 0.86) !important;
+  border-color: rgba(255, 248, 232, 0.22) !important;
+  color: rgba(44, 38, 33, 0.9) !important;
+}
+
+body[data-theme="dark"] .zen-save-button {
+  background: linear-gradient(135deg, #2c2621, #3a3028) !important;
+  border-color: rgba(255, 248, 232, 0.22) !important;
+  color: #fff8ef !important;
+}
+
+/* Guided onboarding: target-led bubbles with restrained arrows. */
+.guided-tour-layer {
+  z-index: 2147482500 !important;
+  display: block !important;
+  padding: 0 !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  pointer-events: none !important;
+}
+
+.guided-tour-card {
+  position: fixed !important;
+  top: var(--tour-top) !important;
+  left: var(--tour-left) !important;
+  z-index: 2 !important;
+  width: min(320px, calc(100vw - 36px)) !important;
+  min-height: 150px !important;
+  place-items: stretch !important;
+  gap: 9px !important;
+  padding: 17px 18px 16px !important;
+  border: 1px solid rgba(234, 223, 212, 0.92) !important;
+  border-radius: 18px !important;
+  background:
+    radial-gradient(circle at 16% 0%, rgba(255, 253, 248, 0.62), transparent 36%),
+    rgba(253, 251, 247, 0.94) !important;
+  color: #3d352e !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 18px 44px rgba(44, 38, 33, 0.14) !important;
+  backdrop-filter: blur(18px) saturate(0.98) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(0.98) !important;
+  pointer-events: auto !important;
+}
+
+.guided-tour-card h2 {
+  font-size: 21px !important;
+  line-height: 1.24 !important;
+}
+
+.guided-tour-card > p:not(.eyebrow) {
+  color: rgba(71, 62, 53, 0.76) !important;
+  font-size: 13px !important;
+  line-height: 1.65 !important;
+}
+
+.guided-tour-card .tour-close {
+  top: 10px !important;
+  right: 10px !important;
+  background: rgba(234, 223, 212, 0.52) !important;
+}
+
+.guided-tour-card .tour-actions {
+  grid-template-columns: 1fr 1fr !important;
+  gap: 9px !important;
+  margin-top: 4px !important;
+}
+
+.guided-tour-card .tour-actions button {
+  min-height: 38px !important;
+  border-radius: 999px !important;
+}
+
+.guided-tour-arrow {
+  position: absolute !important;
+  display: grid !important;
+  width: 34px !important;
+  height: 34px !important;
+  place-items: center !important;
+  border-radius: 999px !important;
+  background: rgba(44, 38, 33, 0.9) !important;
+  color: #fff8ef !important;
+  box-shadow: 0 10px 24px rgba(44, 38, 33, 0.18) !important;
+  animation: tourArrowBreath 1.45s ease-in-out infinite !important;
+}
+
+.guided-tour-card.arrow-right .guided-tour-arrow {
+  left: -17px !important;
+  top: calc(50% - 17px) !important;
+}
+
+.guided-tour-card.arrow-left .guided-tour-arrow {
+  right: -17px !important;
+  top: calc(50% - 17px) !important;
+  transform: rotate(180deg) !important;
+}
+
+.guided-tour-card.arrow-top .guided-tour-arrow {
+  left: calc(50% - 17px) !important;
+  bottom: -17px !important;
+  transform: rotate(90deg) !important;
+}
+
+.guided-tour-card.arrow-bottom .guided-tour-arrow {
+  left: calc(50% - 17px) !important;
+  top: -17px !important;
+  transform: rotate(-90deg) !important;
+}
+
+.guided-tour-card.arrow-center .guided-tour-arrow {
+  display: none !important;
+}
+
+.tour-target-outline {
+  position: fixed !important;
+  top: var(--tour-target-top) !important;
+  left: var(--tour-target-left) !important;
+  width: var(--tour-target-width) !important;
+  height: var(--tour-target-height) !important;
+  z-index: 1 !important;
+  border: 1px solid rgba(44, 38, 33, 0.26) !important;
+  border-radius: 20px !important;
+  box-shadow:
+    0 0 0 4px rgba(255, 248, 232, 0.26),
+    0 14px 36px rgba(44, 38, 33, 0.12) !important;
+  pointer-events: none !important;
+}
+
+body[data-tour-active="true"] .privacy-blur :where(
+  .novel-title-input,
+  .novel-subtitle-input,
+  .story-card textarea,
+  .relation-svg text,
+  .inspector-card input,
+  .inspector-card textarea,
+  .timeline-panel input,
+  .timeline-panel textarea,
+  .novel-nav-title
+) {
+  filter: none !important;
+}
+
+body[data-tour-active="true"] .app-shell.privacy-blur .novel-title-input,
+body[data-tour-active="true"] .app-shell.privacy-blur .novel-subtitle-input,
+body[data-tour-active="true"] .app-shell.privacy-blur .story-card textarea,
+body[data-tour-active="true"] .app-shell.privacy-blur .relation-svg text,
+body[data-tour-active="true"] .app-shell.privacy-blur .inspector-card input,
+body[data-tour-active="true"] .app-shell.privacy-blur .inspector-card textarea,
+body[data-tour-active="true"] .app-shell.privacy-blur .timeline-panel input,
+body[data-tour-active="true"] .app-shell.privacy-blur .timeline-panel textarea,
+body[data-tour-active="true"] .app-shell.privacy-blur .novel-nav-title {
+  filter: none !important;
+  transition: none !important;
+}
+
+body[data-theme="dark"] .guided-tour-card {
+  background:
+    radial-gradient(circle at 16% 0%, rgba(255, 248, 232, 0.1), transparent 36%),
+    rgba(42, 37, 32, 0.94) !important;
+  border-color: rgba(230, 210, 184, 0.32) !important;
+  color: rgba(255, 248, 239, 0.94) !important;
+}
+
+body[data-theme="dark"] .guided-tour-card > p:not(.eyebrow) {
+  color: rgba(236, 218, 196, 0.76) !important;
+}
+
+body[data-theme="dark"] .tour-target-outline {
+  border-color: rgba(230, 210, 184, 0.34) !important;
+  box-shadow:
+    0 0 0 4px rgba(230, 210, 184, 0.12),
+    0 14px 36px rgba(0, 0, 0, 0.22) !important;
+}
+
+@media (max-width: 760px) {
+  .guided-tour-card {
+    width: min(300px, calc(100vw - 28px)) !important;
+  }
+}
+
+/* Viewport-owned modals: logout/unregister confirmation should blur the whole app. */
+.modal-backdrop,
+.user-unregister-backdrop,
+.relation-confirm-backdrop,
+.timeline-confirm-backdrop {
+  background: rgba(44, 38, 33, 0.22) !important;
+  backdrop-filter: blur(22px) saturate(0.88) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(0.88) !important;
+}
+
+body[data-theme="dark"] .modal-backdrop,
+body[data-theme="dark"] .user-unregister-backdrop,
+body[data-theme="dark"] .relation-confirm-backdrop,
+body[data-theme="dark"] .timeline-confirm-backdrop {
+  background: rgba(12, 13, 14, 0.48) !important;
+  backdrop-filter: blur(22px) saturate(0.86) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(0.86) !important;
+}
+
+/* Dark progress ring keeps dark ink inside the white paper center. */
+body[data-theme="dark"] .progress-panel .meter-ring strong {
+  color: #2c2621 !important;
+}
+
+body[data-theme="dark"] .progress-panel .meter-ring span {
+  color: rgba(44, 38, 33, 0.68) !important;
+}
+
+/* Character/relation action groups: same role, same button language. */
+.relation-layout .inspector-card .character-action-row button.primary-button,
+.relation-layout .inspector-card .connect-box .relation-action-row button.relation-save-button,
+body[data-theme="dark"] .relation-layout .inspector-card .character-action-row button.primary-button,
+body[data-theme="dark"] .relation-layout .inspector-card .connect-box .relation-action-row button.relation-save-button {
+  background: linear-gradient(135deg, #2c2621, #3a3028) !important;
+  border: 1px solid rgba(255, 248, 239, 0.22) !important;
+  color: #fff8ef !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 239, 0.12),
+    0 8px 18px rgba(44, 38, 33, 0.12) !important;
+}
+
+.relation-layout .inspector-card .character-action-row button.danger-lite-button,
+.relation-layout .inspector-card .connect-box .relation-action-row button.relation-clear-button,
+body[data-theme="dark"] .relation-layout .inspector-card .character-action-row button.danger-lite-button,
+body[data-theme="dark"] .relation-layout .inspector-card .connect-box .relation-action-row button.relation-clear-button {
+  background: linear-gradient(135deg, #a45d52, #87463f) !important;
+  border: 1px solid rgba(255, 248, 239, 0.54) !important;
+  color: #fff8ef !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 239, 0.16),
+    0 8px 18px rgba(132, 70, 63, 0.14) !important;
+}
+
+.relation-layout .inspector-card :where(.character-action-row, .relation-action-row) button :where(svg, span),
+body[data-theme="dark"] .relation-layout .inspector-card :where(.character-action-row, .relation-action-row) button :where(svg, span) {
+  color: inherit !important;
+  stroke: currentColor !important;
+}
+
+.user-unregister-modal .btn-unregister,
+.user-unregister-modal .btn-unregister:hover,
+.user-unregister-modal .btn-unregister:focus-visible,
+body[data-theme="dark"] .user-unregister-modal .btn-unregister,
+body[data-theme="dark"] .user-unregister-modal .btn-unregister:hover,
+body[data-theme="dark"] .user-unregister-modal .btn-unregister:focus-visible {
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, #c7928b, #b77e78) !important;
+  border: 1px solid rgba(151, 82, 76, 0.2) !important;
+  color: #fff8ef !important;
+  box-shadow: 0 12px 26px rgba(184, 125, 118, 0.2) !important;
+}

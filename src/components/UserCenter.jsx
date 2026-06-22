@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { FileJson, FileText, KeyRound, LogOut, Mail, Moon, ShieldCheck, Sun, Trash2, UserX, WalletCards } from "lucide-react";
 import { hasSupabaseConfig, supabase } from "../lib/supabaseClient.js";
 
@@ -161,8 +162,13 @@ export default function UserCenter({
         </article>
       </div>
 
-      {passwordOpen && <PasswordModal onClose={() => setPasswordOpen(false)} />}
-      {confirmUnregister && (
+      {passwordOpen &&
+        createPortal(
+          <PasswordModal onClose={() => setPasswordOpen(false)} />,
+          document.body,
+        )}
+      {confirmUnregister &&
+        createPortal(
         <UnregisterModal
           onClose={() => setConfirmUnregister(false)}
           onConfirm={async () => {
@@ -173,8 +179,9 @@ export default function UserCenter({
             setConfirmUnregister(false);
             onLogout();
           }}
-        />
-      )}
+        />,
+          document.body,
+        )}
     </section>
   );
 }

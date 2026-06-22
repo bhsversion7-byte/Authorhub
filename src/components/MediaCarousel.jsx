@@ -282,26 +282,30 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
                 </figure>
               );
             })}
-            <button type="button" className="stack-nav prev" onClick={(event) => move(-1, event)} aria-label="上一张">
-              <ChevronLeft size={17} />
-            </button>
-            <button type="button" className="stack-nav next" onClick={(event) => move(1, event)} aria-label="下一张">
-              <ChevronRight size={17} />
-            </button>
-            <div className="stack-dots" aria-label="图片页码">
-              {safeImages.map((image, index) => (
-                <button
-                  type="button"
-                  key={getImageKey(image, index)}
-                  className={index === activeIndex ? "is-active" : ""}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setActiveIndex(index);
-                  }}
-                  aria-label={`查看第 ${index + 1} 张图片`}
-                />
-              ))}
-            </div>
+            {safeImages.length > 1 && (
+              <>
+                <button type="button" className="stack-nav prev" onClick={(event) => move(-1, event)} aria-label="上一张">
+                  <ChevronLeft size={17} />
+                </button>
+                <button type="button" className="stack-nav next" onClick={(event) => move(1, event)} aria-label="下一张">
+                  <ChevronRight size={17} />
+                </button>
+                <div className="stack-dots" aria-label="图片页码">
+                  {safeImages.map((image, index) => (
+                    <button
+                      type="button"
+                      key={getImageKey(image, index)}
+                      className={index === activeIndex ? "is-active" : ""}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setActiveIndex(index);
+                      }}
+                      aria-label={`查看第 ${index + 1} 张图片`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </>
         ) : (
           <div className="media-empty">添加 2 张或更多图片后，可滑动查看。</div>

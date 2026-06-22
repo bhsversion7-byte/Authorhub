@@ -6,12 +6,12 @@ const PAGE_WIDTH = 3.25;
 const PAGE_HEIGHT = 4.65;
 const PAGE_SEGMENTS = 32;
 const PAGE_COUNT = 20;
-const COVER_THICKNESS = 0.09;
+const COVER_THICKNESS = 0.058;
+const COVER_FACE_OFFSET = 0.056;
 const STACK_THICKNESS = 0.28;
 const BOOK_ASSET_VERSION = "book-assets-20260618-0318";
 
 const BOOK_ASSETS = {
-  cover: `/bookcover.png?v=${BOOK_ASSET_VERSION}`,
   inside: `/bookinside.png?v=${BOOK_ASSET_VERSION}`,
 };
 
@@ -257,6 +257,13 @@ function useTextureWithFallback(url, fallbackFactory) {
   return texture;
 }
 
+function useProceduralTexture(textureFactory) {
+  const { gl } = useThree();
+  const texture = useMemo(() => textureFactory(gl), [textureFactory, gl]);
+  useEffect(() => () => texture.dispose(), [texture]);
+  return texture;
+}
+
 function CinematicCameraRig({ motion, triggerGateway }) {
   const { camera } = useThree();
   const lookAtRef = useRef(new THREE.Vector3(0.42, 0.04, 0));
@@ -271,17 +278,17 @@ function CinematicCameraRig({ motion, triggerGateway }) {
     const baseY = lerp(0.36, 0.1, stow);
     const baseZ = lerp(7.0, 5.15, stow);
 
-    camera.position.x = damp(camera.position.x, lerp(baseX, 0.14, gateway), gateway > 0.02 ? 5.8 : 3.2, delta);
-    camera.position.y = damp(camera.position.y, lerp(baseY, 0.03, gateway), gateway > 0.02 ? 5.8 : 3.2, delta);
-    camera.position.z = damp(camera.position.z, lerp(baseZ, 1.08, gateway), gateway > 0.02 ? 5.8 : 3.2, delta);
-    camera.fov = damp(camera.fov, lerp(43, 18, gateway), 4.4, delta);
+    camera.position.x = damp(camera.position.x, lerp(baseX, baseX - 0.08, gateway), gateway > 0.02 ? 5.2 : 3.2, delta);
+    camera.position.y = damp(camera.position.y, lerp(baseY, baseY + 0.02, gateway), gateway > 0.02 ? 5.2 : 3.2, delta);
+    camera.position.z = damp(camera.position.z, lerp(baseZ, 6.85, gateway), gateway > 0.02 ? 5.2 : 3.2, delta);
+    camera.fov = damp(camera.fov, 43, 4.4, delta);
     camera.near = 0.02;
     camera.far = 80;
     camera.updateProjectionMatrix();
 
-    lookAtRef.current.x = damp(lookAtRef.current.x, lerp(0.45, 1.55, gateway), 4.5, delta);
-    lookAtRef.current.y = damp(lookAtRef.current.y, lerp(0.08, 0.01, gateway), 4.5, delta);
-    lookAtRef.current.z = damp(lookAtRef.current.z, lerp(0.0, 0.03, gateway), 4.5, delta);
+    lookAtRef.current.x = damp(lookAtRef.current.x, lerp(0.45, 0.38, gateway), 4.5, delta);
+    lookAtRef.current.y = damp(lookAtRef.current.y, lerp(0.08, 0.1, gateway), 4.5, delta);
+    lookAtRef.current.z = damp(lookAtRef.current.z, 0.0, 4.5, delta);
     camera.lookAt(lookAtRef.current);
   });
 
@@ -289,7 +296,7 @@ function CinematicCameraRig({ motion, triggerGateway }) {
 }
 
 function CoverSurfaceMaterial({ texture }) {
-  return <meshBasicMaterial map={texture} side={THREE.DoubleSide} transparent={false} toneMapped={false} />;
+  return <meshBasicMaterial map={texture} side={THREE.DoubleSide} transparent={false} toneMapped={false} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1} />;
 }
 
 function PaperMaterial({ texture, bumpScale = 0.2, opacity = 1 }) {
@@ -328,16 +335,16 @@ function FrontCover({ motion, coverGeometry, coverTexture, insideTexture }) {
         <meshStandardMaterial attach="material-1" color="#15120f" roughness={0.96} />
         <meshStandardMaterial attach="material-2" color="#eee8dd" roughness={0.98} bumpMap={insideTexture} bumpScale={0.05} />
         <meshStandardMaterial attach="material-3" color="#d5cabd" roughness={0.98} bumpMap={insideTexture} bumpScale={0.05} />
-        <meshBasicMaterial attach="material-4" map={coverTexture} side={THREE.DoubleSide} toneMapped={false} />
-        <meshBasicMaterial attach="material-5" map={coverTexture} side={THREE.DoubleSide} toneMapped={false} />
+        <meshStandardMaterial attach="material-4" color="#eee8dd" roughness={0.98} bumpMap={insideTexture} bumpScale={0.04} />
+        <meshStandardMaterial attach="material-5" color="#eee8dd" roughness={0.98} bumpMap={insideTexture} bumpScale={0.04} />
       </mesh>
 
-      <mesh position={[PAGE_WIDTH / 2, 0, COVER_THICKNESS / 2 + 0.12]} castShadow receiveShadow renderOrder={20}>
+      <mesh position={[PAGE_WIDTH / 2, 0, COVER_THICKNESS / 2 + COVER_FACE_OFFSET]} castShadow receiveShadow renderOrder={20}>
         <planeGeometry args={[PAGE_WIDTH + 0.2, PAGE_HEIGHT + 0.22, 1, 1]} />
         <CoverSurfaceMaterial texture={coverTexture} />
       </mesh>
 
-      <mesh position={[PAGE_WIDTH / 2, 0, -COVER_THICKNESS / 2 - 0.12]} rotation={[0, Math.PI, 0]} castShadow receiveShadow renderOrder={20}>
+      <mesh position={[PAGE_WIDTH / 2, 0, -COVER_THICKNESS / 2 - COVER_FACE_OFFSET]} rotation={[0, Math.PI, 0]} castShadow receiveShadow renderOrder={20}>
         <planeGeometry args={[PAGE_WIDTH + 0.2, PAGE_HEIGHT + 0.22, 1, 1]} />
         <CoverSurfaceMaterial texture={coverTexture} />
       </mesh>
@@ -433,9 +440,9 @@ function PageBlockEdges({ motion, insideTexture }) {
   );
 }
 
-function BookModel({ motion, scrollProgress, autoOpen }) {
+function BookModel({ motion, scrollProgress, directProgress, isDragging, autoOpen, triggerGateway }) {
   const groupRef = useRef(null);
-  const coverTexture = useTextureWithFallback(BOOK_ASSETS.cover, createProceduralCoverTexture);
+  const coverTexture = useProceduralTexture(createProceduralCoverTexture);
   const insideTexture = useTextureWithFallback(BOOK_ASSETS.inside, createProceduralPaperTexture);
 
   const pageGeometry = useMemo(() => new THREE.PlaneGeometry(PAGE_WIDTH - 0.11, PAGE_HEIGHT - 0.14, PAGE_SEGMENTS, PAGE_SEGMENTS), []);
@@ -447,16 +454,24 @@ function BookModel({ motion, scrollProgress, autoOpen }) {
     let openTarget = 1;
     let stowTarget = 0;
 
-    if (typeof scrollProgress === "number") {
-      openTarget = smoothstep(0.02, 0.42, scrollProgress);
-      stowTarget = smoothstep(0.56, 0.92, scrollProgress);
+    if (triggerGateway) {
+      openTarget = 0;
+      stowTarget = 0;
+    } else if (typeof scrollProgress === "number") {
+      if (directProgress) {
+        openTarget = clamp01(scrollProgress);
+        stowTarget = 0;
+      } else {
+        openTarget = smoothstep(0.02, 0.39, scrollProgress);
+        stowTarget = smoothstep(0.56, 0.92, scrollProgress);
+      }
     } else if (autoOpen) {
       openTarget = smoothstep(0.0, 1.0, elapsed / 2.8);
       stowTarget = 0;
     }
 
-    motion.current.open = damp(motion.current.open, openTarget, 2.4, delta);
-    motion.current.stow = damp(motion.current.stow, stowTarget, 2.8, delta);
+    motion.current.open = isDragging ? damp(motion.current.open, openTarget, 28, delta) : damp(motion.current.open, openTarget, 5.2, delta);
+    motion.current.stow = damp(motion.current.stow, stowTarget, 3.6, delta);
 
     const open = motion.current.open;
     const stow = motion.current.stow;
@@ -475,7 +490,7 @@ function BookModel({ motion, scrollProgress, autoOpen }) {
       groupRef.current.rotation.x = damp(groupRef.current.rotation.x, lerp(-0.34, -0.08, stow), 2.9, delta);
       groupRef.current.rotation.y = damp(groupRef.current.rotation.y, -0.58 + slowYaw + stow * Math.PI * 0.25 + gateway * 0.12, 2.9, delta);
       groupRef.current.rotation.z = damp(groupRef.current.rotation.z, 0.12 + slowRoll - stow * 0.22, 2.9, delta);
-      groupRef.current.scale.setScalar(damp(groupRef.current.scale.x, lerp(lerp(1.0, 0.82, stow), 1.45, gateway), 3.4, delta));
+      groupRef.current.scale.setScalar(damp(groupRef.current.scale.x, lerp(lerp(1.0, 0.82, stow), 0.9, gateway), 3.4, delta));
     }
   });
 
@@ -534,12 +549,12 @@ function ShadowCatcher() {
   );
 }
 
-function CinematicScene({ motion, scrollProgress, autoOpen, triggerGateway }) {
+function CinematicScene({ motion, scrollProgress, directProgress, isDragging, autoOpen, triggerGateway }) {
   return (
     <>
       <CinematicCameraRig motion={motion} triggerGateway={triggerGateway} />
       <BookLights />
-      <BookModel motion={motion} scrollProgress={scrollProgress} autoOpen={autoOpen} />
+      <BookModel motion={motion} scrollProgress={scrollProgress} directProgress={directProgress} isDragging={isDragging} autoOpen={autoOpen} triggerGateway={triggerGateway} />
       <ShadowCatcher />
     </>
   );
@@ -550,6 +565,8 @@ export default function CinematicBookOpener({
   height = "680px",
   scrollDriven = false,
   scrollProgress,
+  directProgress = false,
+  isDragging = false,
   triggerGateway = false,
   autoOpen = true,
   title = "AuthorHub",
@@ -581,7 +598,14 @@ export default function CinematicBookOpener({
             gl.shadowMap.type = THREE.PCFSoftShadowMap;
           }}
         >
-          <CinematicScene motion={motion} scrollProgress={resolvedScrollProgress} autoOpen={autoOpen} triggerGateway={triggerGateway} />
+          <CinematicScene
+            motion={motion}
+            scrollProgress={resolvedScrollProgress}
+            directProgress={directProgress}
+            isDragging={isDragging}
+            autoOpen={autoOpen}
+            triggerGateway={triggerGateway}
+          />
         </Canvas>
       </div>
       <div className="book-gateway-grid" aria-hidden="true">

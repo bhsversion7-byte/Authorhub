@@ -23,7 +23,7 @@
 }
 
 html {
-  background: var(--ah-paper-bg) url("/texture-3-bg.jpg") center center / cover fixed no-repeat !important;
+  background: var(--ah-paper-bg) url("/texture-3-bg.jpg") center center / cover no-repeat !important;
 }
 
 body,
