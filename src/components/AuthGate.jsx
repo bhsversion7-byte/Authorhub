@@ -3,7 +3,8 @@ import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
 import { hasSupabaseConfig, makeLocalUser, setLocalAuthUser, supabase } from "../lib/supabaseClient.js";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const CAPTCHA_FETCH_TIMEOUT = 850;
+const CAPTCHA_FETCH_TIMEOUT = 3000;
+const CAPTCHA_RETRY_ATTEMPTS = 3;
 
 export default function AuthGate({ onAuthed }) {
   const [mode, setMode] = useState("login");
@@ -38,45 +39,78 @@ export default function AuthGate({ onAuthed }) {
     if (mode === "register") loadCaptcha();
   }, [mode]);
 
+  async function fetchServerCaptcha() {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), CAPTCHA_FETCH_TIMEOUT);
+    try {
+      const response = await fetch(`/api/captcha?ts=${Date.now()}`, { cache: "no-store", signal: controller.signal });
+      if (!response.ok) throw new Error("captcha api unavailable");
+      const data = await response.json();
+      if (data?.image && data?.token && !String(data.token).startsWith("local:")) return data;
+      return null;
+    } catch {
+      return null;
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  }
+
   async function loadCaptcha() {
     const requestId = captchaRequestRef.current + 1;
     captchaRequestRef.current = requestId;
     captchaAnswerRef.current = "";
     setCaptchaAnswer("");
 
-    const localCaptcha = makeLocalCaptcha();
-    setCaptcha(localCaptcha);
+    // Instant placeholder so the register form is never blank on serverless cold starts.
+    setCaptcha(makeLocalCaptcha());
 
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), CAPTCHA_FETCH_TIMEOUT);
-
-    try {
-      const response = await fetch(`/api/captcha?ts=${Date.now()}`, { cache: "no-store", signal: controller.signal });
-      if (!response.ok) throw new Error("captcha api unavailable");
-      const nextCaptcha = await response.json();
-      if (captchaRequestRef.current === requestId && captchaAnswerRef.current === "" && nextCaptcha?.image && nextCaptcha?.token) {
-        setCaptcha(nextCaptcha);
+    // Pull the real server captcha, retrying to cover cold starts so the user
+    // almost always solves a server-verified image before submitting.
+    for (let attempt = 0; attempt < CAPTCHA_RETRY_ATTEMPTS; attempt += 1) {
+      const server = await fetchServerCaptcha();
+      if (captchaRequestRef.current !== requestId) return;
+      if (server) {
+        if (captchaAnswerRef.current === "") setCaptcha(server);
+        return;
       }
-    } catch {
-      // Keep the instantly-rendered local captcha. This avoids a blank register form on slow serverless cold starts.
-    } finally {
-      window.clearTimeout(timeout);
+      await new Promise((resolve) => setTimeout(resolve, 600));
     }
   }
 
   async function verifyCaptcha() {
-    if (!captchaAnswer.trim()) {
+    const answer = captchaAnswer.trim();
+    if (!answer) {
       setMessage("请输入图片验证码。");
       return false;
     }
-    if (captcha?.token?.startsWith("local:")) {
-      return captchaAnswer.trim() === captcha.token.slice(6);
+
+    // Local demo mode (no Supabase backend): no real account is created, so the
+    // instant local captcha is acceptable and keeps offline UI preview working.
+    if (!hasSupabaseConfig) {
+      if (captcha?.token?.startsWith("local:")) return answer === captcha.token.slice(6);
     }
+
+    // Real backend: never authorize a signup with a client-checked captcha. If
+    // only the local placeholder is present (cold start/outage), fetch a real
+    // one and ask the user to solve it rather than accepting the local answer.
+    const activeToken = captcha?.token;
+    if (!activeToken || activeToken.startsWith("local:")) {
+      const server = await fetchServerCaptcha();
+      if (!server) {
+        setMessage("验证码服务正在唤醒，请稍后重试。");
+        return false;
+      }
+      setCaptcha(server);
+      setCaptchaAnswer("");
+      setMessage("已刷新验证码，请输入新的数字。");
+      return false;
+    }
+
     try {
       const response = await fetch("/api/verify-captcha", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: captcha?.token, answer: captchaAnswer.trim() }),
+        body: JSON.stringify({ token: activeToken, answer }),
       });
       if (!response.ok) throw new Error("验证码错误");
       return true;
