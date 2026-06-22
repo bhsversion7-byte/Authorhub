@@ -89,12 +89,16 @@ This file records the final product/design rules for AuthorHub so future CSS cle
 - Day/night mode persists across refreshes.
 - Logo wrapper has no grey mask or accidental border; logo lightbox close button belongs in the upper-right.
 - Sidebar collapse button is a single visible control.
+- Sidebar novel ordering uses SortableJS-style row sorting: the dragged row lifts, the original list shows a soft ghost placeholder, nearby rows animate out of the way, and the reordered `data.novels` array persists through the existing save flow.
+- Sidebar novel ordering should follow the reference row-drag pattern: Sortable attaches to the real list container, `.novel-nav-item` is the draggable row, `oldIndex/newIndex` map directly to the saved novel array, and adjacent one-step moves must work.
+- The global page scrollbar is visually hidden while scroll behavior remains available, keeping the right edge clean.
 - Preview/media carousel typography follows global font size and font family settings.
 - Cards keep hover micro-bounce plus border reveal without hover glow/highlight shifts.
 - Novel card metadata fields keep the same rounded micro-highlight in default, hover, focus, and dark mode.
 - Focus/expanded editors are readable in light and dark mode.
 - Relation graph dotted background covers the intended card area without excessive blank bottom space.
 - The right-side layout must avoid the historical extra blank column caused by overflow/music/player/layout conflicts.
+- Content cards keep symmetric horizontal breathing room: the gap between the sidebar preview edge and the first card matches the gap between the rightmost card edge and the viewport edge.
 - Dark mode music player text, add-novel/add-time buttons, tag chips, and modal actions have explicit contrast.
 - Onboarding uses live target arrows and keeps the background clear.
 - Unregister and delete confirmation modals use matching danger-button styling.
@@ -107,3 +111,15 @@ This file records the final product/design rules for AuthorHub so future CSS cle
 - Do not delete or change established feature zones while reducing CSS.
 - Do not casually change colors, feature layout, fonts, or functional areas.
 - Use precise verification for each visual state: light mode, dark mode, hover, active, focus, mobile/narrow layout, and Windows performance-sensitive animation.
+
+## Maintenance Log (backup record)
+
+Records substantive maintenance so future cleanup keeps the confirmed behavior. None of the entries below changed any color, layout, font, or interaction.
+
+### 2026-06-23 — code-review remediation + dead-CSS cleanup
+- **Captcha hardening:** `/api/captcha` and `/api/verify-captcha` now require a private `CAPTCHA_SECRET` env var and fail closed if it is missing (no more fallback to the public Supabase URL). Real signups require server-verified captcha; the instant local fallback is kept only for offline/local demo mode so the register form is never blank.
+- **Cloud-save debounce:** local-storage writes stay immediate (offline safety unchanged); only the Supabase cloud upsert is debounced ~1s and flushed on logout / tab-hide / unload. No observable behavior change.
+- **Schema template:** `supabase.schema.sql` aligned with the canonical migration (pgcrypto, `profiles.updated_at`, the `unique(user_id,title)` constraint, `set_updated_at()` + triggers). Template only.
+- **Dead-CSS removal (~620 lines):** removed 108 CSS rules whose selectors referenced only classes no component renders anymore (leftovers from removed features: AI handoff panel, universe overview, old landing book / manuscript UI, old theme picker, old sidebar/tour/music layouts, old loaders, shimo strip). Proven inert: every removed selector matched **zero** elements across landing, auth, register, author, novel, and user views. Deletion-only diff; build green; brace balance intact.
+- **NOT touched:** the `!important` cascade layering was deliberately left alone (analysis showed it is intentional, load-bearing, not redundant); CSS consolidation beyond dead-code removal was judged high-risk / low-reward.
+- **Docs:** README rewritten as bilingual (English + 简体中文) with live links and current feature set.
