@@ -2,7 +2,6 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
-import "./visual-asset-preload.js";
 import "./styles.css";
 import "./internal-polish.css";
 import "./novel-section-restore.css";
@@ -19,6 +18,7 @@ import "./responsive-stability.css";
 import "./authorhub-refine-pass.css";
 import "./authorhub-detail-polish.css";
 import "./material-system.css";
+import "./authorhub-state-corrections.css";
 import "./modal-empty-qa.js";
 
 createRoot(document.getElementById("root")).render(

@@ -17,7 +17,7 @@
   --mat-outline: #e3e4e0;     /* 淡灰宣纸白 */
   --mat-setting: #b9c1be;     /* 莫兰迪哑光青岩灰 */
   --mat-theme: #d8c8de;       /* 知性丁香淡紫色 */
-  --mat-novel-route: #b08a4c;  /* 暗枫糖琥珀金 */
+  --mat-novel-route: #d2ad61;  /* 亮琥珀纸金 */
   --mat-inspector: #e8dfd1;   /* 薄雾苍米色 */
 
   --mat-paper-shadow:
@@ -30,7 +30,7 @@
 html {
   background:
     linear-gradient(135deg, rgba(246, 241, 232, 0.16), rgba(223, 215, 202, 0.14)),
-    url("/texture-3-wide.jpg") center center / cover fixed no-repeat,
+    url("/texture-3-wide.jpg") center center / cover no-repeat,
     var(--ah-bg-paper) !important;
 }
 
@@ -39,7 +39,7 @@ body[data-ambient],
 body[data-theme="light"] {
   background:
     linear-gradient(135deg, rgba(246, 241, 232, 0.12), rgba(223, 215, 202, 0.08)),
-    url("/texture-3-wide.jpg") center center / cover fixed no-repeat,
+    url("/texture-3-wide.jpg") center center / cover no-repeat,
     var(--ah-bg-paper) !important;
   color: var(--ah-ink-deep) !important;
 }
@@ -199,13 +199,13 @@ body > .logo-lightbox-overlay {
 .loading-screen {
   background:
     linear-gradient(135deg, rgba(246, 241, 232, 0.18), rgba(223, 215, 202, 0.1)),
-    url("/texture-3-wide.jpg") center center / cover fixed no-repeat,
+    url("/texture-3-wide.jpg") center center / cover no-repeat,
     var(--ah-bg-paper) !important;
 }
 
 .loading-screen::before {
   background:
-    url("/texture-3-wide.jpg") center center / cover fixed no-repeat !important;
+    url("/texture-3-wide.jpg") center center / cover no-repeat !important;
   opacity: 0.36 !important;
   mix-blend-mode: multiply !important;
   filter: contrast(1.18) brightness(0.98) !important;
@@ -570,7 +570,7 @@ body > .logo-lightbox-overlay {
 body[data-theme="dark"] {
   background:
     linear-gradient(135deg, rgba(29, 27, 25, 0.92), rgba(20, 21, 20, 0.96)),
-    url("/texture-3-wide.jpg") center center / cover fixed no-repeat,
+    url("/texture-3-wide.jpg") center center / cover no-repeat,
     #171514 !important;
 }
 
@@ -602,12 +602,12 @@ html,
 body,
 body[data-theme="light"] {
   background:
-    url("/texture-3-wide.jpg") center center / cover fixed no-repeat,
+    url("/texture-3-wide.jpg") center center / cover no-repeat,
     var(--ah-paper-live) !important;
 }
 
 body::before {
-  background: url("/texture-3-wide.jpg") center center / cover fixed no-repeat !important;
+  background: url("/texture-3-wide.jpg") center center / cover no-repeat !important;
   opacity: 0.34 !important;
   mix-blend-mode: multiply !important;
   filter: contrast(1.12) brightness(1.02) saturate(0.72) !important;
@@ -635,12 +635,12 @@ body[data-theme="dark"] .landing-gateway.mode-auth {
 
 .loading-screen {
   background:
-    url("/texture-3-wide.jpg") center center / cover fixed no-repeat,
+    url("/texture-3-wide.jpg") center center / cover no-repeat,
     var(--ah-paper-live) !important;
 }
 
 .loading-screen::before {
-  background: url("/texture-3-wide.jpg") center center / cover fixed no-repeat !important;
+  background: url("/texture-3-wide.jpg") center center / cover no-repeat !important;
   opacity: 0.34 !important;
   mix-blend-mode: multiply !important;
   filter: contrast(1.12) brightness(1.02) saturate(0.72) !important;
@@ -1023,4 +1023,959 @@ body[data-theme="dark"] .loading-screen {
   background-image: radial-gradient(var(--mat-graph-dot, rgba(111, 121, 119, 0.28)) 1.25px, transparent 1.25px) !important;
   background-size: 24px 24px !important;
   background-repeat: repeat !important;
+}
+
+/* Current precision pass: resolve the concrete regressions without adding a new CSS layer. */
+html,
+body,
+body[data-ambient],
+body[data-theme="light"],
+#root,
+.loading-screen {
+  background:
+    linear-gradient(135deg, rgba(246, 241, 232, 0.18), rgba(223, 215, 202, 0.08)),
+    url("/texture-3.jpg") center top / 574px 1024px repeat,
+    var(--ah-paper-live, #f3eee4) !important;
+  background-attachment: scroll !important;
+}
+
+.logo-wrapper {
+  display: grid !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.brand-logo,
+.logo-image {
+  display: block !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.logo-lightbox-overlay .lightbox-content,
+.sidebar .logo-lightbox-overlay .lightbox-content {
+  position: relative !important;
+  padding: clamp(22px, 3vw, 34px) !important;
+}
+
+.logo-preview-close {
+  position: absolute !important;
+  top: 14px !important;
+  right: 14px !important;
+  z-index: 3 !important;
+  display: grid !important;
+  width: 34px !important;
+  height: 34px !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border: 1px solid rgba(44, 38, 30, 0.1) !important;
+  border-radius: 999px !important;
+  background: rgba(255, 253, 248, 0.72) !important;
+  color: rgba(44, 38, 30, 0.82) !important;
+  box-shadow: 0 8px 20px rgba(44, 36, 24, 0.08) !important;
+}
+
+.logo-preview-close:hover,
+.logo-preview-close:focus-visible {
+  transform: translateY(-1px) scale(1.02) !important;
+  border-color: rgba(44, 38, 30, 0.18) !important;
+  background: rgba(255, 253, 248, 0.92) !important;
+}
+
+.content-shell {
+  overflow-x: clip !important;
+}
+
+.section,
+.shimo-strip {
+  max-width: min(1720px, calc(100vw - var(--sidebar-current-width, var(--app-sidebar-width, 224px)) - clamp(34px, 3.8vw, 72px))) !important;
+}
+
+.novel-section .novel-hero,
+.novel-section .novel-hero:hover {
+  display: grid !important;
+  grid-template-columns: minmax(360px, 1fr) minmax(420px, auto) !important;
+  align-items: center !important;
+  gap: clamp(22px, 4vw, 64px) !important;
+  background:
+    radial-gradient(circle at 9% 10%, rgba(255, 253, 244, 0.52), transparent 32%),
+    radial-gradient(circle at 90% 40%, rgba(222, 174, 87, 0.16), transparent 44%),
+    linear-gradient(135deg, rgba(244, 226, 188, 0.94), rgba(226, 199, 139, 0.7)) !important;
+  border-color: rgba(173, 126, 54, 0.24) !important;
+}
+
+.novel-section .novel-hero > div:first-child {
+  width: min(760px, 100%) !important;
+  transform: none !important;
+}
+
+.novel-section .novel-title-input,
+.novel-section .novel-subtitle-input {
+  width: 100% !important;
+  margin-left: 0 !important;
+  border: 1px solid transparent !important;
+  border-radius: 15px !important;
+  background: rgba(255, 253, 248, 0.36) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38) !important;
+}
+
+.novel-section .novel-title-input:hover,
+.novel-section .novel-subtitle-input:hover,
+.novel-section .novel-title-input:focus,
+.novel-section .novel-subtitle-input:focus {
+  border-color: rgba(210, 184, 126, 0.34) !important;
+  background: rgba(255, 253, 248, 0.58) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.58),
+    0 0 0 3px rgba(215, 185, 142, 0.06) !important;
+}
+
+.novel-section .novel-meta {
+  display: grid !important;
+  grid-template-columns: minmax(188px, 1.12fr) minmax(126px, 0.88fr) 66px !important;
+  grid-template-areas:
+    "target current publish"
+    "genre finish publish" !important;
+  width: min(520px, 100%) !important;
+  max-width: none !important;
+  gap: 8px 12px !important;
+  justify-self: end !important;
+  align-items: center !important;
+  transform: none !important;
+}
+
+.novel-section .novel-meta > label,
+.novel-section .novel-meta > label:first-child,
+.novel-section .novel-meta > label:nth-of-type(1) {
+  width: auto !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: rgba(106, 91, 73, 0.72) !important;
+}
+
+.novel-section .novel-meta > label input {
+  height: 30px !important;
+  min-height: 30px !important;
+  margin: 2px 0 0 !important;
+  padding: 4px 10px !important;
+  border: 1px solid transparent !important;
+  border-radius: 15px !important;
+  background: rgba(255, 253, 248, 0.34) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36) !important;
+  color: var(--ink) !important;
+  font-size: var(--editor-font-size, 13px) !important;
+  line-height: 1.2 !important;
+}
+
+.novel-section .novel-meta > label input:hover,
+.novel-section .novel-meta > label input:focus {
+  border-color: rgba(210, 184, 126, 0.32) !important;
+  background: rgba(255, 253, 248, 0.56) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.56),
+    0 0 0 3px rgba(215, 185, 142, 0.055) !important;
+}
+
+.relation-svg {
+  height: calc(var(--relation-panel-height) - 148px) !important;
+}
+
+.novel-section .graph-card.relation-graph > .graph-hint {
+  position: absolute !important;
+  right: 34px !important;
+  bottom: 22px !important;
+  z-index: 3 !important;
+  max-width: min(560px, calc(100% - 68px)) !important;
+  color: rgba(90, 82, 74, 0.72) !important;
+  text-align: right !important;
+}
+
+.media-carousel-block,
+.imessage-stack,
+.media-empty {
+  font-family: var(--reading-font-family, inherit) !important;
+  font-size: var(--editor-font-size, 14px) !important;
+}
+
+.imessage-card > button[aria-label="查看大图"],
+.imessage-card > button[aria-label^="切换到"] {
+  inset: 0 !important;
+  top: 0 !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  border: 0 !important;
+  border-radius: inherit !important;
+  background: transparent !important;
+  color: transparent !important;
+  box-shadow: none !important;
+}
+
+.imessage-card > button[aria-label="删除图片"] {
+  top: 10px !important;
+  right: 10px !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  background: rgba(44, 42, 41, 0.78) !important;
+  color: #fff8ef !important;
+}
+
+.stack-nav {
+  opacity: 0.82 !important;
+  border: 1px solid rgba(44, 38, 30, 0.1) !important;
+  background: rgba(255, 253, 248, 0.88) !important;
+  color: rgba(44, 38, 30, 0.78) !important;
+}
+
+.stack-nav:hover,
+.stack-nav:focus-visible {
+  opacity: 1 !important;
+  transform: translateY(-50%) scale(1.04) !important;
+  border-color: rgba(44, 38, 30, 0.18) !important;
+  background: rgba(255, 253, 248, 0.98) !important;
+}
+
+body[data-theme="dark"],
+body[data-theme="dark"] #root,
+body[data-theme="dark"] .loading-screen {
+  --bg: #101316;
+  --card: rgba(31, 32, 30, 0.92);
+  --card-soft: rgba(38, 37, 33, 0.86);
+  --ink: #f6ecdd;
+  --muted: rgba(226, 210, 190, 0.72);
+  --line: rgba(230, 210, 184, 0.18);
+  background:
+    radial-gradient(circle at 70% 46%, rgba(242, 153, 74, 0.19), transparent 23%),
+    radial-gradient(circle at 78% 38%, rgba(123, 97, 255, 0.15), transparent 29%),
+    radial-gradient(circle at 18% 14%, rgba(215, 137, 142, 0.12), transparent 28%),
+    linear-gradient(135deg, #0f1317 0%, #12161a 48%, #171214 100%) !important;
+  color: var(--ink) !important;
+}
+
+body[data-theme="dark"] .sidebar {
+  background:
+    linear-gradient(180deg, rgba(33, 31, 28, 0.94), rgba(25, 26, 24, 0.92)) !important;
+  border-color: rgba(230, 210, 184, 0.13) !important;
+}
+
+body[data-theme="dark"] :where(.panel, .novel-hero, .story-card, .theme-card, .graph-card, .inspector-card, .timeline-panel, .event-editor, .ai-nudge, .confirm-modal) {
+  color: var(--ink) !important;
+  border-color: rgba(230, 210, 184, 0.18) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 232, 0.08),
+    0 16px 38px rgba(0, 0, 0, 0.22) !important;
+}
+
+body[data-theme="dark"] .novel-section .novel-hero,
+body[data-theme="dark"] .novel-section .novel-hero:hover {
+  background:
+    radial-gradient(circle at 10% 12%, rgba(245, 210, 148, 0.14), transparent 34%),
+    linear-gradient(135deg, rgba(70, 55, 34, 0.94), rgba(48, 44, 37, 0.9)) !important;
+}
+
+body[data-theme="dark"] .novel-section .story-grid > article.panel.story-card:nth-child(1),
+body[data-theme="dark"] .novel-section .story-grid > article.panel.story-card:nth-child(1):hover {
+  background: linear-gradient(135deg, rgba(54, 57, 52, 0.94), rgba(39, 42, 39, 0.9)) !important;
+}
+
+body[data-theme="dark"] .novel-section .story-grid > article.panel.story-card:nth-child(2),
+body[data-theme="dark"] .novel-section .story-grid > article.panel.story-card:nth-child(2):hover {
+  background: linear-gradient(135deg, rgba(57, 69, 65, 0.94), rgba(41, 49, 47, 0.9)) !important;
+}
+
+body[data-theme="dark"] .novel-section .theme-card,
+body[data-theme="dark"] .novel-section .theme-card:hover {
+  background: linear-gradient(135deg, rgba(69, 57, 76, 0.94), rgba(50, 44, 56, 0.9)) !important;
+}
+
+body[data-theme="dark"] .graph-card.relation-graph,
+body[data-theme="dark"] .graph-card.relation-graph:hover,
+body[data-theme="dark"] .relationship-star-chart,
+body[data-theme="dark"] .relationship-star-chart:hover,
+body[data-theme="dark"] .relation-svg {
+  --mat-graph: #283130;
+  --mat-graph-dot: rgba(216, 204, 185, 0.16);
+  background-color: var(--mat-graph) !important;
+  color: var(--ink) !important;
+}
+
+body[data-theme="dark"] .novel-section .inspector-card,
+body[data-theme="dark"] .novel-section .inspector-card:hover,
+body[data-theme="dark"] .inspector-card,
+body[data-theme="dark"] .inspector-card:hover {
+  background: linear-gradient(135deg, rgba(62, 51, 39, 0.94), rgba(43, 39, 34, 0.9)) !important;
+}
+
+body[data-theme="dark"] :where(input, textarea, select),
+body[data-theme="dark"] .novel-section .novel-title-input,
+body[data-theme="dark"] .novel-section .novel-subtitle-input,
+body[data-theme="dark"] .novel-section .novel-meta > label input {
+  background: rgba(255, 248, 232, 0.1) !important;
+  border-color: rgba(230, 210, 184, 0.16) !important;
+  color: #fff4e4 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+
+body[data-theme="dark"] :where(input, textarea, select):focus,
+body[data-theme="dark"] .novel-section .novel-title-input:focus,
+body[data-theme="dark"] .novel-section .novel-subtitle-input:focus,
+body[data-theme="dark"] .novel-section .novel-meta > label input:focus {
+  border-color: rgba(242, 192, 118, 0.34) !important;
+  background: rgba(255, 248, 232, 0.16) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 0 0 3px rgba(242, 153, 74, 0.09) !important;
+}
+
+body[data-theme="dark"] .author-section .editable-control,
+body[data-theme="dark"] .author-section .font-preview,
+body[data-theme="dark"] .font-preview,
+body[data-theme="dark"] .global-disclaimer {
+  background:
+    linear-gradient(180deg, rgba(255, 248, 232, 0.105), rgba(255, 248, 232, 0.055)),
+    rgba(18, 20, 19, 0.28) !important;
+  border-color: rgba(230, 210, 184, 0.16) !important;
+  color: var(--ink) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+
+body[data-theme="dark"] .author-section .editable-control strong,
+body[data-theme="dark"] .author-section .editable-control input,
+body[data-theme="dark"] .author-section .editable-control textarea,
+body[data-theme="dark"] .author-section .font-preview p,
+body[data-theme="dark"] .font-preview p {
+  color: #fff4e4 !important;
+}
+
+body[data-theme="dark"] .author-section .editable-control button {
+  background: rgba(139, 160, 156, 0.12) !important;
+  color: rgba(185, 211, 203, 0.82) !important;
+}
+
+body[data-theme="dark"] .author-section .editable-control button:hover,
+body[data-theme="dark"] .author-section .editable-field.is-editing .editable-control button {
+  background: rgba(139, 160, 156, 0.18) !important;
+}
+
+@media (max-width: 980px) {
+  .novel-section .novel-hero,
+  .novel-section .novel-hero:hover {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .novel-section .novel-meta {
+    width: 100% !important;
+    justify-self: stretch !important;
+  }
+}
+
+/* Current refinement pass: precise regressions reported on 2026-06-21. */
+html,
+body,
+#root {
+  max-width: 100% !important;
+  overflow-x: clip !important;
+}
+
+.app-shell {
+  max-width: 100vw !important;
+  overflow-x: clip !important;
+  --field-font-size: var(--editor-font-size, 14px);
+}
+
+.content-shell,
+.sidebar {
+  --field-font-size: var(--editor-font-size, 14px);
+  font-size: var(--editor-font-size, 14px) !important;
+}
+
+.app-shell:has(.content-shell.font-sans) {
+  --reading-font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.app-shell:has(.content-shell.font-serif) {
+  --reading-font-family: Georgia, "Times New Roman", "Songti SC", "STSong", "Noto Serif SC", serif;
+}
+
+.app-shell:has(.content-shell.font-mono) {
+  --reading-font-family: "Cascadia Mono", "SFMono-Regular", Consolas, "Noto Sans Mono CJK SC", monospace;
+}
+
+.app-shell:has(.content-shell.font-yahei) {
+  --reading-font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", system-ui, sans-serif;
+}
+
+.app-shell:has(.content-shell.font-songti) {
+  --reading-font-family: SimSun, "Songti SC", STSong, "Noto Serif SC", Georgia, serif;
+}
+
+.app-shell:has(.content-shell.font-mimeograph) {
+  --reading-font-family: "迫真打字油印體", "迫真打字油印体", "Mimeograph", "KaiTi", "STKaiti", "SimSun", serif;
+}
+
+.content-shell :where(h1, h2, h3, h4, p, span, strong, small, label, input, textarea, select, button, em, li, figcaption),
+.sidebar :where(p, span, strong, small, label, input, textarea, select, button, li),
+.floating-music :where(span, small, button) {
+  font-family: var(--reading-font-family, inherit) !important;
+}
+
+.content-shell :where(input, textarea, select, .media-carousel-block, .imessage-stack, .media-empty, .font-preview p, .global-disclaimer),
+.content-shell :where(.story-card p, .theme-card p, .timeline-panel p, .inspector-card label, .connect-box input, .connect-box select),
+.sidebar :where(.nav-item, .nav-label, .novel-nav-title, .brand-text span) {
+  font-size: var(--editor-font-size, 14px) !important;
+}
+
+.loading-screen {
+  display: grid !important;
+  min-height: 100vh !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 14px !important;
+}
+
+.loading-screen::before {
+  display: none !important;
+  content: none !important;
+}
+
+.loading-screen > .loading-orbit {
+  position: relative !important;
+  display: grid !important;
+  width: 38px !important;
+  height: 38px !important;
+  place-items: center !important;
+  border: 1px solid rgba(126, 107, 84, 0.22) !important;
+  border-radius: 50% !important;
+  background: rgba(255, 253, 248, 0.5) !important;
+  -webkit-mask: none !important;
+  mask: none !important;
+  animation: loadingOrbitSpin 1.35s linear infinite !important;
+}
+
+.loading-screen > .loading-orbit::before {
+  content: "" !important;
+  width: 15px !important;
+  height: 15px !important;
+  border: 2px solid rgba(44, 42, 41, 0.2) !important;
+  border-top-color: rgba(74, 99, 87, 0.72) !important;
+  border-radius: 50% !important;
+}
+
+.loading-screen > .loading-orbit::after {
+  display: none !important;
+  content: none !important;
+}
+
+.loading-screen > p {
+  display: block !important;
+  margin: 0 !important;
+  color: rgba(90, 82, 74, 0.76) !important;
+  font-size: 13px !important;
+  letter-spacing: 0.08em !important;
+}
+
+@keyframes loadingOrbitSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.brand-logo,
+.logo-image {
+  filter: none !important;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
+}
+
+.logo-wrapper::before,
+.logo-wrapper::after,
+.brand-logo::before,
+.brand-logo::after,
+.logo-image::before,
+.logo-image::after {
+  display: none !important;
+  content: none !important;
+}
+
+.novel-section .novel-hero,
+.novel-section .novel-hero:hover {
+  background-color: #ead69e !important;
+  background-image: none !important;
+}
+
+.novel-section .novel-hero::before {
+  opacity: 0.16 !important;
+}
+
+.relation-svg {
+  height: calc(var(--relation-panel-height) - 124px) !important;
+}
+
+.novel-section .graph-card.relation-graph > .graph-hint {
+  right: 46px !important;
+  bottom: 16px !important;
+  transform: translate(8px, 4px) !important;
+  max-width: min(580px, calc(100% - 96px)) !important;
+}
+
+.stack-nav {
+  opacity: 0.7 !important;
+}
+
+.stack-nav:hover,
+.stack-nav:focus-visible {
+  opacity: 0.88 !important;
+}
+
+.imessage-card > button[aria-label="查看大图"],
+.imessage-card > button[aria-label^="切换到"] {
+  appearance: none !important;
+  opacity: 0 !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  transform: none !important;
+}
+
+@media (min-width: 1181px) and (max-width: 1700px) {
+  .app-shell {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-height: 100vh !important;
+    zoom: 1 !important;
+    transform: none !important;
+  }
+
+  .content-shell {
+    width: calc(100vw - var(--sidebar-current-width, var(--app-sidebar-width, 202px))) !important;
+    max-width: calc(100vw - var(--sidebar-current-width, var(--app-sidebar-width, 202px))) !important;
+  }
+}
+
+@media (max-width: 860px) {
+  .app-shell {
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+
+  .content-shell,
+  .section,
+  .shimo-strip {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .floating-music {
+    right: 12px !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  .floating-music:not(.is-collapsed) {
+    width: min(276px, calc(100vw - 24px)) !important;
+  }
+}
+
+/* Precision pass: 2026-06-21 follow-up refinements. */
+.content-shell > .section,
+.content-shell > .shimo-strip {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.novel-section .novel-hero,
+.novel-section .novel-hero:hover {
+  background-color: #faef96 !important;
+  background-image: none !important;
+}
+
+.novel-section .novel-meta > label,
+.novel-section .novel-meta > label:hover,
+.novel-section .novel-meta > label:focus-within {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.novel-section .novel-meta > label input,
+.novel-section .novel-meta > label input:hover,
+.novel-section .novel-meta > label input:focus,
+.novel-section .novel-meta > label input:focus-visible {
+  border: 1px solid transparent !important;
+  border-radius: 15px !important;
+  outline: none !important;
+  background: rgba(255, 253, 248, 0.34) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36) !important;
+}
+
+.novel-section .novel-meta > label input[type="date"]::-webkit-datetime-edit,
+.novel-section .novel-meta > label input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+.novel-section .novel-meta > label input[type="date"]::-webkit-datetime-edit-text,
+.novel-section .novel-meta > label input[type="date"]::-webkit-datetime-edit-month-field,
+.novel-section .novel-meta > label input[type="date"]::-webkit-datetime-edit-day-field,
+.novel-section .novel-meta > label input[type="date"]::-webkit-datetime-edit-year-field {
+  background: transparent !important;
+}
+
+.loading-screen > .loading-orbit {
+  width: 48px !important;
+  height: 48px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: rgba(74, 99, 87, 0.76) !important;
+  animation: none !important;
+}
+
+.loading-screen > .loading-orbit::before,
+.loading-screen > .loading-orbit::after {
+  display: none !important;
+  content: none !important;
+}
+
+.loading-screen > .loading-orbit > span {
+  --dot-angle: calc(var(--dot-index) * 45deg);
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  display: block !important;
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: currentColor !important;
+  opacity: 0 !important;
+  transform: rotate(var(--dot-angle)) translateX(16px) translate(-50%, -50%) scale(0) !important;
+  animation: loadingSpiralDot 1.5s ease-in-out infinite !important;
+  animation-delay: calc(var(--dot-index) * 187.5ms) !important;
+}
+
+@keyframes loadingSpiralDot {
+  0%,
+  100% {
+    opacity: 0;
+    transform: rotate(var(--dot-angle)) translateX(16px) translate(-50%, -50%) scale(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: rotate(var(--dot-angle)) translateX(16px) translate(-50%, -50%) scale(1);
+  }
+}
+
+.author-section .profile-panel {
+  background-color: #e6ddcf !important;
+  background-image: linear-gradient(135deg, rgba(249, 244, 235, 0.62), rgba(230, 221, 207, 0.95)) !important;
+}
+
+.author-section .progress-panel {
+  background-color: #dbe2d5 !important;
+  background-image: linear-gradient(145deg, rgba(232, 239, 226, 0.72), rgba(219, 226, 213, 0.96)) !important;
+}
+
+.author-section .appearance-panel {
+  background-color: #dde2dd !important;
+  background-image: linear-gradient(145deg, rgba(237, 242, 240, 0.68), rgba(221, 226, 221, 0.96)) !important;
+}
+
+.novel-section .timeline-panel {
+  background-color: #d7dfcf !important;
+  background-image: linear-gradient(145deg, rgba(228, 237, 222, 0.76), rgba(215, 223, 207, 0.97)) !important;
+}
+
+.relation-svg {
+  height: calc(var(--relation-panel-height) - 76px) !important;
+}
+
+.novel-section .graph-card.relation-graph > .graph-hint {
+  bottom: 14px !important;
+}
+
+.stack-nav {
+  opacity: 0.86 !important;
+}
+
+.stack-nav:hover,
+.stack-nav:focus-visible {
+  opacity: 0.96 !important;
+  transform: translateY(-50%) !important;
+}
+
+.character-action-row .primary-button,
+.character-action-row .danger-lite-button,
+.timeline-action-row .primary-button,
+.timeline-action-row .danger-lite-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  line-height: 1 !important;
+}
+
+.character-action-row :where(button) svg,
+.timeline-action-row :where(button) svg {
+  display: block !important;
+  flex: 0 0 auto !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+
+@media (max-width: 860px) {
+  .relation-svg {
+    height: calc(var(--relation-panel-height) - 112px) !important;
+  }
+
+  .timeline-track-viewport {
+    overflow: hidden !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Precision pass: dark-mode and interaction corrections. */
+.novel-section .novel-hero,
+.novel-section .novel-hero:hover {
+  background-color: #f3e5ab !important;
+  background-image: none !important;
+}
+
+.loading-screen > .loading-orbit {
+  position: relative !important;
+  display: block !important;
+  width: 52px !important;
+  height: 52px !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  color: rgba(74, 99, 87, 0.82) !important;
+  -webkit-mask: none !important;
+  mask: none !important;
+  animation: none !important;
+}
+
+.loading-screen > .loading-orbit > span {
+  position: absolute !important;
+  display: block !important;
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: currentColor !important;
+  opacity: 0 !important;
+  transform: translate(-50%, -50%) scale(0) !important;
+  animation: loadingSpiralPulse 1.5s ease-in-out infinite !important;
+}
+
+.loading-screen > .loading-orbit > span:nth-child(1) { left: 81.25% !important; top: 50% !important; animation-delay: 0ms !important; }
+.loading-screen > .loading-orbit > span:nth-child(2) { left: 72.1% !important; top: 72.1% !important; animation-delay: 187.5ms !important; }
+.loading-screen > .loading-orbit > span:nth-child(3) { left: 50% !important; top: 81.25% !important; animation-delay: 375ms !important; }
+.loading-screen > .loading-orbit > span:nth-child(4) { left: 27.9% !important; top: 72.1% !important; animation-delay: 562.5ms !important; }
+.loading-screen > .loading-orbit > span:nth-child(5) { left: 18.75% !important; top: 50% !important; animation-delay: 750ms !important; }
+.loading-screen > .loading-orbit > span:nth-child(6) { left: 27.9% !important; top: 27.9% !important; animation-delay: 937.5ms !important; }
+.loading-screen > .loading-orbit > span:nth-child(7) { left: 50% !important; top: 18.75% !important; animation-delay: 1125ms !important; }
+.loading-screen > .loading-orbit > span:nth-child(8) { left: 72.1% !important; top: 27.9% !important; animation-delay: 1312.5ms !important; }
+
+@keyframes loadingSpiralPulse {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.stack-nav {
+  width: 42px !important;
+  height: 42px !important;
+  border: 1px solid rgba(44, 38, 30, 0.2) !important;
+  border-radius: 999px !important;
+  background: rgba(255, 253, 248, 0.96) !important;
+  color: rgba(44, 38, 30, 0.9) !important;
+  opacity: 0.96 !important;
+  box-shadow: 0 8px 18px rgba(44, 38, 30, 0.12) !important;
+  transform: translateY(-50%) !important;
+}
+
+.stack-nav.prev {
+  left: 10px !important;
+}
+
+.stack-nav.next {
+  right: 10px !important;
+}
+
+.stack-nav:hover,
+.stack-nav:focus-visible {
+  opacity: 1 !important;
+  border-color: rgba(44, 38, 30, 0.3) !important;
+  background: rgba(255, 253, 248, 1) !important;
+  color: rgba(44, 38, 30, 0.96) !important;
+  transform: translateY(-50%) scale(1.025) !important;
+}
+
+body[data-theme="dark"] .novel-section .novel-hero,
+body[data-theme="dark"] .novel-section .novel-hero:hover {
+  background: linear-gradient(135deg, rgba(94, 82, 48, 0.96), rgba(62, 55, 39, 0.94)) !important;
+}
+
+body[data-theme="dark"] .novel-section .timeline-panel,
+body[data-theme="dark"] .novel-section .timeline-panel:hover {
+  background: linear-gradient(145deg, rgba(62, 56, 48, 0.96), rgba(48, 43, 37, 0.96)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 232, 0.08),
+    0 14px 32px rgba(0, 0, 0, 0.18) !important;
+}
+
+body[data-theme="dark"] .novel-section .theme-card,
+body[data-theme="dark"] .novel-section .theme-card:hover {
+  background: linear-gradient(135deg, rgba(72, 61, 82, 0.96), rgba(51, 45, 59, 0.96)) !important;
+}
+
+body[data-theme="dark"] .timeline-panel :where(h3, h4, label, span, strong, p),
+body[data-theme="dark"] .inspector-card :where(h3, h4, label, span, strong, p),
+body[data-theme="dark"] .theme-card :where(h3, h4, label, span, strong, p) {
+  color: rgba(255, 244, 228, 0.9) !important;
+}
+
+body[data-theme="dark"] .timeline-panel :where(input, textarea, select),
+body[data-theme="dark"] .inspector-card :where(input, textarea, select),
+body[data-theme="dark"] .tag-compose-row input {
+  background: rgba(255, 248, 232, 0.13) !important;
+  border-color: rgba(242, 225, 198, 0.2) !important;
+  color: #fff5e8 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+body[data-theme="dark"] .timeline-panel :where(input, textarea)::placeholder,
+body[data-theme="dark"] .inspector-card :where(input, textarea)::placeholder,
+body[data-theme="dark"] .tag-compose-row input::placeholder {
+  color: rgba(255, 238, 214, 0.56) !important;
+}
+
+body[data-theme="dark"] .media-upload-button,
+body[data-theme="dark"] .media-url-row button,
+body[data-theme="dark"] .tag-compose-row button {
+  background: rgba(255, 248, 232, 0.9) !important;
+  border-color: rgba(255, 248, 232, 0.2) !important;
+  color: rgba(49, 41, 34, 0.92) !important;
+}
+
+body[data-theme="dark"] .media-empty {
+  background: rgba(255, 248, 232, 0.12) !important;
+  border-color: rgba(255, 248, 232, 0.18) !important;
+  color: rgba(255, 239, 217, 0.72) !important;
+}
+
+body[data-theme="dark"] .node-color-picker > span,
+body[data-theme="dark"] .node-color-picker span,
+body[data-theme="dark"] .tag-composer > span {
+  color: rgba(255, 239, 217, 0.82) !important;
+}
+
+body[data-theme="dark"] .tag-chip-board button,
+body[data-theme="dark"] .theme-tags span {
+  background: rgba(255, 248, 232, 0.88) !important;
+  border-color: rgba(255, 248, 232, 0.2) !important;
+  color: rgba(72, 91, 79, 0.96) !important;
+}
+
+body[data-theme="dark"] .tag-chip-board button.is-selected {
+  background: rgba(38, 35, 31, 0.92) !important;
+  color: rgba(255, 244, 228, 0.92) !important;
+}
+
+body[data-theme="dark"] .theme-card .theme-tag-chip {
+  background: rgba(255, 248, 232, 0.82) !important;
+  border-color: rgba(255, 248, 232, 0.72) !important;
+  color: rgba(61, 80, 68, 0.96) !important;
+}
+
+body[data-theme="dark"] .theme-card .theme-tag-chip .theme-tag-remove {
+  color: rgba(61, 80, 68, 0.82) !important;
+}
+
+.character-action-row .primary-button,
+.character-action-row .danger-lite-button,
+.timeline-action-row .primary-button,
+.timeline-action-row .danger-lite-button,
+.relation-action-row .primary-button,
+.relation-action-row .danger-lite-button {
+  min-height: 42px !important;
+  border-radius: 13px !important;
+  transition:
+    transform 0.18s var(--ease),
+    border-color 0.24s var(--ease),
+    background-color 0.24s var(--ease) !important;
+}
+
+.character-action-row .primary-button,
+.timeline-action-row .primary-button,
+.relation-action-row .primary-button,
+.relation-action-row .relation-save-button {
+  background-color: transparent !important;
+  background-image: linear-gradient(135deg, #2c2621, #3a3028) !important;
+  border-color: rgba(44, 38, 33, 0.18) !important;
+  color: #fff8ef !important;
+}
+
+body[data-theme="dark"] .character-action-row .primary-button,
+body[data-theme="dark"] .timeline-action-row .primary-button,
+body[data-theme="dark"] .relation-action-row .primary-button,
+body[data-theme="dark"] .relation-action-row .relation-save-button {
+  background-color: transparent !important;
+  background-image: linear-gradient(135deg, rgb(44, 38, 33), rgb(58, 48, 40)) !important;
+  border-color: rgba(255, 248, 232, 0.22) !important;
+  color: rgb(255, 248, 239) !important;
+}
+
+.character-action-row .danger-lite-button,
+.timeline-action-row .danger-lite-button,
+.relation-action-row .danger-lite-button,
+.relation-action-row .relation-clear-button {
+  background: rgba(184, 141, 133, 0.13) !important;
+  border-color: rgba(184, 141, 133, 0.42) !important;
+  color: #7a4a42 !important;
+}
+
+body[data-theme="dark"] .character-action-row .danger-lite-button,
+body[data-theme="dark"] .timeline-action-row .danger-lite-button,
+body[data-theme="dark"] .relation-action-row .danger-lite-button,
+body[data-theme="dark"] .relation-action-row .relation-clear-button {
+  background: rgba(195, 130, 118, 0.2) !important;
+  border-color: rgba(235, 184, 171, 0.34) !important;
+  color: rgba(255, 224, 216, 0.92) !important;
+}
+
+.character-action-row :where(button):active,
+.timeline-action-row :where(button):active,
+.relation-action-row :where(button):active,
+.confirm-actions :where(button):active {
+  transform: translateY(1px) scale(0.985) !important;
+}
+
+body[data-theme="dark"] .confirm-modal .ghost-button {
+  background: rgba(255, 248, 232, 0.12) !important;
+  border-color: rgba(255, 248, 232, 0.2) !important;
+  color: rgba(255, 244, 228, 0.92) !important;
+}
+
+body[data-theme="dark"] .confirm-modal .danger-button {
+  color: #fff8ef !important;
 }

@@ -10,7 +10,7 @@ export default function Sidebar({ novels, width, activeView, appearance, collaps
   const fontClass = `font-${appearance?.fontFamily ?? "sans"}`;
 
   return (
-    <aside className={`sidebar ${fontClass} ${collapsed ? "is-collapsed" : ""}`} style={{ width }}>
+    <aside className={`sidebar ${fontClass} ${collapsed ? "is-collapsed" : ""}`} style={{ width, "--editor-font-size": `${appearance?.fontSize ?? 14}px` }}>
       <button
         type="button"
         className="sidebar-collapse-toggle"
