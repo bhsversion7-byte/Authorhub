@@ -13,10 +13,18 @@ const BOOK_PROGRESS_MIN = 0;
 const BOOK_PROGRESS_MAX = 1;
 const BOOK_PAGE_STEPS = 24;
 const BOOK_PAGE_JUMP = (BOOK_PROGRESS_MAX - BOOK_PROGRESS_MIN) / BOOK_PAGE_STEPS;
-const BOOK_AUTO_OPEN_MS = 7450;
-const BOOK_AUTO_HOLD_MS = 620;
-const BOOK_AUTO_CLOSE_MS = 2360;
+// Gentle auto-flip cycle; eased so the close (end -> front) no longer drags.
+const BOOK_AUTO_OPEN_MS = 5200;
+const BOOK_AUTO_HOLD_MS = 900;
+const BOOK_AUTO_CLOSE_MS = 1500;
 const BOOK_INITIAL_PROGRESS = 0.08;
+// Fraction of the stage width a pointer must travel to sweep the book fully
+// open or closed, so drag feels like the pages follow the hand 1:1.
+const BOOK_DRAG_TRAVEL = 0.82;
+
+function easeInOutCubic(t) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
 
 function shouldSkipLanding() {
   try {
@@ -40,8 +48,14 @@ export default function LandingGateway({ children }) {
   const autoBookStart = useRef(0);
   const isBookPointerActive = useRef(false);
   const hasManualBookInteraction = useRef(false);
-  const lastPointerX = useRef(0);
   const bookProgressDirection = useRef(1);
+  const dragStartX = useRef(0);
+  const dragStartProgress = useRef(BOOK_INITIAL_PROGRESS);
+  const bookProgressRef = useRef(BOOK_INITIAL_PROGRESS);
+
+  useEffect(() => {
+    bookProgressRef.current = bookProgress;
+  }, [bookProgress]);
 
   const isFolding = landingMode === "FOLDING";
   const isAuthVisible = landingMode === "AUTH";
@@ -72,15 +86,16 @@ export default function LandingGateway({ children }) {
       let nextProgress = BOOK_PROGRESS_MIN;
 
       if (elapsed <= BOOK_AUTO_OPEN_MS) {
-        const ratio = elapsed / BOOK_AUTO_OPEN_MS;
+        const ratio = easeInOutCubic(elapsed / BOOK_AUTO_OPEN_MS);
         nextProgress = BOOK_PROGRESS_MIN + ratio * (BOOK_PROGRESS_MAX - BOOK_PROGRESS_MIN);
       } else if (elapsed <= BOOK_AUTO_OPEN_MS + BOOK_AUTO_HOLD_MS) {
         nextProgress = BOOK_PROGRESS_MAX;
       } else {
-        const ratio = (elapsed - BOOK_AUTO_OPEN_MS - BOOK_AUTO_HOLD_MS) / BOOK_AUTO_CLOSE_MS;
+        const ratio = easeInOutCubic((elapsed - BOOK_AUTO_OPEN_MS - BOOK_AUTO_HOLD_MS) / BOOK_AUTO_CLOSE_MS);
         nextProgress = BOOK_PROGRESS_MAX - ratio * (BOOK_PROGRESS_MAX - BOOK_PROGRESS_MIN);
       }
 
+      bookProgressRef.current = nextProgress;
       setBookProgress(nextProgress);
       autoBookFrame.current = window.requestAnimationFrame(tick);
     }
@@ -144,29 +159,26 @@ export default function LandingGateway({ children }) {
     });
   }
 
-  function updateBookFromPointer(event) {
-    if (landingMode !== "FULL") return;
-    const box = event.currentTarget.getBoundingClientRect();
-    const rawProgress = (event.clientX - box.left) / Math.max(1, box.width);
-    const nextProgress = clampBookProgress(rawProgress);
-    setBookProgress(nextProgress);
-    bookProgressDirection.current = event.clientX >= lastPointerX.current ? 1 : -1;
-    lastPointerX.current = event.clientX;
-  }
-
   function settleBookProgress() {
-    setBookProgress((current) => snapBookProgress(current));
+    setBookProgress((current) => {
+      const snapped = snapBookProgress(current);
+      bookProgressRef.current = snapped;
+      return snapped;
+    });
   }
 
   function handleBookPointerDown(event) {
     event.preventDefault();
     event.stopPropagation();
+    if (landingMode !== "FULL") return;
+    // Grabbing the book stops the auto-flip and freezes it at the current page
+    // (a plain click no longer jumps the book to the cursor).
     hasManualBookInteraction.current = true;
     window.cancelAnimationFrame(autoBookFrame.current);
     isBookPointerActive.current = true;
+    dragStartX.current = event.clientX;
+    dragStartProgress.current = bookProgressRef.current;
     setIsBookDragging(true);
-    lastPointerX.current = event.clientX;
-    updateBookFromPointer(event);
     event.currentTarget.setPointerCapture?.(event.pointerId);
   }
 
@@ -174,12 +186,21 @@ export default function LandingGateway({ children }) {
     if (!isBookPointerActive.current) return;
     event.preventDefault();
     event.stopPropagation();
-    updateBookFromPointer(event);
+    const box = event.currentTarget.getBoundingClientRect();
+    const travelPx = Math.max(1, box.width * BOOK_DRAG_TRAVEL);
+    const delta = event.clientX - dragStartX.current;
+    // Physical book feel: dragging right -> left turns pages forward (opens
+    // further); left -> right turns back. Pages follow the cursor 1:1.
+    const nextProgress = clampBookProgress(dragStartProgress.current - delta / travelPx);
+    bookProgressDirection.current = delta < 0 ? 1 : -1;
+    bookProgressRef.current = nextProgress;
+    setBookProgress(nextProgress);
   }
 
   function handleBookPointerUp(event) {
     event.preventDefault();
     event.stopPropagation();
+    if (!isBookPointerActive.current) return;
     isBookPointerActive.current = false;
     setIsBookDragging(false);
     settleBookProgress();
