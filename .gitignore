@@ -25,6 +25,7 @@ dist/
 !public/texture-card-3.jpg
 !public/donation-wechat.png
 !public/donation-alipay.jpg
+!public/bookinside.jpg
 *.sqlite
 *.db
 localStorage*.json
