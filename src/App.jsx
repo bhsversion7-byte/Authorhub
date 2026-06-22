@@ -4,7 +4,7 @@ import FloatingMusicPlayer from "./components/FloatingMusicPlayer.jsx";
 import Sidebar from "./components/Sidebar.jsx";
 import TourProvider from "./components/TourProvider.jsx";
 import { getLocalAuthUser, hasSupabaseConfig, setLocalAuthUser, supabase } from "./lib/supabaseClient.js";
-import { loadAuthorHubData, saveAuthorHubData } from "./lib/shimoAdapter.js";
+import { flushCloudSave, loadAuthorHubData, saveAuthorHubData } from "./lib/shimoAdapter.js";
 
 const AuthGate = lazy(() => import("./components/AuthGate.jsx"));
 const AuthorDashboard = lazy(() => import("./components/AuthorDashboard.jsx"));
@@ -93,6 +93,19 @@ export default function App() {
   }, [data, authUser]);
 
   useEffect(() => {
+    function flushOnHide() {
+      if (document.visibilityState === "hidden") flushCloudSave();
+    }
+    window.addEventListener("beforeunload", flushCloudSave);
+    document.addEventListener("visibilitychange", flushOnHide);
+    return () => {
+      window.removeEventListener("beforeunload", flushCloudSave);
+      document.removeEventListener("visibilitychange", flushOnHide);
+      flushCloudSave();
+    };
+  }, []);
+
+  useEffect(() => {
     if (!data || !justRegistered) return;
     const completed = Boolean(authUser?.user_metadata?.has_completed_tour);
     if (!completed) setTourStep(0);
@@ -138,8 +151,12 @@ export default function App() {
   }
 
   async function logout() {
-    if (hasSupabaseConfig && supabase) await supabase.auth.signOut();
-    else setLocalAuthUser(null);
+    if (hasSupabaseConfig && supabase) {
+      await flushCloudSave();
+      await supabase.auth.signOut();
+    } else {
+      setLocalAuthUser(null);
+    }
     setAuthUser(null);
     setData(null);
     setActiveView("author");

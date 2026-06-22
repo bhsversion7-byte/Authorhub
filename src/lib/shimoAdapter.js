@@ -44,15 +44,40 @@ export async function loadAuthorHubData(user) {
   return data;
 }
 
+const CLOUD_SAVE_DEBOUNCE_MS = 1000;
+let cloudSaveTimer = null;
+let pendingCloudSave = null;
+
 export function saveAuthorHubData(data, user) {
   const migrated = migrateData(data);
   saveLocalData(migrated, user);
 
   if (hasSupabaseConfig && supabase && user?.id) {
-    saveCloudData(migrated, user).catch((error) => {
-      console.warn("Author Hub cloud save failed; local cache is preserved.", error);
-    });
+    scheduleCloudSave(migrated, user);
   }
+}
+
+function scheduleCloudSave(data, user) {
+  // Keep the local cache write (above) immediate so a refresh never loses data;
+  // only the network upsert is coalesced to avoid one Supabase write per keystroke.
+  pendingCloudSave = { data, user };
+  if (cloudSaveTimer) clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = setTimeout(flushCloudSave, CLOUD_SAVE_DEBOUNCE_MS);
+}
+
+// Force any pending debounced cloud write to run immediately. Safe to call
+// anytime (logout, tab hide/close, unmount); resolves when the write settles.
+export function flushCloudSave() {
+  if (cloudSaveTimer) {
+    clearTimeout(cloudSaveTimer);
+    cloudSaveTimer = null;
+  }
+  if (!pendingCloudSave) return Promise.resolve();
+  const { data, user } = pendingCloudSave;
+  pendingCloudSave = null;
+  return saveCloudData(data, user).catch((error) => {
+    console.warn("Author Hub cloud save failed; local cache is preserved.", error);
+  });
 }
 
 export function resetAuthorHubData(user) {
