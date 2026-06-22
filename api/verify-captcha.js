@@ -1,9 +1,9 @@
 import crypto from "node:crypto";
 
-const SECRET = process.env.CAPTCHA_SECRET || process.env.VITE_SUPABASE_URL || "authorhub-local-captcha-secret";
-
 function key() {
-  return crypto.createHash("sha256").update(SECRET).digest();
+  // Must match the private signing secret used by /api/captcha. No fallback to
+  // public values, which would let anyone forge captcha tokens.
+  return crypto.createHash("sha256").update(process.env.CAPTCHA_SECRET).digest();
 }
 
 function decryptToken(token) {
@@ -19,6 +19,12 @@ export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     res.status(405).json({ ok: false });
+    return;
+  }
+
+  if (!process.env.CAPTCHA_SECRET) {
+    res.setHeader("Cache-Control", "no-store");
+    res.status(500).json({ ok: false, error: "captcha_not_configured" });
     return;
   }
 
