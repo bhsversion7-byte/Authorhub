@@ -1,9 +1,9 @@
 import crypto from "node:crypto";
 
-const SECRET = process.env.CAPTCHA_SECRET || process.env.VITE_SUPABASE_URL || "authorhub-local-captcha-secret";
-
 function key() {
-  return crypto.createHash("sha256").update(SECRET).digest();
+  // Require an explicit, private signing secret. No fallback to public values
+  // (e.g. the Supabase URL), which would let anyone forge captcha tokens.
+  return crypto.createHash("sha256").update(process.env.CAPTCHA_SECRET).digest();
 }
 
 function b64url(buffer) {
@@ -48,6 +48,12 @@ function captchaSvg(text) {
 }
 
 export default function handler(req, res) {
+  if (!process.env.CAPTCHA_SECRET) {
+    res.setHeader("Cache-Control", "no-store");
+    res.status(500).json({ error: "captcha_not_configured" });
+    return;
+  }
+
   const answer = String(Math.floor(1000 + Math.random() * 9000));
   const token = encryptPayload({ answer, exp: Date.now() + 5 * 60 * 1000 });
   const svg = captchaSvg(answer);
