@@ -53,6 +53,7 @@ body[data-theme="dark"] select {
 
 html {
   scroll-behavior: smooth;
+  scrollbar-width: none;
 }
 
 body {
@@ -65,6 +66,19 @@ body {
     linear-gradient(135deg, #fbf9f6 0%, #f7f0e8 50%, #f2ece6 100%);
   background-size: 28px 28px, auto, auto, auto;
   transition: background 900ms var(--ease);
+  -ms-overflow-style: none;
+}
+
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+html::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 body[data-ambient="afternoon"] {

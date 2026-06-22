@@ -51,6 +51,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
   const nodesRef = useRef([]);
 
   const [selectedId, setSelectedId] = useState(novel.characters[0]?.id);
+  const [graphFocusId, setGraphFocusId] = useState("");
   const [hoverId, setHoverId] = useState("");
   const [hoverLinkKey, setHoverLinkKey] = useState("");
   const [draft, setDraft] = useState(novel.characters[0] ?? null);
@@ -80,7 +81,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
       ? { source: connectFrom, target: connectTo, label: connectLabel || "关系", index: "__preview", isPreview: true }
       : null;
   const previewRelationshipKey = previewRelationship ? draftRelationshipKey : "";
-  const focusId = activeRelationshipKey || previewRelationshipKey ? "" : hoverId || selectedId || "";
+  const focusId = activeRelationshipKey || previewRelationshipKey ? "" : hoverId || graphFocusId || "";
   const selected = useMemo(
     () => novel.characters.find((character) => character.id === selectedId) ?? novel.characters[0],
     [novel.characters, selectedId],
@@ -140,6 +141,18 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     const ink = defs.append("filter").attr("id", `ink-${novel.id}`);
     ink.append("feTurbulence").attr("type", "fractalNoise").attr("baseFrequency", "0.018").attr("numOctaves", "1").attr("seed", "8").attr("result", "noise");
     ink.append("feDisplacementMap").attr("in", "SourceGraphic").attr("in2", "noise").attr("scale", "1.2");
+
+    svg
+      .append("rect")
+      .attr("class", "graph-hit-area")
+      .attr("width", width)
+      .attr("height", height)
+      .attr("fill", "transparent")
+      .style("cursor", "default")
+      .on("click", (event) => {
+        event.stopPropagation();
+        clearGraphSelection();
+      });
 
     const graphLayer = svg.append("g").attr("class", "graph-layer");
     const links = (novel.relationships ?? []).map((relationship, index) => {
@@ -377,7 +390,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     const focus = getFocusSets(linksRef.current, focusId, edgeFocusKey);
     const hasFocus = Boolean(focusId || edgeFocusKey);
     node
-      .classed("is-selected", (character) => character.id === selectedId)
+      .classed("is-selected", (character) => character.id === graphFocusId)
       .classed("is-dimmed", (character) => hasFocus && !focus.nodeIds.has(character.id))
       .transition()
       .duration(160)
@@ -388,12 +401,13 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
       .attr("stroke-opacity", (relationship) => (hasFocus ? (focus.linkKeys.has(relationship.key) ? 0.84 : 0.08) : relationship.isPreview ? 0.82 : 0.48))
       .attr("stroke-width", (relationship) => ((activeRelationshipKey || previewRelationshipKey) && focus.linkKeys.has(relationship.key) ? 2.7 : relationship.isPreview ? 2.2 : 1.35));
     label.transition().duration(160).attr("opacity", (relationship) => (focus.linkKeys.has(relationship.key) ? 1 : 0));
-  }, [focusId, hoverLinkKey, selectedId, activeRelationshipKey, previewRelationshipKey, connectFrom, connectTo, connectLabel]);
+  }, [focusId, hoverLinkKey, graphFocusId, activeRelationshipKey, previewRelationshipKey, connectFrom, connectTo, connectLabel]);
 
   function handleAddCharacter() {
     const character = emptyCharacter(novel.id);
     onAddCharacter(novel.id, character);
     setSelectedId(character.id);
+    setGraphFocusId(character.id);
   }
 
   function focusSelectedNodeView() {
@@ -430,6 +444,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     clearRelationshipSelection();
     setDeleteCharacterCandidate(null);
     setSelectedId(nextCharacter?.id);
+    setGraphFocusId(nextCharacter?.id ?? "");
     setDraft(nextCharacter ? { ...nextCharacter, tag: getCharacterTag(nextCharacter) } : null);
   }
 
@@ -463,6 +478,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     character.fx = character.x;
     character.fy = character.y;
     setSelectedId(character.id);
+    setGraphFocusId(character.id);
 
     if (pendingNodeId && pendingNodeId !== character.id) {
       selectRelationshipBetween(pendingNodeId, character.id);
@@ -537,6 +553,12 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     setPendingNodeId("");
     setHoverLinkKey("");
     setConfirmClearRelationship(false);
+  }
+
+  function clearGraphSelection() {
+    setGraphFocusId("");
+    setHoverId("");
+    clearRelationshipSelection();
   }
 
   function chooseTag(tag) {

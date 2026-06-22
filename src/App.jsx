@@ -270,6 +270,19 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function reorderNovel(novelId, targetIndex) {
+    setData((current) => {
+      const fromIndex = current.novels.findIndex((novel) => novel.id === novelId);
+      if (fromIndex < 0 || targetIndex == null || targetIndex === fromIndex) return current;
+
+      const nextNovels = [...current.novels];
+      const [movedNovel] = nextNovels.splice(fromIndex, 1);
+      const insertIndex = Math.max(0, Math.min(nextNovels.length, targetIndex));
+      nextNovels.splice(insertIndex, 0, movedNovel);
+      return { ...current, novels: nextNovels };
+    });
+  }
+
   function clearAllUserData() {
     setData((current) => ({
       ...current,
@@ -386,6 +399,7 @@ export default function App() {
         onSelect={selectView}
         onAddNovel={addNovel}
         onDeleteNovel={requestDeleteNovel}
+        onReorderNovel={reorderNovel}
         onToggleCollapse={() => setSidebarCollapsed((current) => !current)}
       />
       <main
