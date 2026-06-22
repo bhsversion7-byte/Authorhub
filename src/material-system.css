@@ -1038,12 +1038,15 @@ body[data-theme="light"],
 }
 
 .content-shell {
+  --content-edge-gap: clamp(22px, 2.4vw, 44px);
   overflow-x: clip !important;
+  padding-left: var(--content-edge-gap) !important;
+  padding-right: var(--content-edge-gap) !important;
 }
 
 .section,
 .shimo-strip {
-  max-width: min(1720px, calc(100vw - var(--sidebar-current-width, var(--app-sidebar-width, 224px)) - clamp(34px, 3.8vw, 72px))) !important;
+  max-width: min(1720px, calc(100vw - var(--sidebar-current-width, var(--app-sidebar-width, 224px)) - (var(--content-edge-gap) * 2))) !important;
 }
 
 .novel-section .novel-hero,
@@ -1510,6 +1513,7 @@ body,
   .content-shell {
     width: calc(100vw - var(--sidebar-current-width, var(--app-sidebar-width, 202px))) !important;
     max-width: calc(100vw - var(--sidebar-current-width, var(--app-sidebar-width, 202px))) !important;
+    --content-edge-gap: clamp(24px, 1.9vw, 32px);
   }
 }
 

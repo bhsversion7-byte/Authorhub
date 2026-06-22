@@ -1,10 +1,9 @@
 import React, { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { BookOpen, ChevronLeft, ChevronRight, Home, Plus, UserRound, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Home, Plus, UserRound, X } from "lucide-react";
+import DraggableNovelList from "./DraggableNovelList.jsx";
 
-const BOOK_ICON_COLORS = ["#4A6357", "#7A3E3E", "#2E4C6D", "#8C6239", "#6C5E7A", "#6F7D5E"];
-
-export default function Sidebar({ novels, width, activeView, appearance, collapsed = false, onSelect, onAddNovel, onDeleteNovel, onToggleCollapse }) {
+export default function Sidebar({ novels, width, activeView, appearance, collapsed = false, onSelect, onAddNovel, onDeleteNovel, onReorderNovel, onToggleCollapse }) {
   const [logoOpen, setLogoOpen] = useState(false);
   const novelCountLabel = useMemo(() => `手稿索引：已创作${novels.length}本小说`, [novels.length]);
   const fontClass = `font-${appearance?.fontFamily ?? "sans"}`;
@@ -60,38 +59,7 @@ export default function Sidebar({ novels, width, activeView, appearance, collaps
         </button>
 
         <div className="nav-label">{novelCountLabel}</div>
-        {novels.map((novel, index) => {
-          const itemColor = BOOK_ICON_COLORS[index % BOOK_ICON_COLORS.length];
-          return (
-            <div
-              key={novel.id}
-              data-tour={index === 0 ? "demo-novel" : undefined}
-              className={`nav-item novel-nav-item ${activeView === novel.id ? "is-active" : ""}`}
-              style={{ "--item-color": itemColor }}
-            >
-              <button type="button" className="novel-select-button" onClick={() => onSelect(novel.id)}>
-                <BookOpen size={16} />
-                <span className="novel-nav-title">{novel.title}</span>
-              </button>
-              <button
-                type="button"
-                className="novel-delete-button"
-                aria-label={`删除 ${novel.title}`}
-                onMouseDown={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                }}
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  onDeleteNovel(novel.id);
-                }}
-              >
-                <X size={12} />
-              </button>
-            </div>
-          );
-        })}
+        <DraggableNovelList novels={novels} activeView={activeView} onSelect={onSelect} onDeleteNovel={onDeleteNovel} onReorderNovel={onReorderNovel} />
         <button type="button" data-tour="add-novel" className="nav-item add-novel-button" onClick={onAddNovel}>
           <Plus size={16} />
           <span>添加新小说</span>
