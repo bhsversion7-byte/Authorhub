@@ -939,8 +939,9 @@ body[data-theme="dark"] .toggle-pill.is-active {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(44, 42, 41, 0.14);
-  backdrop-filter: blur(18px);
+  /* Onboarding never blurs or darkens the app behind it — users must read the
+     real UI while following the arrow (see preference.md). */
+  background: transparent;
 }
 
 .tour-card {
