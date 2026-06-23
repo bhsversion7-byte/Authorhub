@@ -3,6 +3,7 @@ import { Sparkles } from "lucide-react";
 import FloatingMusicPlayer from "./components/FloatingMusicPlayer.jsx";
 import Sidebar from "./components/Sidebar.jsx";
 import TourProvider from "./components/TourProvider.jsx";
+import { buildMarkdownExport, getRelationshipEndpointId } from "./lib/markdownExport.js";
 import { getLocalAuthUser, hasSupabaseConfig, setLocalAuthUser, supabase } from "./lib/supabaseClient.js";
 import { flushCloudSave, loadAuthorHubData, saveAuthorHubData } from "./lib/shimoAdapter.js";
 
@@ -38,9 +39,10 @@ export default function App() {
     async function boot() {
       if (hasSupabaseConfig && supabase) {
         const { data: sessionData } = await supabase.auth.getSession();
-        if (mounted) setAuthUser(sessionData.session?.user ?? null);
+        if (mounted) setAuthUser(sessionData.session?.user ?? getLocalAuthUser());
         const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-          setAuthUser(session?.user ?? null);
+          if (session?.user) setLocalAuthUser(session.user);
+          setAuthUser(session?.user ?? getLocalAuthUser());
         });
         cleanup = () => listener.subscription.unsubscribe();
       } else if (mounted) {
@@ -159,9 +161,8 @@ export default function App() {
     if (hasSupabaseConfig && supabase) {
       await flushCloudSave();
       await supabase.auth.signOut();
-    } else {
-      setLocalAuthUser(null);
     }
+    setLocalAuthUser(null);
     setAuthUser(null);
     setData(null);
     setActiveView("author");
@@ -544,25 +545,6 @@ function downloadText(filename, content, type) {
   anchor.click();
   anchor.remove();
   URL.revokeObjectURL(url);
-}
-
-function buildMarkdownExport(data) {
-  const sections = [`# AuthorHub Export`, ``, `## 作者`, `- 笔名：${data.author.pseudonym}`, `- 年龄：${data.author.age}`, `- 更新频率：${data.author.updateFrequency}`, `- 首发平台：${data.author.platform}`, ``];
-
-  data.novels.forEach((novel) => {
-    sections.push(`## ${novel.title}`, `_${novel.subtitle}_`, ``, `- 类型：${novel.genre}`, `- 当前字数：${novel.currentWords}`, `- 预计总字数：${novel.targetWords}`, `- 完结时间：${novel.finishDate}`, ``);
-    sections.push(`### 大纲`, novel.outline, ``, `### 设定集`, novel.setting, ``);
-    sections.push(`### 主题`, ...(novel.themes ?? []).map((theme) => `- ${theme}`), ``);
-    sections.push(`### 人物`, ...(novel.characters ?? []).map((character) => `- ${character.name}：${character.archetype}`), ``);
-    sections.push(`### 关系`, ...(novel.relationships ?? []).map((relationship) => `- ${relationship.source} → ${relationship.target}：${relationship.label}`), ``);
-    sections.push(`### 时间线`, ...(novel.timeline ?? []).map((event) => `- ${event.date}｜${event.title}`), ``);
-  });
-
-  return sections.join("\n");
-}
-
-function getRelationshipEndpointId(endpoint) {
-  return typeof endpoint === "object" ? endpoint?.id : endpoint;
 }
 
 function getStoredThemeMode() {

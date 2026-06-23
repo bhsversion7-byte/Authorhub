@@ -354,17 +354,14 @@ body > .logo-lightbox-overlay {
 
 /* Relation graph: one color contract for the card and the SVG dotted canvas. */
 .graph-card.relation-graph,
-.graph-card.relation-graph:hover,
-.relationship-star-chart,
-.relationship-star-chart:hover {
+.graph-card.relation-graph:hover {
   --ah-graph-dot-soft: var(--mat-graph-dot);
   background: linear-gradient(135deg, var(--mat-graph), var(--mat-graph)) !important;
   background-color: var(--mat-graph) !important;
   border-color: rgba(99, 108, 106, 0.2) !important;
 }
 
-.graph-card.relation-graph::before,
-.relationship-star-chart::before {
+.graph-card.relation-graph::before {
   inset: 0 !important;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0)),
@@ -374,8 +371,7 @@ body > .logo-lightbox-overlay {
   filter: saturate(0.5) contrast(1.04) brightness(1.02) !important;
 }
 
-.graph-card.relation-graph::after,
-.relationship-star-chart::after {
+.graph-card.relation-graph::after {
   content: none !important;
   display: none !important;
 }
@@ -562,8 +558,7 @@ body[data-theme="dark"] .relation-svg {
   background-image: radial-gradient(rgba(208, 177, 138, 0.16) 1.25px, transparent 1.25px) !important;
 }
 
-body[data-theme="dark"] .graph-card.relation-graph,
-body[data-theme="dark"] .relationship-star-chart {
+body[data-theme="dark"] .graph-card.relation-graph {
   background: linear-gradient(135deg, #30342f, #30342f) !important;
   background-color: #30342f !important;
 }
@@ -812,18 +807,14 @@ body[data-theme="dark"] .landing-gateway.mode-auth {
 }
 
 .graph-card.relation-graph,
-.graph-card.relation-graph:hover,
-.relationship-star-chart,
-.relationship-star-chart:hover {
+.graph-card.relation-graph:hover {
   background: var(--mat-graph) !important;
   background-color: var(--mat-graph) !important;
   border-color: rgba(104, 114, 111, 0.24) !important;
 }
 
 .graph-card.relation-graph::before,
-.graph-card.relation-graph::after,
-.relationship-star-chart::before,
-.relationship-star-chart::after {
+.graph-card.relation-graph::after {
   content: none !important;
   display: none !important;
 }
@@ -952,16 +943,12 @@ body[data-theme="dark"] .loading-screen {
 
 .graph-card.relation-graph,
 .graph-card.relation-graph:hover,
-.relationship-star-chart,
-.relationship-star-chart:hover,
 .relation-svg {
   background-color: var(--mat-graph, #d7dcdb) !important;
 }
 
 .graph-card.relation-graph,
-.graph-card.relation-graph:hover,
-.relationship-star-chart,
-.relationship-star-chart:hover {
+.graph-card.relation-graph:hover {
   background-image: none !important;
 }
 
@@ -1044,8 +1031,7 @@ body[data-theme="light"],
   padding-right: var(--content-edge-gap) !important;
 }
 
-.section,
-.shimo-strip {
+.section {
   max-width: min(1720px, calc(100vw - var(--sidebar-current-width, var(--app-sidebar-width, 224px)) - (var(--content-edge-gap) * 2))) !important;
 }
 
@@ -1255,8 +1241,6 @@ body[data-theme="dark"] .novel-section .theme-card:hover {
 
 body[data-theme="dark"] .graph-card.relation-graph,
 body[data-theme="dark"] .graph-card.relation-graph:hover,
-body[data-theme="dark"] .relationship-star-chart,
-body[data-theme="dark"] .relationship-star-chart:hover,
 body[data-theme="dark"] .relation-svg {
   --mat-graph: #283130;
   --mat-graph-dot: rgba(216, 204, 185, 0.16);
@@ -1403,46 +1387,12 @@ body,
   content: none !important;
 }
 
-.loading-screen > .loading-orbit {
-  position: relative !important;
-  display: grid !important;
-  width: 38px !important;
-  height: 38px !important;
-  place-items: center !important;
-  border: 1px solid rgba(126, 107, 84, 0.22) !important;
-  border-radius: 50% !important;
-  background: rgba(255, 253, 248, 0.5) !important;
-  -webkit-mask: none !important;
-  mask: none !important;
-  animation: loadingOrbitSpin 1.35s linear infinite !important;
-}
-
-.loading-screen > .loading-orbit::before {
-  content: "" !important;
-  width: 15px !important;
-  height: 15px !important;
-  border: 2px solid rgba(44, 42, 41, 0.2) !important;
-  border-top-color: rgba(74, 99, 87, 0.72) !important;
-  border-radius: 50% !important;
-}
-
-.loading-screen > .loading-orbit::after {
-  display: none !important;
-  content: none !important;
-}
-
 .loading-screen > p {
   display: block !important;
   margin: 0 !important;
   color: rgba(90, 82, 74, 0.76) !important;
   font-size: 13px !important;
   letter-spacing: 0.08em !important;
-}
-
-@keyframes loadingOrbitSpin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .brand-logo,
@@ -1524,8 +1474,7 @@ body,
   }
 
   .content-shell,
-  .section,
-  .shimo-strip {
+  .section {
     width: 100% !important;
     max-width: 100% !important;
   }
@@ -1541,8 +1490,7 @@ body,
 }
 
 /* Precision pass: 2026-06-21 follow-up refinements. */
-.content-shell > .section,
-.content-shell > .shimo-strip {
+.content-shell > .section {
   width: 100% !important;
   max-width: 100% !important;
   margin-left: 0 !important;
@@ -1581,50 +1529,6 @@ body,
 .novel-section .novel-meta > label input[type="date"]::-webkit-datetime-edit-day-field,
 .novel-section .novel-meta > label input[type="date"]::-webkit-datetime-edit-year-field {
   background: transparent !important;
-}
-
-.loading-screen > .loading-orbit {
-  width: 48px !important;
-  height: 48px !important;
-  border: 0 !important;
-  background: transparent !important;
-  color: rgba(74, 99, 87, 0.76) !important;
-  animation: none !important;
-}
-
-.loading-screen > .loading-orbit::before,
-.loading-screen > .loading-orbit::after {
-  display: none !important;
-  content: none !important;
-}
-
-.loading-screen > .loading-orbit > span {
-  --dot-angle: calc(var(--dot-index) * 45deg);
-  position: absolute !important;
-  left: 50% !important;
-  top: 50% !important;
-  display: block !important;
-  width: 8px !important;
-  height: 8px !important;
-  border-radius: 50% !important;
-  background: currentColor !important;
-  opacity: 0 !important;
-  transform: rotate(var(--dot-angle)) translateX(16px) translate(-50%, -50%) scale(0) !important;
-  animation: loadingSpiralDot 1.5s ease-in-out infinite !important;
-  animation-delay: calc(var(--dot-index) * 187.5ms) !important;
-}
-
-@keyframes loadingSpiralDot {
-  0%,
-  100% {
-    opacity: 0;
-    transform: rotate(var(--dot-angle)) translateX(16px) translate(-50%, -50%) scale(0);
-  }
-
-  50% {
-    opacity: 1;
-    transform: rotate(var(--dot-angle)) translateX(16px) translate(-50%, -50%) scale(1);
-  }
 }
 
 .author-section .profile-panel {
@@ -1700,55 +1604,6 @@ body,
 .novel-section .novel-hero:hover {
   background-color: #f3e5ab !important;
   background-image: none !important;
-}
-
-.loading-screen > .loading-orbit {
-  position: relative !important;
-  display: block !important;
-  width: 52px !important;
-  height: 52px !important;
-  overflow: visible !important;
-  border: 0 !important;
-  border-radius: 50% !important;
-  background: transparent !important;
-  color: rgba(74, 99, 87, 0.82) !important;
-  -webkit-mask: none !important;
-  mask: none !important;
-  animation: none !important;
-}
-
-.loading-screen > .loading-orbit > span {
-  position: absolute !important;
-  display: block !important;
-  width: 8px !important;
-  height: 8px !important;
-  border-radius: 50% !important;
-  background: currentColor !important;
-  opacity: 0 !important;
-  transform: translate(-50%, -50%) scale(0) !important;
-  animation: loadingSpiralPulse 1.5s ease-in-out infinite !important;
-}
-
-.loading-screen > .loading-orbit > span:nth-child(1) { left: 81.25% !important; top: 50% !important; animation-delay: 0ms !important; }
-.loading-screen > .loading-orbit > span:nth-child(2) { left: 72.1% !important; top: 72.1% !important; animation-delay: 187.5ms !important; }
-.loading-screen > .loading-orbit > span:nth-child(3) { left: 50% !important; top: 81.25% !important; animation-delay: 375ms !important; }
-.loading-screen > .loading-orbit > span:nth-child(4) { left: 27.9% !important; top: 72.1% !important; animation-delay: 562.5ms !important; }
-.loading-screen > .loading-orbit > span:nth-child(5) { left: 18.75% !important; top: 50% !important; animation-delay: 750ms !important; }
-.loading-screen > .loading-orbit > span:nth-child(6) { left: 27.9% !important; top: 27.9% !important; animation-delay: 937.5ms !important; }
-.loading-screen > .loading-orbit > span:nth-child(7) { left: 50% !important; top: 18.75% !important; animation-delay: 1125ms !important; }
-.loading-screen > .loading-orbit > span:nth-child(8) { left: 72.1% !important; top: 27.9% !important; animation-delay: 1312.5ms !important; }
-
-@keyframes loadingSpiralPulse {
-  0%,
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0);
-  }
-
-  50% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
 }
 
 .stack-nav {
@@ -1839,8 +1694,7 @@ body[data-theme="dark"] .tag-composer > span {
   color: rgba(255, 239, 217, 0.82) !important;
 }
 
-body[data-theme="dark"] .tag-chip-board button,
-body[data-theme="dark"] .theme-tags span {
+body[data-theme="dark"] .tag-chip-board button {
   background: rgba(255, 248, 232, 0.88) !important;
   border-color: rgba(255, 248, 232, 0.2) !important;
   color: rgba(72, 91, 79, 0.96) !important;

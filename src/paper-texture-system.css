@@ -161,7 +161,6 @@
 .relation-graph,
 .user-account-panel,
 .user-donation-panel,
-.account-panel,
 .donation-panel {
   --paper-texture: none;
 }
