@@ -5,7 +5,7 @@ import "../landing-font-local.css";
 import "../landing.css";
 import "../landing-tuning.css";
 import "../landing-quote-refine.css";
-import "../landing-frame-fix.css";
+import "../landing-auth-final.css";
 
 const LANDING_HIDDEN_UNTIL_KEY = "author-hub-landing-hidden-until";
 const LANDING_SKIP_MS = 30 * 24 * 60 * 60 * 1000;
@@ -15,9 +15,9 @@ const BOOK_PAGE_STEPS = 24;
 const BOOK_PAGE_JUMP = (BOOK_PROGRESS_MAX - BOOK_PROGRESS_MIN) / BOOK_PAGE_STEPS;
 // Gentle, symmetric auto-flip cycle: the close (end -> front) runs at the same
 // eased pace as the open (front -> end) so the return never feels rushed.
-const BOOK_AUTO_OPEN_MS = 5200;
+const BOOK_AUTO_OPEN_MS = 6500;
 const BOOK_AUTO_HOLD_MS = 900;
-const BOOK_AUTO_CLOSE_MS = 5200;
+const BOOK_AUTO_CLOSE_MS = 6500;
 const BOOK_INITIAL_PROGRESS = 0.08;
 // Fraction of the stage width a pointer must travel to sweep the book fully
 // open or closed, so drag feels like the pages follow the hand 1:1.

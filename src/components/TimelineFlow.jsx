@@ -108,13 +108,13 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
 
   async function openAiTarget(target) {
     const prompt = `我正在写《${novel.title}》的一个时间点：${draft?.date ?? ""} - ${draft?.title ?? ""}。\n\n我想补充这个时间点需要的时代、民俗、空间、行业或物件背景。请围绕这些关键词给我可考据、可转译成剧情细节的资料方向：\n${keywords}`;
-    await copyPromptAndOpen(prompt, target);
-    setHandoffState(target);
+    const copied = await copyPromptAndOpen(prompt, target);
+    setHandoffState(copied ? target : "opened");
+    window.setTimeout(() => setHandoffState(""), 1800);
   }
 
-  function openClaude() {
-    window.open("https://claude.ai/new", "_blank", "noopener,noreferrer");
-    setHandoffState("claude");
+  async function openClaude() {
+    await openAiTarget("claude");
   }
 
   return (

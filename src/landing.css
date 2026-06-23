@@ -419,8 +419,7 @@
   .landing-enter-button,
   .landing-copy,
   .landing-book-stage,
-  .landing-auth-panel,
-  .manuscript-fallback {
+  .landing-auth-panel {
     animation: none;
     transition-duration: 1ms;
   }

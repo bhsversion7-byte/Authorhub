@@ -14,8 +14,7 @@
   margin-left: var(--app-sidebar-width) !important;
 }
 
-.section,
-.shimo-strip {
+.section {
   max-width: min(var(--content-wide-max), calc(100vw - var(--app-sidebar-width) - 44px));
 }
 
@@ -70,10 +69,8 @@
   }
 
   .dashboard-grid,
-  .user-center-grid,
   .user-center-page-grid,
-  .story-grid,
-  .universe-grid {
+  .story-grid {
     gap: 12px !important;
   }
 
@@ -84,7 +81,6 @@
   .theme-card,
   .user-account-panel,
   .user-donation-panel,
-  .account-panel,
   .donation-panel {
     padding: 13px !important;
   }
@@ -164,21 +160,17 @@
     padding: 14px clamp(14px, 2.4vw, 24px) 38px !important;
   }
 
-  .section,
-  .shimo-strip {
+  .section {
     max-width: min(100%, calc(100vw - var(--app-sidebar-width) - 28px));
   }
 
   .dashboard-grid,
-  .user-center-grid,
   .user-center-page-grid,
-  .universe-grid,
   .relation-layout,
   .event-editor {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 
-  .book-progress-list,
   .story-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
@@ -254,9 +246,7 @@
 
   .profile-panel,
   .editable-grid,
-  .account-form,
   .appearance-controls,
-  .book-progress-list,
   .story-grid,
   .user-info-grid,
   .user-action-board,

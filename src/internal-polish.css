@@ -168,11 +168,6 @@
   letter-spacing: 0.01em;
 }
 
-.novel-meta input:focus {
-  background: transparent;
-  box-shadow: none;
-}
-
 .publish-pill {
   min-width: 52px;
   min-height: 52px;

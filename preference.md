@@ -116,6 +116,30 @@ This file records the final product/design rules for AuthorHub so future CSS cle
 
 Records substantive maintenance so future cleanup keeps the confirmed behavior. None of the entries below changed any color, layout, font, or interaction.
 
+### 2026-06-23 — refresh persistence + landing pacing
+- **Landing book pace:** the automatic open/close flip cycle was slowed from 5.2s + 5.2s to 6.5s + 6.5s. The existing 3D book design, drag logic, page texture, quote orbit, and typography remain unchanged.
+- **Refresh auth persistence:** refresh must not send a signed-in writer back to the login wall. Supabase sessions still take priority; if the hosted session is briefly absent, AuthorHub now falls back to the local/session auth mirror and immediately reloads the cached manuscript universe and appearance settings.
+- **Remember-account rule:** checked "30 天内免登录" stores a 30-day local auth mirror; unchecked login stores only a session auth mirror. Explicit logout clears both mirrors so logout still means logout.
+- **Audit boundary:** repository cleanup must be reported before editing. CSS consolidation, dead-rule removal, export polish, and docs cleanup should be staged and verified visually because the current cascade has load-bearing layers.
+
+### 2026-06-23 — low-risk cleanup A + CSS convergence B
+- **Markdown export:** export behavior now lives in `src/lib/markdownExport.js` and is covered by `npm run verify:markdown`. Character labels must use `role` first, then `tag/faction`; relationship endpoints must tolerate D3 object endpoints and never export `[object Object]` or `undefined`.
+- **Auth and AI handoff:** "忘记密码" must either send a Supabase reset email or clearly explain local-demo limitations. Timeline AI buttons must all copy the structured prompt before opening ChatGPT, DeepSeek, or Claude; opening should still proceed if clipboard permission fails.
+- **Environment docs:** `.env.example` must include `CAPTCHA_SECRET`, because captcha APIs fail closed without it.
+- **Dead loader CSS:** old `.loading-orbit` / `.auth-loading-orbit` CSS is removed. The active privacy-space loader is `.privacy-loader`; do not reintroduce old loader selectors.
+- **CSS convergence:** import-only shell CSS was removed (`landing-frame-fix.css`), `user-center-refine.css` is imported explicitly, and exact duplicate rules were pruned only where a clearer region owner already exists. Further CSS cleanup should continue in small batches with build + browser smoke tests.
+- **CSS convergence round 2:** removed stale CSS references for old/non-rendered class names such as `.relationship-star-chart`, `.shimo-strip`, `.field-disclaimer`, `.user-center-grid`, `.universe-grid`, `.book-progress-list`, `.account-form`, `.account-actions`, `.compliance-note`, `.timeline-hint`, and `.ai-handoff-card`. Current visible owners remain `.graph-card.relation-graph`, `.relation-svg`, `.user-center-page-grid`, `.story-grid`, `.profile-panel`, `.appearance-panel`, `.graph-hint`, and the active component classes.
+- **CSS convergence round 3:** removed old AI result/sidebar sound/event-detail styles: `.ai-output`, `.semantic-output`, `.ai-context-card`, `.sidebar-action-grid`, `.cafe-sound-widget`, `.vinyl-player`, `.wave-bars`, `.event-detail-grid`, `.book-progress-card`, `.media-slide`, and standalone `.account-panel`. Current music player classes remain `.floating-music`, `.vinyl-button`, `.track-window`, `.player-controls`, and `.music-collapse`; current timeline editor classes remain `.event-editor-main`, `.event-core-grid`, `.ai-nudge`, and `MediaCarousel`'s `.imessage-*` stack.
+
+### 2026-06-23 — repo re-read after user-side updates
+- **Repo state:** local `master` is clean and aligned with `origin/master` at `e13086e feat(landing): auto-flip resumes after the reader stops playing`; GitHub remote remains `https://github.com/bhsversion7-byte/Authorhub.git`.
+- **Public positioning:** README now presents AuthorHub as a privacy-first, feminist creative command center / "a room of one's own for storytellers", with bilingual EN + 简体中文 copy and live `authorhub.cn` link. Public setup/deploy internals were intentionally removed.
+- **Landing baseline:** landing still preserves the cinematic quote orbit, procedural 3D book, 香萃刻宋 + 油印体 direction, and `开始落墨`. Current book behavior: auto-flip plays gently, click/grab freezes at the current page, drag controls page progress by pointer delta, and auto-flip resumes after a short pause from the page where the reader stopped.
+- **Performance baseline:** `@react-three/drei` was removed; 3D book uses `@react-three/fiber` + `three` directly. Landing fonts were subset and `bookinside` texture was re-encoded to JPEG, reducing public assets substantially while preserving the designed look.
+- **Settings/data baseline:** appearance preferences now have a local `author-hub-appearance` key so font size/family persist across refresh even before debounced cloud save flushes. Cloud saves remain local-first and are debounced/flushed on visibility/unload/logout.
+- **Docs/assets baseline:** README screenshots are now real JPEG captures at `docs/screenshots/landing.jpg` and `docs/screenshots/workspace.jpg`; screenshot placeholders and stale screenshot README were removed.
+- **Cleanup baseline:** unused exports/deps and stale plan docs were removed; previous audit found no TODO/FIXME, no commented-out code, and no broken asset URLs. The intentional CSS cascade / `!important` layers remain load-bearing and should not be flattened casually.
+
 ### 2026-06-23 — code-review remediation + dead-CSS cleanup
 - **Captcha hardening:** `/api/captcha` and `/api/verify-captcha` now require a private `CAPTCHA_SECRET` env var and fail closed if it is missing (no more fallback to the public Supabase URL). Real signups require server-verified captcha; the instant local fallback is kept only for offline/local demo mode so the register form is never blank.
 - **Cloud-save debounce:** local-storage writes stay immediate (offline safety unchanged); only the Supabase cloud upsert is debounced ~1s and flushed on logout / tab-hide / unload. No observable behavior change.
@@ -123,6 +147,12 @@ Records substantive maintenance so future cleanup keeps the confirmed behavior. 
 - **Dead-CSS removal (~620 lines):** removed 108 CSS rules whose selectors referenced only classes no component renders anymore (leftovers from removed features: AI handoff panel, universe overview, old landing book / manuscript UI, old theme picker, old sidebar/tour/music layouts, old loaders, shimo strip). Proven inert: every removed selector matched **zero** elements across landing, auth, register, author, novel, and user views. Deletion-only diff; build green; brace balance intact.
 - **NOT touched:** the `!important` cascade layering was deliberately left alone (analysis showed it is intentional, load-bearing, not redundant); CSS consolidation beyond dead-code removal was judged high-risk / low-reward.
 - **Docs:** README rewritten as bilingual (English + 简体中文) with live links and current feature set.
+
+### 2026-06-23 — final deployment cleanup + confirmed-dead docs
+- **Confirmed-dead definition:** files are safe to delete only when they are not imported, linked, referenced by README/PRODUCT/preference, or used by current website settings/runtime. Public screenshots and `preference.md` stay because they are active documentation.
+- **Confirmed-dead docs:** removed the duplicated `docs/authorhub-design-preferences.md`; `preference.md` is the single active design/behavior备案 file.
+- **Dead selector cleanup:** removed leftover zero-reference selectors for old tour arrows, fallback manuscript animation, stale loading spinner, and old theme tag dark-mode styling. Current guided tour, privacy loader, tag chips, and landing motion remain unchanged.
+- **Verification expectation:** after this cleanup, run markdown export verification, production build, browser smoke, Git commit/push, Vercel production deploy, and a real signed-in account pass before calling the work complete.
 
 ### 2026-06-23 — README refresh + audit cleanup
 - **README:** reframed around the feminist identity (the landing's drifting quotes are all from women writers — Woolf, the Brontes, Austen, Morrison, Le Guin, Adichie, ...; "a room of one's own for storytellers"). Removed the unofficial Chinese name "落墨" and the Supabase/Vercel/CAPTCHA setup + deploy sections (kept privately, not in the public repo). Detailed EN + 简体中文.

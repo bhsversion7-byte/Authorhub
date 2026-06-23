@@ -142,12 +142,13 @@ export default function AuthGate({ onAuthed }) {
               });
 
         if (result.error) throw result.error;
-        if (!remember) window.sessionStorage.setItem("author-hub-session-only", "true");
-        onAuthed(result.data.user ?? result.data.session?.user, { isNew: mode === "register" });
+        const authedUser = result.data.session?.user ?? result.data.user;
+        setLocalAuthUser(authedUser, { persistent: remember });
+        onAuthed(authedUser, { isNew: mode === "register", persistent: remember });
       } else {
         const user = makeLocalUser(email);
-        setLocalAuthUser(user);
-        onAuthed(user, { isNew: mode === "register" });
+        setLocalAuthUser(user, { persistent: remember });
+        onAuthed(user, { isNew: mode === "register", persistent: remember });
       }
     } catch (error) {
       const raw = error.message || "";
@@ -163,6 +164,25 @@ export default function AuthGate({ onAuthed }) {
     setMode(nextMode);
     setMessage("");
     setCaptchaAnswer("");
+  }
+
+  async function requestPasswordReset() {
+    setMessage("");
+    if (!emailValid) return setMessage("请先输入有效邮箱，再申请重置密码。");
+    if (!hasSupabaseConfig || !supabase) return setMessage("当前是本地演示模式，无法发送重置邮件。");
+
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: window.location.origin,
+      });
+      if (error) throw error;
+      setMessage("重置密码邮件已发送，请查看邮箱。");
+    } catch (error) {
+      setMessage(error.message || "重置密码邮件发送失败，请稍后再试。");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -233,7 +253,11 @@ export default function AuthGate({ onAuthed }) {
               同意服务条款和隐私政策
             </label>
           )}
-          {mode === "login" && <button type="button" className="auth-link">忘记密码</button>}
+          {mode === "login" && (
+            <button type="button" className="auth-link" onClick={requestPasswordReset} disabled={busy}>
+              忘记密码
+            </button>
+          )}
         </div>
 
         {message && <p className="auth-message">{message}</p>}

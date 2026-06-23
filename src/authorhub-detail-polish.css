@@ -105,9 +105,7 @@ body::before,
 
 /* Relation graph: dot layer returns to the inner canvas, not the entire card. */
 .graph-card.relation-graph,
-.graph-card.relation-graph:hover,
-.relationship-star-chart,
-.relationship-star-chart:hover {
+.graph-card.relation-graph:hover {
   background:
     radial-gradient(circle at 24% 20%, rgba(255, 252, 244, 0.28), transparent 34%),
     radial-gradient(circle at 82% 76%, rgba(139, 99, 57, 0.1), transparent 42%),
@@ -116,9 +114,7 @@ body::before,
 }
 
 .graph-card.relation-graph::before,
-.graph-card.relation-graph::after,
-.relationship-star-chart::before,
-.relationship-star-chart::after {
+.graph-card.relation-graph::after {
   inset: 58px 0 48px 0 !important;
   border-radius: 0 !important;
   background-image:
@@ -345,10 +341,7 @@ body[data-theme="dark"] .auth-wall::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tag-chip-board button:has(.tag-chip-remove:hover),
-  .loading-orbit,
-  .auth-loading-orbit,
-  .loading-spinner {
+  .tag-chip-board button:has(.tag-chip-remove:hover) {
     animation: none !important;
   }
 }

@@ -340,7 +340,6 @@ a {
 .brand span,
 .eyebrow,
 .nav-label,
-.book-progress-card span,
 .novel-meta span,
 .inspector-head span {
   margin: 0;
@@ -371,8 +370,7 @@ a {
 .toolbar-actions button,
 .timeline-header button,
 .connect-box button,
-.primary-button,
-.ai-context-card button {
+.primary-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -463,8 +461,7 @@ a {
 .ghost-button:hover,
 .toolbar-actions button:hover,
 .timeline-header button:hover,
-.connect-box button:hover,
-.ai-context-card button:hover {
+.connect-box button:hover {
   transform: translateY(-1px);
   border-color: rgba(108, 139, 136, 0.22);
   background: #fff;
@@ -760,7 +757,6 @@ a {
 
 
 
-.account-panel,
 .donation-panel {
   display: grid;
   gap: 16px;
@@ -771,7 +767,6 @@ a {
 
 
 
-.account-actions,
 .privacy-control-row {
   display: flex;
   flex-wrap: wrap;
@@ -789,9 +784,7 @@ a {
 
 .inline-confirm p,
 .donation-panel p,
-.compliance-note,
-.global-disclaimer,
-.field-disclaimer {
+.global-disclaimer {
   margin: 0;
   color: var(--muted);
   font-size: 12px;
@@ -1219,10 +1212,6 @@ body[data-theme="dark"] .toggle-pill.is-active {
   font-weight: 800;
 }
 
-.novel-meta label:first-child {
-  min-width: 230px;
-}
-
 .novel-meta input {
   padding: 0;
   border: 0;
@@ -1245,33 +1234,6 @@ body[data-theme="dark"] .toggle-pill.is-active {
   position: relative;
   display: inline-flex;
   align-items: center;
-}
-
-.publish-pill {
-  display: grid;
-  min-width: 58px;
-  min-height: 58px;
-  place-items: center;
-  padding: 0 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.76);
-  color: color-mix(in srgb, var(--novel-color) 72%, var(--ink));
-  border: 1px solid rgba(255, 255, 255, 0.82);
-  box-shadow: var(--soft-shadow);
-  font-size: 13px;
-  font-weight: 900;
-}
-
-.publish-pill:hover {
-  transform: translateY(-1px);
-  background: #fff;
-}
-
-.publish-pill.is-configured {
-  background:
-    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.9), transparent 34%),
-    color-mix(in srgb, var(--novel-color) 16%, #fff);
-  border-color: color-mix(in srgb, var(--novel-color) 28%, rgba(255, 255, 255, 0.86));
 }
 
 .publish-popover {
@@ -1560,22 +1522,16 @@ body[data-theme="dark"] .toggle-pill.is-active {
   scrollbar-color: rgba(141, 122, 107, 0.35) transparent;
 }
 
-.inspector-scroll::-webkit-scrollbar,
-.ai-output::-webkit-scrollbar,
-.semantic-output::-webkit-scrollbar {
+.inspector-scroll::-webkit-scrollbar {
   width: 7px;
 }
 
-.inspector-scroll::-webkit-scrollbar-thumb,
-.ai-output::-webkit-scrollbar-thumb,
-.semantic-output::-webkit-scrollbar-thumb {
+.inspector-scroll::-webkit-scrollbar-thumb {
   border-radius: 999px;
   background: rgba(141, 122, 107, 0.32);
 }
 
-.inspector-scroll::-webkit-scrollbar-track,
-.ai-output::-webkit-scrollbar-track,
-.semantic-output::-webkit-scrollbar-track {
+.inspector-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
 
@@ -1963,8 +1919,7 @@ body[data-theme="dark"] .toggle-pill.is-active {
   grid-template-columns: 1fr;
 }
 
-.event-editor-main,
-.ai-context-card {
+.event-editor-main {
   display: grid;
   gap: 12px;
   padding: 16px;
@@ -1975,14 +1930,6 @@ body[data-theme="dark"] .toggle-pill.is-active {
 
 .event-editor-main .media-carousel {
   min-height: 260px;
-}
-
-.event-editor-main .media-slide {
-  flex-basis: min(360px, 88%);
-}
-
-.event-editor-main .media-slide img {
-  height: 260px;
 }
 
 
@@ -2073,7 +2020,6 @@ body[data-theme="dark"] .toggle-pill.is-active {
 
 
 
-.sidebar-action-grid button,
 .feedback-link {
   display: inline-flex;
   min-width: 0;
@@ -2107,14 +2053,6 @@ body[data-theme="dark"] .toggle-pill.is-active {
   box-shadow: 0 10px 24px rgba(44, 42, 41, 0.14);
 }
 
-.cafe-sound-widget.is-playing .vinyl-button {
-  animation: slowSpin 3s linear infinite;
-}
-
-.vinyl-player.is-playing .vinyl-button {
-  animation: slowSpin 3s linear infinite;
-}
-
 .track-window {
   min-width: 0;
   overflow: hidden;
@@ -2128,10 +2066,6 @@ body[data-theme="dark"] .toggle-pill.is-active {
   font-size: 12px;
   font-weight: 800;
   white-space: nowrap;
-}
-
-.vinyl-player.is-playing .track-window span {
-  animation: marqueeTrack 9s linear infinite alternate;
 }
 
 .track-window small {
@@ -2166,10 +2100,6 @@ body[data-theme="dark"] .toggle-pill.is-active {
 
 
 
-
-.cafe-sound-widget.is-playing .wave-bars i {
-  animation: wavePulse 820ms ease-in-out infinite alternate;
-}
 
 .graph-link-labels {
   pointer-events: all;
@@ -2278,8 +2208,7 @@ body[data-theme="dark"] .toggle-pill.is-active {
   background: rgba(255, 255, 255, 0.84);
 }
 
-.event-core-grid,
-.event-detail-grid {
+.event-core-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
@@ -2565,10 +2494,7 @@ body[data-theme="dark"] .toggle-pill.is-active {
 @media (max-width: 1180px) {
 
   .dashboard-grid,
-  .user-center-grid,
-  .event-editor,
-  .universe-grid,
-  .ai-handoff-card {
+  .event-editor {
     grid-template-columns: 1fr;
   }
 
@@ -2580,7 +2506,6 @@ body[data-theme="dark"] .toggle-pill.is-active {
     display: none;
   }
 
-  .book-progress-list,
   .story-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2590,8 +2515,7 @@ body[data-theme="dark"] .toggle-pill.is-active {
   }
 
   .appearance-controls,
-  .character-editor-top,
-  .account-form {
+  .character-editor-top {
     grid-template-columns: 1fr;
   }
 }
@@ -2618,7 +2542,6 @@ body[data-theme="dark"] .toggle-pill.is-active {
 
   .profile-panel,
   .editable-grid,
-  .book-progress-list,
   .story-grid,
   .inspector-card,
   .tour-actions,
@@ -2744,8 +2667,7 @@ body[data-theme="dark"] .toggle-pill.is-active {
   padding: 7px 10px;
 }
 
-.story-grid,
-.user-center-grid {
+.story-grid {
   gap: 14px;
 }
 
@@ -2910,8 +2832,7 @@ body[data-theme="dark"] .toggle-pill.is-active {
   .dashboard-grid,
   .profile-panel,
   .editable-grid,
-  .story-grid,
-  .user-center-grid {
+  .story-grid {
     grid-template-columns: 1fr;
   }
 
@@ -2957,10 +2878,6 @@ textarea {
   font-size: 10.5px;
 }
 
-.nav-stack {
-  gap: 7px;
-}
-
 .nav-label {
   margin: 12px 0 2px;
 }
@@ -2971,12 +2888,6 @@ textarea {
 .timeline-header button,
 .connect-box button,
 .primary-button,
-.ai-context-card button {
-  min-height: 34px;
-  border-radius: 10px;
-  gap: 7px;
-}
-
 .nav-item {
   padding: 0 10px;
 }
@@ -3080,7 +2991,6 @@ textarea {
 
 .progress-panel,
 .appearance-panel,
-.account-panel,
 .donation-panel,
 .story-card,
 .theme-card {
@@ -3323,7 +3233,6 @@ body {
 .profile-panel,
 .progress-panel,
 .appearance-panel,
-.account-panel,
 .donation-panel,
 .confirm-modal,
 .auth-card {
@@ -3344,16 +3253,13 @@ body {
 .profile-panel:hover,
 .progress-panel:hover,
 .appearance-panel:hover,
-.account-panel:hover,
 .donation-panel:hover {
   border-color: var(--paper-hover);
 }
 
 .section-heading p,
 .panel-title span,
-.field-disclaimer,
 .graph-hint,
-.timeline-hint,
 .brand span {
   color: var(--muted);
 }
@@ -3451,22 +3357,6 @@ body {
 
 
 
-.tour-provider-bubble.arrow-down .glow-arrow {
-  left: 50%;
-  top: -28px;
-  transform: translateX(-50%);
-}
-
-.tour-provider-bubble.arrow-up .glow-arrow {
-  left: 50%;
-  bottom: -28px;
-  top: auto;
-  transform: translateX(-50%);
-}
-
-
-
-
 
 @keyframes tourArrowBreath {
 
@@ -3515,10 +3405,4 @@ body {
 
 .donation-privacy-frame.is-unlocked .donation-unlock-copy {
   opacity: 0;
-}
-
-@media (max-width: 1180px) {
-  .character-editor-top {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
