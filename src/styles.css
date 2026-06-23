@@ -1655,11 +1655,8 @@ body[data-theme="dark"] .toggle-pill.is-active {
   font-size: 12px !important;
 }
 
-.media-upload-button input {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
+.media-upload-input {
+  display: none;
 }
 
 

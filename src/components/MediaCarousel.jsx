@@ -54,6 +54,7 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
   const [previewImage, setPreviewImage] = useState(null);
   const dragStart = useRef(null);
   const hasDragged = useRef(false);
+  const fileInputRef = useRef(null);
   const safeImages = useMemo(() => images ?? [], [images]);
 
   useEffect(() => {
@@ -212,11 +213,11 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
     <div className="media-carousel-block">
       <div className="media-carousel-head">
         <span>{label}</span>
-        <label className="media-upload-button">
+        <button type="button" className="media-upload-button" onClick={() => fileInputRef.current?.click()}>
           <ImagePlus size={15} />
           添加图片
-          <input type="file" accept="image/*" multiple onChange={addFiles} />
-        </label>
+        </button>
+        <input ref={fileInputRef} className="media-upload-input" type="file" accept="image/*" multiple onChange={addFiles} />
       </div>
 
       <div className="media-url-row compact-media-url">

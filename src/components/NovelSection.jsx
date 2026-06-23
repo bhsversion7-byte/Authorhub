@@ -182,7 +182,7 @@ function PublishLinkPill({ link, onChange }) {
       <button
         ref={buttonRef}
         type="button"
-        className={`publish-pill ${link.url ? "is-configured" : ""}`}
+        className="publish-pill"
         onClick={() => setOpen(true)}
         title={link.url ? "已配置发布页，点击可修改或打开" : "配置小说发布页"}
       >

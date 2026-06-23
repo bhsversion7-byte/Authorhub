@@ -689,6 +689,7 @@ body[data-theme="dark"] .relation-layout .inspector-card .connect-box .relation-
   color: #2c2621 !important;
   background: #fffdf8 !important;
   box-shadow: 0 8px 20px rgba(44, 36, 24, 0.16) !important;
+  transform: translateY(-50%) !important;
 }
 
 .sidebar-collapse-toggle svg {
