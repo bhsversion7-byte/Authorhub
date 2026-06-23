@@ -22,9 +22,23 @@ const BOOK_INITIAL_PROGRESS = 0.08;
 // Fraction of the stage width a pointer must travel to sweep the book fully
 // open or closed, so drag feels like the pages follow the hand 1:1.
 const BOOK_DRAG_TRAVEL = 0.82;
+// After the reader stops touching the book, wait this long, then the gentle
+// auto-flip resumes on its own from wherever they left it.
+const BOOK_RESUME_DELAY_MS = 2200;
 
 function easeInOutCubic(t) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+function easeInOutCubicInverse(value) {
+  let lo = 0;
+  let hi = 1;
+  for (let i = 0; i < 20; i += 1) {
+    const mid = (lo + hi) / 2;
+    if (easeInOutCubic(mid) < value) lo = mid;
+    else hi = mid;
+  }
+  return (lo + hi) / 2;
 }
 
 function shouldSkipLanding() {
@@ -48,7 +62,8 @@ export default function LandingGateway({ children }) {
   const autoBookFrame = useRef(null);
   const autoBookStart = useRef(0);
   const isBookPointerActive = useRef(false);
-  const hasManualBookInteraction = useRef(false);
+  const lastInteractionRef = useRef(0);
+  const autoPausedRef = useRef(false);
   const bookProgressDirection = useRef(1);
   const dragStartX = useRef(0);
   const dragStartProgress = useRef(BOOK_INITIAL_PROGRESS);
@@ -76,11 +91,26 @@ export default function LandingGateway({ children }) {
     const totalDuration = BOOK_AUTO_OPEN_MS + BOOK_AUTO_HOLD_MS + BOOK_AUTO_CLOSE_MS;
 
     function tick(now) {
-      if (hasManualBookInteraction.current) return;
-
+      // While the reader is dragging, hold the book frozen under their hand.
       if (isBookPointerActive.current) {
+        lastInteractionRef.current = now;
+        autoPausedRef.current = true;
         autoBookFrame.current = window.requestAnimationFrame(tick);
         return;
+      }
+
+      // Brief grace after they let go before the auto-flip takes over again.
+      if (now - lastInteractionRef.current < BOOK_RESUME_DELAY_MS) {
+        autoBookFrame.current = window.requestAnimationFrame(tick);
+        return;
+      }
+
+      // Resuming: re-anchor the cycle so it keeps opening from the page the
+      // reader left, instead of snapping to the time-based position.
+      if (autoPausedRef.current) {
+        const resumeProgress = clampBookProgress(bookProgressRef.current);
+        autoBookStart.current = now - BOOK_AUTO_OPEN_MS * easeInOutCubicInverse(resumeProgress);
+        autoPausedRef.current = false;
       }
 
       const elapsed = (now - autoBookStart.current) % totalDuration;
@@ -144,8 +174,8 @@ export default function LandingGateway({ children }) {
     event.stopPropagation();
     if (landingMode !== "FULL") return;
 
-    hasManualBookInteraction.current = true;
-    window.cancelAnimationFrame(autoBookFrame.current);
+    lastInteractionRef.current = performance.now();
+    autoPausedRef.current = true;
     setBookProgress((current) => {
       let next = current + bookProgressDirection.current * BOOK_PAGE_JUMP;
       if (next >= BOOK_PROGRESS_MAX) {
@@ -156,6 +186,7 @@ export default function LandingGateway({ children }) {
         next = BOOK_PROGRESS_MIN;
         bookProgressDirection.current = 1;
       }
+      bookProgressRef.current = next;
       return next;
     });
   }
@@ -172,11 +203,12 @@ export default function LandingGateway({ children }) {
     event.preventDefault();
     event.stopPropagation();
     if (landingMode !== "FULL") return;
-    // Grabbing the book stops the auto-flip and freezes it at the current page
-    // (a plain click no longer jumps the book to the cursor).
-    hasManualBookInteraction.current = true;
-    window.cancelAnimationFrame(autoBookFrame.current);
+    // Grabbing the book pauses the auto-flip and freezes it at the current page
+    // (a plain click won't jump the book to the cursor). The loop keeps running
+    // so it can resume on its own a moment after the reader lets go.
     isBookPointerActive.current = true;
+    autoPausedRef.current = true;
+    lastInteractionRef.current = performance.now();
     dragStartX.current = event.clientX;
     dragStartProgress.current = bookProgressRef.current;
     setIsBookDragging(true);
@@ -203,6 +235,7 @@ export default function LandingGateway({ children }) {
     event.stopPropagation();
     if (!isBookPointerActive.current) return;
     isBookPointerActive.current = false;
+    lastInteractionRef.current = performance.now();
     setIsBookDragging(false);
     settleBookProgress();
     if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
@@ -214,6 +247,7 @@ export default function LandingGateway({ children }) {
     event.stopPropagation();
     if (event.currentTarget.hasPointerCapture?.(event.pointerId)) return;
     isBookPointerActive.current = false;
+    lastInteractionRef.current = performance.now();
     setIsBookDragging(false);
   }
 
