@@ -32,39 +32,6 @@ body::before,
   filter: contrast(1.06) saturate(0.9) brightness(1.02) !important;
 }
 
-/* Sidebar collapse handle: quiet edge affordance, no page-level horizontal scroll. */
-.sidebar {
-  overflow-x: hidden !important;
-}
-
-.sidebar-collapse-toggle {
-  top: 50% !important;
-  right: -7px !important;
-  width: 16px !important;
-  height: 48px !important;
-  transform: translateY(-50%) !important;
-  border: 0 !important;
-  border-radius: 999px !important;
-  background: rgba(44, 38, 30, 0.03) !important;
-  color: rgba(44, 38, 30, 0.2) !important;
-  box-shadow: 0 0 12px rgba(44, 38, 30, 0.06) !important;
-  opacity: 0.18 !important;
-  backdrop-filter: blur(8px) !important;
-}
-
-.sidebar-collapse-toggle:hover,
-.sidebar-collapse-toggle:focus-visible {
-  opacity: 0.62 !important;
-  background: rgba(255, 253, 248, 0.62) !important;
-  color: rgba(44, 38, 30, 0.58) !important;
-  box-shadow: 0 10px 24px rgba(44, 38, 30, 0.08) !important;
-}
-
-.sidebar-collapse-toggle svg {
-  width: 13px !important;
-  height: 13px !important;
-}
-
 /* Novel header: slimmer, warmer, and less washed out. */
 .novel-section .novel-hero {
   min-height: clamp(142px, 16vw, 188px) !important;
