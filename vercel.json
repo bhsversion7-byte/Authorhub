@@ -4,6 +4,15 @@
   "framework": "vite",
   "headers": [
     {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
       "source": "/(authorhub-logo.png|donation-wechat.png|donation-alipay.jpg|texture-3-bg.jpg|texture-3.jpg)",
       "headers": [
         {
