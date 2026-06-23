@@ -23,15 +23,11 @@
 ## 📸 A look inside
 
 <p align="center">
-  <img src="docs/screenshots/landing.png" width="82%" alt="AuthorHub landing — a drifting orbit of quotes from women writers around a 3D book you can drag open" />
+  <img src="docs/screenshots/landing.jpg" width="88%" alt="AuthorHub landing — a drifting orbit of quotes from women writers around a 3D book you can drag open" />
 </p>
 <p align="center">
-  <img src="docs/screenshots/relation-graph.png" width="49%" alt="Force-directed character relationship graph with draggable character planets" />
-  &nbsp;
-  <img src="docs/screenshots/workspace.png" width="49%" alt="Per-novel workspace with character cards, timeline and settings" />
+  <img src="docs/screenshots/workspace.jpg" width="60%" alt="A novel workspace — character cards, relationship graph, timeline and settings" />
 </p>
-
-<div align="center"><sub>Screenshots are placeholders for now — real captures live in <a href="docs/screenshots/">docs/screenshots/</a>.</sub></div>
 
 ---
 

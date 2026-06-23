@@ -16,6 +16,7 @@ const BOOK_COLORS = ["#4A6357", "#7A3E3E", "#2E4C6D", "#8C6239", "#6C5E7A", "#6F
 const ESCAPE_BLOCKING_SELECTOR = ".modal-backdrop, .zen-overlay, .logo-lightbox-overlay, .publish-popover";
 const TEXT_ENTRY_SELECTOR = "input, textarea, select, [contenteditable='true']";
 const THEME_MODE_KEY = "author-hub-theme-mode";
+const APPEARANCE_KEY = "author-hub-appearance";
 
 export default function App() {
   const [data, setData] = useState(null);
@@ -60,12 +61,16 @@ export default function App() {
     if (authUser && !data) {
       loadAuthorHubData(authUser).then((loadedData) => {
         const storedTheme = getStoredThemeMode();
-        if (!storedTheme) return setData(loadedData);
+        const storedAppearance = getStoredAppearance();
+        // Local appearance (font size/family/mode) is the source of truth on
+        // load so settings survive refresh even if a debounced cloud save for
+        // the document had not flushed yet.
         setData({
           ...loadedData,
           appearance: {
             ...loadedData.appearance,
-            darkMode: storedTheme === "dark",
+            ...(storedAppearance ?? {}),
+            ...(storedTheme ? { darkMode: storedTheme === "dark" } : {}),
           },
         });
       });
@@ -175,10 +180,11 @@ export default function App() {
     if (Object.prototype.hasOwnProperty.call(patch, "darkMode")) {
       storeThemeMode(patch.darkMode ? "dark" : "light");
     }
-    setData((current) => ({
-      ...current,
-      appearance: { ...current.appearance, ...patch },
-    }));
+    setData((current) => {
+      const nextAppearance = { ...current.appearance, ...patch };
+      storeAppearance(nextAppearance);
+      return { ...current, appearance: nextAppearance };
+    });
   }
 
   function updateNovel(novelId, patch) {
@@ -573,5 +579,22 @@ function storeThemeMode(mode) {
     localStorage.setItem(THEME_MODE_KEY, mode);
   } catch {
     // Theme persistence is a local preference only.
+  }
+}
+
+function getStoredAppearance() {
+  try {
+    const raw = localStorage.getItem(APPEARANCE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function storeAppearance(appearance) {
+  try {
+    localStorage.setItem(APPEARANCE_KEY, JSON.stringify(appearance));
+  } catch {
+    // Appearance persistence is a local preference only.
   }
 }
