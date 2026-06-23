@@ -97,8 +97,34 @@ function saveLocalData(data, user) {
   try {
     window.localStorage.setItem(storageKey(user), JSON.stringify(data));
   } catch (error) {
-    console.warn("Author Hub local cache is full; latest large media changes may not persist.", error);
+    try {
+      window.localStorage.setItem(storageKey(user), JSON.stringify(createLocalCacheSnapshot(data)));
+      console.warn("Author Hub local cache was compacted; inline media stays in cloud save.", error);
+    } catch (compactError) {
+      console.warn("Author Hub local cache is full; latest large media changes may not persist.", compactError);
+    }
   }
+}
+
+function createLocalCacheSnapshot(data) {
+  return {
+    ...data,
+    novels: (data.novels ?? []).map((novel) => ({
+      ...novel,
+      characters: (novel.characters ?? []).map((character) => ({
+        ...character,
+        images: compactMediaList(character.images),
+      })),
+      timeline: (novel.timeline ?? []).map((event) => ({
+        ...event,
+        images: compactMediaList(event.images),
+      })),
+    })),
+  };
+}
+
+function compactMediaList(images) {
+  return (images ?? []).filter((image) => typeof image !== "string" || !image.startsWith("data:image/"));
 }
 
 async function ensureProfile(user) {

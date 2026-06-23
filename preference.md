@@ -152,6 +152,7 @@ Records substantive maintenance so future cleanup keeps the confirmed behavior. 
 - **Confirmed-dead definition:** files are safe to delete only when they are not imported, linked, referenced by README/PRODUCT/preference, or used by current website settings/runtime. Public screenshots and `preference.md` stay because they are active documentation.
 - **Confirmed-dead docs:** removed the duplicated `docs/authorhub-design-preferences.md`; `preference.md` is the single active design/behavior备案 file.
 - **Dead selector cleanup:** removed leftover zero-reference selectors for old tour arrows, fallback manuscript animation, stale loading spinner, and old theme tag dark-mode styling. Current guided tour, privacy loader, tag chips, and landing motion remain unchanged.
+- **Large media cache fallback:** local cache writes may compact only inline `data:image/...` media after quota failure; cloud save still keeps complete media data. This preserves refresh resilience without changing visible UI or deleting user text/settings.
 - **Verification expectation:** after this cleanup, run markdown export verification, production build, browser smoke, Git commit/push, Vercel production deploy, and a real signed-in account pass before calling the work complete.
 
 ### 2026-06-23 — README refresh + audit cleanup
