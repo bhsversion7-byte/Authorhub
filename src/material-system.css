@@ -1607,8 +1607,8 @@ body,
 }
 
 .stack-nav {
-  width: 42px !important;
-  height: 42px !important;
+  width: 34px !important;
+  height: 34px !important;
   border: 1px solid rgba(44, 38, 30, 0.2) !important;
   border-radius: 999px !important;
   background: rgba(255, 253, 248, 0.96) !important;
@@ -1619,11 +1619,11 @@ body,
 }
 
 .stack-nav.prev {
-  left: 8px !important;
+  left: 4px !important;
 }
 
 .stack-nav.next {
-  right: 8px !important;
+  right: 4px !important;
 }
 
 .stack-nav:hover,
