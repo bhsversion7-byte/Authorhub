@@ -1619,11 +1619,11 @@ body,
 }
 
 .stack-nav.prev {
-  left: 10px !important;
+  left: 8px !important;
 }
 
 .stack-nav.next {
-  right: 10px !important;
+  right: 8px !important;
 }
 
 .stack-nav:hover,
