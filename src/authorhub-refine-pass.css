@@ -81,32 +81,6 @@ body::before,
   }
 }
 
-.sidebar-collapse-toggle {
-  position: absolute !important;
-  top: 14px !important;
-  right: -14px !important;
-  z-index: 40 !important;
-  display: grid !important;
-  width: 28px !important;
-  height: 46px !important;
-  place-items: center !important;
-  padding: 0 !important;
-  border: 0.5px solid rgba(214, 201, 181, 0.54) !important;
-  border-radius: 999px !important;
-  background: rgba(255, 253, 248, 0.58) !important;
-  color: rgba(64, 57, 49, 0.74) !important;
-  box-shadow: 0 12px 28px rgba(44, 36, 24, 0.06) !important;
-  backdrop-filter: blur(10px) !important;
-  cursor: pointer !important;
-}
-
-.sidebar-collapse-toggle:hover,
-.sidebar-collapse-toggle:focus-visible {
-  background: rgba(255, 253, 248, 0.86) !important;
-  color: var(--ah-ink) !important;
-  transform: translateX(-1px) !important;
-}
-
 .sidebar.is-collapsed {
   padding-inline: 12px !important;
 }
@@ -325,11 +299,6 @@ body::before,
 
 .connect-box > .relation-action-row {
   margin-top: 2px !important;
-}
-
-.media-upload-button {
-  min-width: 92px !important;
-  max-width: 118px !important;
 }
 
 /* Viewport-owned confirm dialogs. */

@@ -216,35 +216,6 @@ body > .logo-lightbox-overlay {
 
 
 
-/* Sidebar collapse handle: appears when the pointer is inside the sidebar zone. */
-.sidebar-collapse-toggle {
-  top: 50% !important;
-  right: -7px !important;
-  width: 16px !important;
-  height: 54px !important;
-  transform: translateY(-50%) !important;
-  opacity: 0 !important;
-  border: 0 !important;
-  background: rgba(44, 38, 30, 0.012) !important;
-  color: rgba(44, 38, 30, 0.08) !important;
-  box-shadow: none !important;
-  backdrop-filter: blur(8px) !important;
-  transition: opacity 180ms var(--ease), color 180ms var(--ease), background 180ms var(--ease) !important;
-}
-
-.sidebar:hover .sidebar-collapse-toggle,
-.sidebar:focus-within .sidebar-collapse-toggle {
-  opacity: 0.28 !important;
-  color: rgba(44, 38, 30, 0.22) !important;
-}
-
-.sidebar-collapse-toggle:hover,
-.sidebar-collapse-toggle:focus-visible {
-  opacity: 0.42 !important;
-  background: rgba(255, 253, 248, 0.3) !important;
-  color: rgba(44, 38, 30, 0.34) !important;
-}
-
 /* Shared card physics: soft paper lift without metallic gradients. */
 .novel-section :where(.novel-hero, .story-card, .theme-card, .graph-card, .inspector-card, .ai-nudge) {
   box-shadow: var(--mat-paper-shadow) !important;
@@ -641,29 +612,6 @@ body[data-theme="dark"] .landing-gateway.mode-auth {
 .sidebar {
   background:
     linear-gradient(180deg, rgba(229, 219, 202, 0.94), rgba(220, 211, 195, 0.92)) !important;
-}
-
-.sidebar-collapse-toggle {
-  right: -8px !important;
-  opacity: 0 !important;
-  border: 0 !important;
-  background: rgba(44, 38, 30, 0.02) !important;
-  color: rgba(44, 38, 30, 0.1) !important;
-  box-shadow: none !important;
-}
-
-.sidebar:hover .sidebar-collapse-toggle,
-.sidebar:focus-within .sidebar-collapse-toggle {
-  opacity: 0.56 !important;
-  color: rgba(44, 38, 30, 0.34) !important;
-  background: rgba(255, 253, 248, 0.2) !important;
-}
-
-.sidebar-collapse-toggle:hover,
-.sidebar-collapse-toggle:focus-visible {
-  opacity: 0.76 !important;
-  color: rgba(44, 38, 30, 0.48) !important;
-  background: rgba(255, 253, 248, 0.34) !important;
 }
 
 .novel-section .novel-meta {
@@ -1171,21 +1119,6 @@ body[data-theme="light"],
   color: #fff8ef !important;
 }
 
-.stack-nav {
-  opacity: 0.82 !important;
-  border: 1px solid rgba(44, 38, 30, 0.1) !important;
-  background: rgba(255, 253, 248, 0.88) !important;
-  color: rgba(44, 38, 30, 0.78) !important;
-}
-
-.stack-nav:hover,
-.stack-nav:focus-visible {
-  opacity: 1 !important;
-  transform: translateY(-50%) scale(1.04) !important;
-  border-color: rgba(44, 38, 30, 0.18) !important;
-  background: rgba(255, 253, 248, 0.98) !important;
-}
-
 body[data-theme="dark"],
 body[data-theme="dark"] #root,
 body[data-theme="dark"] .loading-screen {
@@ -1433,15 +1366,6 @@ body,
   max-width: min(580px, calc(100% - 96px)) !important;
 }
 
-.stack-nav {
-  opacity: 0.7 !important;
-}
-
-.stack-nav:hover,
-.stack-nav:focus-visible {
-  opacity: 0.88 !important;
-}
-
 .imessage-card > button[aria-label="查看大图"],
 .imessage-card > button[aria-label^="切换到"] {
   appearance: none !important;
@@ -1559,16 +1483,6 @@ body,
   bottom: 14px !important;
 }
 
-.stack-nav {
-  opacity: 0.86 !important;
-}
-
-.stack-nav:hover,
-.stack-nav:focus-visible {
-  opacity: 0.96 !important;
-  transform: translateY(-50%) !important;
-}
-
 .character-action-row .primary-button,
 .character-action-row .danger-lite-button,
 .timeline-action-row .primary-button,
@@ -1604,35 +1518,6 @@ body,
 .novel-section .novel-hero:hover {
   background-color: #f3e5ab !important;
   background-image: none !important;
-}
-
-.stack-nav {
-  width: 34px !important;
-  height: 34px !important;
-  border: 1px solid rgba(44, 38, 30, 0.2) !important;
-  border-radius: 999px !important;
-  background: rgba(255, 253, 248, 0.96) !important;
-  color: rgba(44, 38, 30, 0.9) !important;
-  opacity: 0.96 !important;
-  box-shadow: 0 8px 18px rgba(44, 38, 30, 0.12) !important;
-  transform: translateY(-50%) !important;
-}
-
-.stack-nav.prev {
-  left: 4px !important;
-}
-
-.stack-nav.next {
-  right: 4px !important;
-}
-
-.stack-nav:hover,
-.stack-nav:focus-visible {
-  opacity: 1 !important;
-  border-color: rgba(44, 38, 30, 0.3) !important;
-  background: rgba(255, 253, 248, 1) !important;
-  color: rgba(44, 38, 30, 0.96) !important;
-  transform: translateY(-50%) scale(1.025) !important;
 }
 
 body[data-theme="dark"] .novel-section .novel-hero,

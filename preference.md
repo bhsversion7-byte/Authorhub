@@ -164,6 +164,12 @@ Records substantive maintenance so future cleanup keeps the confirmed behavior. 
 - **Confirmed-dead asset:** `public/texture-1.png` had zero references and was removed with the UI fix commit. Do not restore it unless a future runtime reference is added.
 - **UX score after pass:** 8.6/10 as a real user. The workspace feels coherent, warm, and feature-complete; dark mode is usable and aligned enough for production. Remaining future work should focus on CSS ownership convergence and reducing cascade overlap, not visual redesign.
 
+### 2026-06-23 — CSS ownership convergence round 1
+- **Boundary:** this round only migrates confirmed final rules back toward their owning areas. It must not alter feature layout, colors, fonts, hover motion, dark mode logic, or functional regions.
+- **Owners:** publish-link pill lives in `novel-section-restore.css`; media upload and carousel arrows live in `styles.css` near `MediaCarousel` base rules; sidebar collapse handle lives in `sidebar-stability.css`.
+- **Removed overlap:** delete repeated repair-layer definitions for `.publish-pill`, `.stack-nav`, `.media-upload-button`, and `.sidebar-collapse-toggle` once their final values are present in the owner file. Keep dark-mode-only companion rules where they are still theme-specific.
+- **Verification:** every convergence round needs `npm run build`, `npm run verify:markdown`, `git diff --check`, and a short diff review before commit/deploy.
+
 ### 2026-06-23 — README refresh + audit cleanup
 - **README:** reframed around the feminist identity (the landing's drifting quotes are all from women writers — Woolf, the Brontes, Austen, Morrison, Le Guin, Adichie, ...; "a room of one's own for storytellers"). Removed the unofficial Chinese name "落墨" and the Supabase/Vercel/CAPTCHA setup + deploy sections (kept privately, not in the public repo). Detailed EN + 简体中文.
 - **Audit cleanup (all verified zero-usage, no behavior/visual change):** removed unused dependency `@react-three/drei` (3D book uses fiber+three directly; landing verified still rendering); removed dead exports `buildFullHubPrompt`/`buildEventPrompt` (aiHandoff.js) and `resetAuthorHubData`/`shimoConnection` (shimoAdapter.js); deleted 3 stale `docs/superpowers/plans/*.md` files.
