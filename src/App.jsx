@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
 import FloatingMusicPlayer from "./components/FloatingMusicPlayer.jsx";
 import Sidebar from "./components/Sidebar.jsx";
@@ -29,6 +29,7 @@ export default function App() {
   const [justRegistered, setJustRegistered] = useState(false);
   const [privacyBlur, setPrivacyBlur] = useState(() => localStorage.getItem("author-hub-privacy-blur") === "true");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const skipNextCloudSaveRef = useRef(false);
 
   const sidebarWidth = sidebarCollapsed ? "72px" : "clamp(184px, 15vw, 224px)";
 
@@ -39,10 +40,13 @@ export default function App() {
     async function boot() {
       if (hasSupabaseConfig && supabase) {
         const { data: sessionData } = await supabase.auth.getSession();
-        if (mounted) setAuthUser(sessionData.session?.user ?? getLocalAuthUser());
+        if (mounted) {
+          setLocalAuthUser(null);
+          setAuthUser(sessionData.session?.user ?? null);
+        }
         const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-          if (session?.user) setLocalAuthUser(session.user);
-          setAuthUser(session?.user ?? getLocalAuthUser());
+          setLocalAuthUser(null);
+          setAuthUser(session?.user ?? null);
         });
         cleanup = () => listener.subscription.unsubscribe();
       } else if (mounted) {
@@ -67,6 +71,7 @@ export default function App() {
         // Local appearance (font size/family/mode) is the source of truth on
         // load so settings survive refresh even if a debounced cloud save for
         // the document had not flushed yet.
+        skipNextCloudSaveRef.current = true;
         setData({
           ...loadedData,
           appearance: {
@@ -96,7 +101,12 @@ export default function App() {
   }, [privacyBlur]);
 
   useEffect(() => {
-    if (data && authUser) saveAuthorHubData(data, authUser);
+    if (!data || !authUser) return;
+    if (skipNextCloudSaveRef.current) {
+      skipNextCloudSaveRef.current = false;
+      return;
+    }
+    saveAuthorHubData(data, authUser);
   }, [data, authUser]);
 
   useEffect(() => {
