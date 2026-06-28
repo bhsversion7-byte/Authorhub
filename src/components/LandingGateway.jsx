@@ -1,6 +1,12 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import LandingQuoteOrbit from "./LandingQuoteOrbit.jsx";
-import CinematicBookOpener from "./CinematicBookOpener.jsx";
+
+// The 3D book pulls in the large three.js/@react-three engine. Loading it as a
+// lazy chunk lets the landing text, quotes, and "开始落墨" button paint
+// immediately instead of waiting for the whole 3D engine to download. The book
+// then streams into its already-sized stage with no layout shift — the final
+// landing design is unchanged.
+const CinematicBookOpener = lazy(() => import("./CinematicBookOpener.jsx"));
 import "../landing-font-local.css";
 import "../landing.css";
 import "../landing-tuning.css";
@@ -282,7 +288,9 @@ export default function LandingGateway({ children }) {
           onClick={(event) => event.preventDefault()}
           onKeyDown={handleBookKeyDown}
         >
-          <CinematicBookOpener {...bookProps} />
+          <Suspense fallback={null}>
+            <CinematicBookOpener {...bookProps} />
+          </Suspense>
           <div
             className="landing-book-drag-layer"
             aria-hidden="true"

@@ -13,7 +13,7 @@
       ]
     },
     {
-      "source": "/(authorhub-logo.png|donation-wechat.png|donation-alipay.jpg|texture-3-bg.jpg|texture-3.jpg)",
+      "source": "/(authorhub-logo.png|donation-wechat.png|donation-alipay.jpg|texture-3-bg.jpg|texture-3.jpg|texture-3-wide.jpg|texture-card-1.jpg|texture-card-2.jpg|texture-card-3.jpg|bookinside.jpg)",
       "headers": [
         {
           "key": "Cache-Control",
