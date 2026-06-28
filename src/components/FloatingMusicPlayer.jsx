@@ -11,31 +11,31 @@ const TRACKS = [
     id: 1,
     title: "Two to Two",
     artist: "Free 20s Jazz Collection · Public Domain",
-    src: "https://archive.org/download/Free_20s_Jazz_Collection/2to2_64kb.mp3",
+    src: "/music/two-to-two.mp3",
   },
   {
     id: 2,
     title: "South",
     artist: "Bennie Moten · Public Domain",
-    src: "https://archive.org/download/Free_20s_Jazz_Collection/Bennie_Motens_KC_Jazz_Band-South_1924_64kb.mp3",
+    src: "/music/south.mp3",
   },
   {
     id: 3,
     title: "Dardanella",
     artist: "Raderman Jazz Orchestra · Public Domain",
-    src: "https://archive.org/download/Free_20s_Jazz_Collection/Raderman_Jazz_Orch-Dardanella_64kb.mp3",
+    src: "/music/dardanella.mp3",
   },
   {
     id: 4,
     title: "Whispering",
     artist: "Paul Whiteman · Public Domain",
-    src: "https://archive.org/download/Free_20s_Jazz_Collection/Whiteman-Whispering_11KHz_64kb.mp3",
+    src: "/music/whispering.mp3",
   },
   {
     id: 5,
     title: "Panama",
     artist: "Free 20s Jazz Collection · Public Domain",
-    src: "https://archive.org/download/Free_20s_Jazz_Collection/panama_64kb.mp3",
+    src: "/music/panama.mp3",
   },
 ];
 

@@ -116,6 +116,11 @@ This file records the final product/design rules for AuthorHub so future CSS cle
 
 Records substantive maintenance so future cleanup keeps the confirmed behavior. None of the entries below changed any color, layout, font, or interaction.
 
+### 2026-06-28 — domain health + music stability
+- **Domain diagnosis:** Vercel has `authorhub.cn` and `www.authorhub.cn` assigned to `author-hub-public`, but `authorhub.cn` DNS is not configured as Vercel expects. Current public DNS resolves the apex through `authorhub.cn.w.kunlunaq.com` / `198.18.0.6`; Vercel CLI reports the required apex record as `A authorhub.cn 76.76.21.21`, or alternatively switching nameservers to `ns1.vercel-dns.com` / `ns2.vercel-dns.com`. Until DNS is fixed at the provider, 504/timeouts are outside the app code.
+- **Music player stability:** the floating music player must not depend on live `archive.org` redirecting media URLs. The five public-domain jazz tracks are mirrored under `public/music/`, and `FloatingMusicPlayer` should load `/music/*.mp3` so playback comes from the same deployed site and can be cached by Vercel Edge.
+- **Vercel cache rule:** `/music/(.*)` uses long immutable cache headers, matching the existing static asset strategy. Player UI, titles, controls, and styling remain unchanged.
+
 ### 2026-06-23 — refresh persistence + landing pacing
 - **Landing book pace:** the automatic open/close flip cycle was slowed from 5.2s + 5.2s to 6.5s + 6.5s. The existing 3D book design, drag logic, page texture, quote orbit, and typography remain unchanged.
 - **Refresh auth persistence:** refresh must not send a signed-in writer back to the login wall. Supabase sessions still take priority; if the hosted session is briefly absent, AuthorHub now falls back to the local/session auth mirror and immediately reloads the cached manuscript universe and appearance settings.
