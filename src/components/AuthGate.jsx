@@ -143,7 +143,6 @@ export default function AuthGate({ onAuthed }) {
 
         if (result.error) throw result.error;
         const authedUser = result.data.session?.user ?? result.data.user;
-        setLocalAuthUser(authedUser, { persistent: remember });
         onAuthed(authedUser, { isNew: mode === "register", persistent: remember });
       } else {
         const user = makeLocalUser(email);
