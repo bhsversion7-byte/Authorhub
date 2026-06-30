@@ -130,6 +130,19 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
         </button>
       </div>
 
+      <div className="timeline-mobile-switcher" aria-label="手机时间点切换">
+        <button type="button" onClick={() => moveSelectedEvent(-1)} disabled={selectedIndex <= 0} aria-label="上一个时间点">
+          <ChevronLeft size={20} />
+        </button>
+        <div>
+          <span>{draft?.date ?? "暂无时间点"}</span>
+          <strong>{draft?.title ?? "先新增一个时间点"}</strong>
+        </div>
+        <button type="button" onClick={() => moveSelectedEvent(1)} disabled={selectedIndex < 0 || selectedIndex >= novel.timeline.length - 1} aria-label="下一个时间点">
+          <ChevronRight size={20} />
+        </button>
+      </div>
+
       <div className="timeline-slider" onKeyDown={handleTimelineKeyDown}>
         <button type="button" className="timeline-arrow left" onClick={() => moveTimeline(-1)} disabled={slideIndex === 0} aria-label="向左查看时间线">
           <ChevronLeft size={24} />

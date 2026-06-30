@@ -216,25 +216,21 @@ export default function FloatingMusicPlayer() {
       <button type="button" className="vinyl-button floating-vinyl" onClick={togglePlay} aria-label={playing ? "暂停音乐" : "播放音乐"}>
         <Disc3 size={collapsed ? 20 : 22} />
       </button>
-      {!collapsed && (
-        <>
-          <div className="track-window">
-            <span>{track.title}</span>
-            <small>{playbackIssue || track.artist}</small>
-          </div>
-          <div className="player-controls">
-            <button type="button" onClick={previousTrack} aria-label="上一首">
-              <SkipBack size={13} />
-            </button>
-            <button type="button" onClick={togglePlay} aria-label={playing ? "暂停" : "播放"}>
-              {playing ? <Pause size={13} /> : <Play size={13} />}
-            </button>
-            <button type="button" onClick={nextTrack} aria-label="下一首">
-              <SkipForward size={13} />
-            </button>
-          </div>
-        </>
-      )}
+      <div className="track-window" aria-hidden={collapsed}>
+        <span>{track.title}</span>
+        <small>{playbackIssue || track.artist}</small>
+      </div>
+      <div className="player-controls" aria-hidden={collapsed}>
+        <button type="button" onClick={previousTrack} aria-label="上一首" disabled={collapsed}>
+          <SkipBack size={13} />
+        </button>
+        <button type="button" onClick={togglePlay} aria-label={playing ? "暂停" : "播放"} disabled={collapsed}>
+          {playing ? <Pause size={13} /> : <Play size={13} />}
+        </button>
+        <button type="button" onClick={nextTrack} aria-label="下一首" disabled={collapsed}>
+          <SkipForward size={13} />
+        </button>
+      </div>
       <button type="button" className="music-collapse" onClick={toggleCollapsed} aria-label={collapsed ? "展开音乐盒" : "向右收起音乐盒"}>
         {collapsed ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
       </button>

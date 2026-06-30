@@ -18,6 +18,10 @@
   max-width: min(var(--content-wide-max), calc(100vw - var(--app-sidebar-width) - 44px));
 }
 
+.timeline-mobile-switcher {
+  display: none;
+}
+
 /* Windows 125% / MacBook-like CSS viewports: match the user's preferred ~90% browser zoom without changing design. */
 @media (min-width: 1181px) and (max-width: 1700px) {
   :root {
@@ -212,6 +216,7 @@
 
   .nav-stack {
     display: flex !important;
+    align-items: center !important;
     gap: 8px !important;
     overflow-x: auto !important;
     overscroll-behavior-x: contain;
@@ -236,8 +241,25 @@
     white-space: nowrap !important;
   }
 
+  .sidebar .draggable-novel-list {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    min-width: max-content !important;
+  }
+
   .novel-nav-item {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 132px !important;
     padding-right: 34px !important;
+  }
+
+  .add-novel-button {
+    flex: 0 0 auto !important;
+    min-width: 126px !important;
   }
 
   .novel-nav-title {
@@ -310,5 +332,67 @@
   .donation-qr img {
     width: min(100%, 280px) !important;
     max-height: 360px !important;
+  }
+
+  .timeline-mobile-switcher {
+    display: grid !important;
+    grid-template-columns: 38px minmax(0, 1fr) 38px;
+    gap: 8px;
+    align-items: center;
+    margin: 14px 0 12px;
+  }
+
+  .timeline-panel .timeline-slider {
+    display: none !important;
+  }
+
+  .timeline-mobile-switcher > button {
+    display: grid;
+    width: 38px;
+    height: 44px;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgba(234, 223, 212, 0.72);
+    border-radius: 999px;
+    background: rgba(255, 253, 248, 0.72);
+    color: #66584f;
+    box-shadow: 0 8px 18px rgba(44, 36, 24, 0.08);
+  }
+
+  .timeline-mobile-switcher > button:disabled {
+    opacity: 0.34;
+    box-shadow: none;
+  }
+
+  .timeline-mobile-switcher > div {
+    display: grid;
+    min-width: 0;
+    min-height: 44px;
+    align-content: center;
+    padding: 7px 12px;
+    border: 1px solid rgba(234, 223, 212, 0.7);
+    border-radius: 14px;
+    background: rgba(255, 253, 248, 0.74);
+    box-shadow: 0 8px 20px rgba(44, 36, 24, 0.055);
+  }
+
+  .timeline-mobile-switcher span,
+  .timeline-mobile-switcher strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .timeline-mobile-switcher span {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .timeline-mobile-switcher strong {
+    color: var(--ink);
+    font-size: 13px;
+    line-height: 1.35;
   }
 }
