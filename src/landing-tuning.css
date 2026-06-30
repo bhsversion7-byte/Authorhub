@@ -285,6 +285,10 @@
   }
 
   .landing-stage {
+    /* Re-assert the single-column mobile layout: this file loads after
+       landing.css, so its ≤1120px two-column rule would otherwise win at
+       phone widths and push the copy column off-screen. */
+    grid-template-columns: minmax(0, 1fr);
     padding: 26px 24px 126px;
   }
 
