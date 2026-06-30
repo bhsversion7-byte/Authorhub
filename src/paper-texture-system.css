@@ -52,6 +52,7 @@
   z-index: 0;
   pointer-events: none;
   opacity: var(--paper-texture-opacity, 0.45);
+  border-radius: inherit;
   background-image: var(--paper-texture);
   background-size: var(--paper-texture-size, auto);
   mix-blend-mode: multiply;

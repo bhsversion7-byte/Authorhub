@@ -2,7 +2,8 @@
   left: auto !important;
   right: 8px !important;
   transform: none !important;
-  will-change: top;
+  contain: layout paint;
+  will-change: top, width;
 }
 
 .floating-music:not(.is-dragging) {
@@ -10,8 +11,7 @@
     top 160ms var(--ease),
     width 220ms var(--ease),
     padding 220ms var(--ease),
-    border-radius 220ms var(--ease),
-    box-shadow 180ms var(--ease);
+    border-radius 220ms var(--ease);
 }
 
 .floating-music.is-dragging {
@@ -32,10 +32,15 @@
 }
 
 .floating-music.is-collapsed {
-  width: 96px;
-  min-width: 96px;
+  width: 62px;
+  min-width: 62px;
 }
 
 .floating-music.is-collapsed .floating-vinyl {
   flex: 0 0 auto;
+}
+
+.floating-music.is-collapsed .track-window,
+.floating-music.is-collapsed .player-controls {
+  display: none !important;
 }

@@ -102,6 +102,13 @@ This file records the final product/design rules for AuthorHub so future CSS cle
 - Dark mode music player text, add-novel/add-time buttons, tag chips, and modal actions have explicit contrast.
 - Onboarding uses live target arrows and keeps the background clear.
 - Unregister and delete confirmation modals use matching danger-button styling.
+- Floating music player default state is the compact collapsed pill: vinyl plus collapse button only. Do not widen the collapsed state unless it is explicitly requested.
+- Floating music player full expansion must stay smooth on Windows Chrome: avoid React mount/unmount churn and avoid animating heavy blur/shadow effects during collapse/expand.
+- Dark timeline editor must not show square parent-background artifacts around rounded editor surfaces. The visible editor surface is `.event-editor-main`; the `.event-editor` wrapper should not leak a square background in dark mode.
+- Mobile navigation keeps a single-line horizontal scroll. Novel items and `添加新小说` must not overlap or stack inside that nav.
+- Phone timeline uses the compact `< current event >` switcher while hiding oversized timeline cards.
+- Card hover text must remain sharp. Avoid fractional scale on full-card hover transforms.
+- Desktop content must stay within the viewport right edge and preserve symmetric breathing room beside the sidebar.
 
 ## Engineering Rules For Cleanup
 
@@ -115,6 +122,13 @@ This file records the final product/design rules for AuthorHub so future CSS cle
 ## Maintenance Log (backup record)
 
 Records substantive maintenance so future cleanup keeps the confirmed behavior. None of the entries below changed any color, layout, font, or interaction.
+
+### 2026-06-30 — player performance + responsive timeline final polish
+- **Target branch:** final work for this pass lives on `perf/faster-first-load`, after bringing in current `master` and the `responsive/mobile-fit` QA fixes.
+- **Music player:** collapsed default is restored to the compact old pill; full player content remains mounted and is hidden by CSS while collapsed, reducing expand/collapse jank without changing tracks, local `/music/*.mp3` sources, controls, drag position, or playback fallback.
+- **Dark timeline:** the dark timeline keeps its deep green companion palette, but the `.event-editor` wrapper no longer paints a square background/shadow. `.event-editor-main` remains the visible rounded editor surface, and paper texture pseudo-elements inherit card radius.
+- **Responsive preservation:** mobile nav stays single-line horizontal scroll; phone timeline uses the compact switcher; desktop content is constrained to the viewport edge; card hover keeps micro-lift + border reveal without fractional scale blur.
+- **Verification expectation:** build, markdown export verification, diff check, and browser QA across desktop/wide/mobile plus light/dark mode are required before committing this pass.
 
 ### 2026-06-29 — DNS routing + Supabase session consistency
 - **Current DNS authority:** `authorhub.cn` is still managed through Alibaba Cloud DNS (`dns7.hichina.com` / `dns8.hichina.com`). Cloudflare records/nameservers are only a prepared alternative until the registrar nameservers are changed to Cloudflare; do not assume Cloudflare is serving live DNS.

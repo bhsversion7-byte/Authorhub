@@ -1,5 +1,24 @@
 /* Final state layer: interaction and dark-mode corrections only. */
 
+@media (min-width: 861px) {
+  .app-shell {
+    max-width: 100vw !important;
+    overflow-x: clip !important;
+  }
+
+  .content-shell {
+    box-sizing: border-box !important;
+    width: calc(100vw - var(--sidebar-current-width, var(--app-sidebar-width, 224px))) !important;
+    max-width: calc(100vw - var(--sidebar-current-width, var(--app-sidebar-width, 224px))) !important;
+  }
+
+  .content-shell > .section {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
 .content-shell :where(
   .profile-panel,
   .progress-panel,
@@ -32,7 +51,7 @@
   .graph-card,
   .inspector-card
 ):hover {
-  transform: translateY(-2px) scale(1.002) !important;
+  transform: translateY(-2px) !important;
   border-color: rgba(108, 139, 136, 0.34) !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.22),
@@ -42,7 +61,7 @@
 .content-shell .author-section :where(.profile-panel, .progress-panel, .appearance-panel):hover,
 .content-shell .novel-section :where(.novel-hero, .story-card, .theme-card, .timeline-panel, .event-editor, .ai-nudge):hover,
 .content-shell .relation-layout :where(.graph-card, .inspector-card):hover {
-  transform: translateY(-2px) scale(1.002) !important;
+  transform: translateY(-2px) !important;
   border-color: rgba(108, 139, 136, 0.34) !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.22),
@@ -50,7 +69,7 @@
 }
 
 .content-shell .novel-section .story-grid > article.panel.story-card:hover {
-  transform: translateY(-2px) scale(1.002) !important;
+  transform: translateY(-2px) !important;
   border-color: rgba(108, 139, 136, 0.34) !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.22),
@@ -158,7 +177,7 @@ body[data-theme="dark"] .timeline-node strong {
 }
 
 body[data-theme="dark"] .timeline-node:hover {
-  transform: translateY(-2px) scale(1.01) !important;
+  transform: translateY(-2px) !important;
   border-color: rgba(230, 210, 184, 0.34) !important;
   background: linear-gradient(145deg, rgba(72, 65, 56, 0.95), rgba(54, 49, 43, 0.96)) !important;
 }
@@ -314,6 +333,14 @@ body[data-theme="dark"] .novel-section .timeline-panel,
 body[data-theme="dark"] .novel-section .timeline-panel:hover {
   background-color: #2f3d34 !important;
   background-image: linear-gradient(145deg, rgba(49, 63, 53, 0.96), rgba(37, 48, 42, 0.98)) !important;
+}
+
+body[data-theme="dark"] .novel-section .timeline-panel .event-editor,
+body[data-theme="dark"] .novel-section .timeline-panel .event-editor:hover {
+  background: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
 }
 
 body[data-theme="dark"] .event-editor-main {
