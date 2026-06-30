@@ -42,7 +42,10 @@ const TRACKS = [
 export default function FloatingMusicPlayer() {
   const [playing, setPlaying] = useState(false);
   const [trackIndex, setTrackIndex] = useState(0);
-  const [collapsed, setCollapsed] = useState(false);
+  // Start collapsed: the player is a "低干扰" (low-interference) box, and its
+  // default top-right rest spot otherwise covers the novel hero's word-count
+  // value. Collapsed it's a small pill clear of that content; one tap expands it.
+  const [collapsed, setCollapsed] = useState(true);
   const [playbackIssue, setPlaybackIssue] = useState("");
   const [dragging, setDragging] = useState(false);
   const [top, setTop] = useState(() => getInitialTop());

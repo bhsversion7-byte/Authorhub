@@ -694,3 +694,28 @@ body[data-theme="dark"] .user-unregister-modal .btn-unregister:focus-visible {
     column-gap: 8px !important;
   }
 }
+
+/* Star-map hint sits at the card's bottom-right and can land over a character
+   node's label. A light frosted backdrop keeps the instructional text legible
+   without moving the graph or the nodes. */
+.novel-section .graph-card.relation-graph > .graph-hint {
+  padding: 5px 11px !important;
+  border-radius: 11px !important;
+  background: rgba(247, 243, 235, 0.58) !important;
+  backdrop-filter: blur(3px) !important;
+}
+
+body[data-theme="dark"] .novel-section .graph-card.relation-graph > .graph-hint {
+  background: rgba(26, 24, 22, 0.55) !important;
+}
+
+/* Tablet / small-laptop: the responsive layer stacks the dashboard's profile +
+   progress cards to one column for the whole ≤1180 range, so they stretch
+   edge-to-edge and look sparse (centered avatar / ring floating in wide cards).
+   Once there's room (≥680px) put them back side-by-side like on desktop, across
+   the whole range, so the layout doesn't flip 2→1 column as the window widens. */
+@media (min-width: 680px) and (max-width: 1180px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
