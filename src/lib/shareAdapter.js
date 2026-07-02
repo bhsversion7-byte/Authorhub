@@ -18,7 +18,16 @@ export function parseShareRoute(pathname = window.location.pathname) {
 
 export function buildShareUrl(token, role) {
   const route = role === SHARE_ROLES.EDITOR ? "join" : "share";
-  return `${window.location.origin}/${route}/${encodeURIComponent(token)}`;
+  return `${getShareOrigin()}/${route}/${encodeURIComponent(token)}`;
+}
+
+function getShareOrigin() {
+  const configuredOrigin = import.meta.env?.VITE_PUBLIC_SITE_URL?.replace(/\/+$/, "");
+  if (configuredOrigin) return configuredOrigin;
+
+  const { hostname, origin } = window.location;
+  if (hostname === "localhost" || hostname === "127.0.0.1") return origin;
+  return "https://www.authorhub.cn";
 }
 
 export function createShareToken() {

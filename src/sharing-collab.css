@@ -313,6 +313,15 @@
   opacity: 0.44;
 }
 
+.share-revoke-modal .share-revoke-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.share-revoke-modal .share-revoke-actions button {
+  min-width: 0;
+  white-space: nowrap;
+}
+
 .share-error {
   color: #8a4c44;
   font-size: 12px;
