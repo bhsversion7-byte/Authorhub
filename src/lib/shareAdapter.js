@@ -77,13 +77,18 @@ export async function createShareLink(sharedNovelId, role, sections = DEFAULT_PU
   };
 }
 
-// A fixed, reusable link the owner can hand out to many collaborators.
+// A fixed, reusable link the owner can hand out to many collaborators or
+// readers at once - any number of people can open the same 只读查看 token
+// concurrently, since it's just a plain anon-granted read (no session/lock).
 // Regenerating on every popover open (the old createShareLink-only flow)
 // broke the link for everyone who already had it and churned an
 // insert+update on every view. Reuses the current active link for this
-// role instead - viewer links still need an exact section match, since
-// the sections are baked into the token at creation time.
-export async function getActiveShareLink(sharedNovelId, role, sections = DEFAULT_PUBLIC_SECTIONS) {
+// role instead. `requireSectionMatch` defaults to true (viewer links need
+// an exact section match, since sections are baked into the token at
+// creation time) - pass false to just fetch whatever's currently active
+// regardless of section selection, e.g. to resync the UI after the local
+// section-picker state was reset by a remount instead of by the user.
+export async function getActiveShareLink(sharedNovelId, role, sections = DEFAULT_PUBLIC_SECTIONS, { requireSectionMatch = true } = {}) {
   assertSharingAvailable();
   const { data, error } = await supabase
     .from("author_hub_share_links")
@@ -97,7 +102,7 @@ export async function getActiveShareLink(sharedNovelId, role, sections = DEFAULT
   if (error) throw error;
   if (!data) return null;
 
-  if (role === SHARE_ROLES.VIEWER) {
+  if (role === SHARE_ROLES.VIEWER && requireSectionMatch) {
     const activeSections = normalizePublicSections(data.public_sections, { fallback: FULL_PUBLIC_SECTIONS });
     const requestedSections = normalizePublicSections(sections, { fallback: DEFAULT_PUBLIC_SECTIONS });
     const sameSections = activeSections.length === requestedSections.length && activeSections.every((id) => requestedSections.includes(id));
@@ -112,8 +117,8 @@ export async function getActiveShareLink(sharedNovelId, role, sections = DEFAULT
   };
 }
 
-export async function getOrCreateShareLink(sharedNovelId, role, sections = DEFAULT_PUBLIC_SECTIONS) {
-  const existing = await getActiveShareLink(sharedNovelId, role, sections);
+export async function getOrCreateShareLink(sharedNovelId, role, sections = DEFAULT_PUBLIC_SECTIONS, options = {}) {
+  const existing = await getActiveShareLink(sharedNovelId, role, sections, options);
   if (existing) return existing;
   return createShareLink(sharedNovelId, role, sections);
 }

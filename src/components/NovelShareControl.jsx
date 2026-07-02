@@ -27,14 +27,19 @@ export default function NovelShareControl({ novel, shareInfo, onCreateShareLink 
 
   usePopoverDismiss(open, { buttonRef, popoverRef, onClose: setOpen });
 
-  async function generateLink(nextMode = mode, { forceNew = false } = {}) {
+  async function generateLink(nextMode = mode, { forceNew = false, matchSections = true } = {}) {
     setMode(nextMode);
     setBusy(true);
     setStatus("");
     try {
-      const result = await onCreateShareLink?.(novel, nextMode, selectedSections, { forceNew });
+      const result = await onCreateShareLink?.(novel, nextMode, selectedSections, { forceNew, matchSections });
       setLink(result?.url ?? "");
       setStatus(result?.url ? "ready" : "");
+      // Sync the picker to whatever link actually came back, not just the
+      // locally-selected sections - a popover reopen/remount resets
+      // selectedSections to the defaults, and without this the picker would
+      // silently disagree with the link that's actually already live.
+      if (result?.publicSections?.length) setSelectedSections(result.publicSections);
     } catch (error) {
       console.warn("AuthorHub share link creation failed.", error);
       setStatus("error");
@@ -85,7 +90,13 @@ export default function NovelShareControl({ novel, shareInfo, onCreateShareLink 
 
           <div className="share-mode-tabs" role="tablist" aria-label="分享权限">
             {[SHARE_ROLES.EDITOR, SHARE_ROLES.VIEWER].map((role) => (
-              <button key={role} type="button" className={mode === role ? "is-active" : ""} onClick={() => generateLink(role)} disabled={busy}>
+              <button
+                key={role}
+                type="button"
+                className={mode === role ? "is-active" : ""}
+                onClick={() => generateLink(role, { matchSections: false })}
+                disabled={busy}
+              >
                 {SHARE_COPY[role].label}
               </button>
             ))}
