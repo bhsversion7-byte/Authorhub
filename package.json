@@ -11,6 +11,8 @@
     "verify:share": "node scripts/verify-share-sections.mjs",
     "verify:graph": "node scripts/verify-relation-graph-rules.mjs",
     "email:update:dry-run": "node scripts/send-user-update-email.mjs --dry-run",
+    "email:update:daily-dry-run": "node scripts/send-user-update-email.mjs --dry-run --resume --daily-limit 100",
+    "email:update:daily": "node scripts/send-user-update-email.mjs --send --all --resume --daily-limit 100",
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {

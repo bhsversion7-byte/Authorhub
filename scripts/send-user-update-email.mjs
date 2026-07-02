@@ -14,21 +14,29 @@ const dryRun = !requestedSend || Boolean(args["dry-run"]);
 const sendMode = requestedSend && !dryRun;
 const testRecipients = splitList(args["test-to"]);
 const csvPath = args.emails ? path.resolve(String(args.emails)) : "";
-const limit = Number.parseInt(args.limit ?? "", 10);
+const limit = parsePositiveInt(args.limit);
+const dailyLimit = parsePositiveInt(args["daily-limit"]);
 const offset = Math.max(0, Number.parseInt(args.offset ?? "0", 10) || 0);
 const delayMs = Math.max(0, Number.parseInt(args.delay ?? "160", 10) || 0);
+const useState = Boolean(args.resume || args.state || dailyLimit);
+const statePath = args.state ? path.resolve(String(args.state)) : path.resolve("logs", "authorhub-email-state.json");
+const htmlTemplate = readOptionalFile(args["html-template"] || process.env.AUTHORHUB_EMAIL_HTML_TEMPLATE);
+const textTemplate = readOptionalFile(args["text-template"] || process.env.AUTHORHUB_EMAIL_TEXT_TEMPLATE);
 
 const from = process.env.AUTHORHUB_EMAIL_FROM;
 const feedbackEmail = process.env.AUTHORHUB_FEEDBACK_EMAIL || from || "";
-const subject = process.env.AUTHORHUB_EMAIL_SUBJECT || DEFAULT_SUBJECT;
+const subject = args.subject || process.env.AUTHORHUB_EMAIL_SUBJECT || DEFAULT_SUBJECT;
 
-const recipients = testRecipients.length
+const allRecipients = testRecipients.length
   ? testRecipients
   : csvPath
     ? readEmailsFromFile(csvPath)
     : await listSupabaseAuthEmails();
 
-const selectedRecipients = recipients.slice(offset, Number.isFinite(limit) ? offset + limit : undefined);
+const state = useState ? readState(statePath) : createEmptyState();
+const recipients = useState && !testRecipients.length ? allRecipients.filter((email) => !state.sent.includes(email)) : allRecipients;
+const effectiveLimit = Number.isFinite(limit) ? limit : dailyLimit;
+const selectedRecipients = recipients.slice(offset, Number.isFinite(effectiveLimit) ? offset + effectiveLimit : undefined);
 
 if (!selectedRecipients.length) {
   console.log("No recipients found. Use --test-to, --emails, or Supabase admin env vars.");
@@ -54,6 +62,10 @@ console.log(`${dryRun ? "Dry run" : "Sending"} ${selectedRecipients.length} emai
 console.log(`Subject: ${subject}`);
 console.log(`From: ${from || "(missing until --send)"}`);
 console.log(`First recipients: ${selectedRecipients.slice(0, 5).join(", ")}`);
+if (useState && !testRecipients.length) {
+  console.log(`Resume state: ${statePath}`);
+  console.log(`Already sent according to state: ${state.sent.length}`);
+}
 
 if (dryRun) {
   console.log("Dry run only. Add --send plus the required confirmation env var to send.");
@@ -69,8 +81,13 @@ let failed = 0;
 for (const email of selectedRecipients) {
   const result = await sendEmail(email);
   fs.appendFileSync(logPath, `${JSON.stringify({ email, ...result, at: new Date().toISOString() })}\n`, "utf8");
-  if (result.ok) sent += 1;
-  else failed += 1;
+  if (result.ok) {
+    sent += 1;
+    if (useState && !testRecipients.length) writeState(statePath, markSent(state, email));
+  } else {
+    failed += 1;
+    if (useState && !testRecipients.length) writeState(statePath, markFailed(state, email, result));
+  }
   if (delayMs) await sleep(delayMs);
 }
 
@@ -89,8 +106,8 @@ async function sendEmail(email) {
         from,
         to: [email],
         subject,
-        html: buildHtmlEmail({ feedbackEmail }),
-        text: buildTextEmail({ feedbackEmail }),
+        html: htmlTemplate ? renderTemplate(htmlTemplate, { email, feedbackEmail }) : buildHtmlEmail({ feedbackEmail }),
+        text: textTemplate ? renderTemplate(textTemplate, { email, feedbackEmail }) : buildTextEmail({ feedbackEmail }),
       }),
     });
     const body = await response.text();
@@ -170,6 +187,57 @@ function buildTextEmail({ feedbackEmail: replyTo }) {
 function readEmailsFromFile(filePath) {
   const content = fs.readFileSync(filePath, "utf8");
   return unique((content.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) ?? []).map((email) => email.toLowerCase()));
+}
+
+function readOptionalFile(filePath) {
+  if (!filePath) return "";
+  const resolved = path.resolve(String(filePath));
+  if (!fs.existsSync(resolved)) throw new Error(`Template file not found: ${resolved}`);
+  return fs.readFileSync(resolved, "utf8");
+}
+
+function renderTemplate(template, values) {
+  return template.replace(/\{\{\s*(email|feedbackEmail)\s*\}\}/g, (_, key) => values[key] ?? "");
+}
+
+function parsePositiveInt(value) {
+  const parsed = Number.parseInt(value ?? "", 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : NaN;
+}
+
+function createEmptyState() {
+  return { sent: [], failed: [], updatedAt: null };
+}
+
+function readState(filePath) {
+  if (!fs.existsSync(filePath)) return createEmptyState();
+  try {
+    const state = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    return {
+      sent: unique((state.sent ?? []).filter(isEmail).map((email) => email.toLowerCase())),
+      failed: Array.isArray(state.failed) ? state.failed : [],
+      updatedAt: state.updatedAt ?? null,
+    };
+  } catch (error) {
+    throw new Error(`Could not read email state file: ${filePath}. ${error.message}`);
+  }
+}
+
+function writeState(filePath, state) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, JSON.stringify({ ...state, updatedAt: new Date().toISOString() }, null, 2), "utf8");
+}
+
+function markSent(state, email) {
+  if (!state.sent.includes(email)) state.sent.push(email);
+  state.failed = state.failed.filter((item) => item.email !== email);
+  return state;
+}
+
+function markFailed(state, email, result) {
+  const failure = { email, status: result.status, body: result.body, at: new Date().toISOString() };
+  state.failed = state.failed.filter((item) => item.email !== email).concat(failure);
+  return state;
 }
 
 function parseArgs(argv) {

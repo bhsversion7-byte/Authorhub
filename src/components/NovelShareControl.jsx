@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Check, Copy, Link2, Share2, Undo2, UsersRound, X } from "lucide-react";
+import { Check, Copy, Link2, RefreshCw, Share2, Undo2, UsersRound, X } from "lucide-react";
 import { SHARE_ROLES } from "../lib/shareAdapter.js";
 import { DEFAULT_PUBLIC_SECTIONS, SHAREABLE_SECTIONS } from "../lib/shareSections.js";
 import { usePopoverDismiss } from "../lib/usePopoverDismiss.js";
@@ -157,6 +157,7 @@ export default function NovelShareControl({ novel, shareInfo, onCreateShareLink,
 
           <div className="share-actions">
             <button type="button" onClick={() => generateLink(mode, { forceNew: Boolean(link) })} disabled={busy}>
+              <RefreshCw size={14} />
               {busy ? "生成中" : link ? "重新生成" : "生成链接"}
             </button>
             <button type="button" className="share-revoke-button" onClick={() => setConfirmRevoke(true)} disabled={!link || busy}>
@@ -176,7 +177,7 @@ export default function NovelShareControl({ novel, shareInfo, onCreateShareLink,
         createPortal(
           <div className="modal-backdrop" role="presentation" onMouseDown={() => setConfirmRevoke(false)}>
             <section
-              className="confirm-modal"
+              className="confirm-modal share-revoke-modal"
               role="dialog"
               aria-modal="true"
               aria-labelledby="revoke-share-title"
@@ -187,7 +188,7 @@ export default function NovelShareControl({ novel, shareInfo, onCreateShareLink,
               <p>
                 确定删除 <strong>{link}</strong> 吗？删除后链接无效且对方{mode === SHARE_ROLES.VIEWER ? "不可见" : "不可编辑"}。
               </p>
-              <div className="confirm-actions">
+              <div className="confirm-actions share-revoke-actions">
                 <button type="button" className="ghost-button" onClick={() => setConfirmRevoke(false)}>
                   取消
                 </button>
