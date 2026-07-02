@@ -14,6 +14,7 @@ import {
   getOrCreateShareLink,
   getSharedNovelByToken,
   joinSharedNovel,
+  leaveSharedNovel,
   loadSharedNovelsForUser,
   parseShareRoute,
   revokeShareRole,
@@ -572,15 +573,17 @@ export default function App() {
   function confirmDeleteNovel() {
     if (!deleteCandidate) return;
     if (deleteCandidate.sharedMeta?.id) {
+      const sharedId = deleteCandidate.sharedMeta.id;
       // Drop any edit still waiting out its 900ms debounce for this novel -
       // otherwise it fires after we've already removed the row and its
       // .then() re-adds the just-detached novel right back into
       // sharedNovels. Also mark it detached so a save that was already
       // in flight (network round trip already started) doesn't resurrect it
       // when its own response comes back a moment later.
-      sharedSaveDebouncerRef.current.cancel(deleteCandidate.sharedMeta.id);
-      detachedSharedIdsRef.current.add(deleteCandidate.sharedMeta.id);
-      const nextSharedNovels = sharedNovels.filter((row) => row.id !== deleteCandidate.sharedMeta.id);
+      sharedSaveDebouncerRef.current.cancel(sharedId);
+      detachedSharedIdsRef.current.add(sharedId);
+      const removedRow = sharedNovels.find((row) => row.id === sharedId);
+      const nextSharedNovels = sharedNovels.filter((row) => row.id !== sharedId);
       setSharedNovels(nextSharedNovels);
       // The pre-share private copy is frozen at whatever the novel looked like
       // the moment it was first shared (ensureSharedNovel snapshots it, but
@@ -600,6 +603,18 @@ export default function App() {
       setShareNotice("已从当前视图移除共享小说；云端协作空间仍保留。");
       window.setTimeout(() => setShareNotice(""), 2200);
       setDeleteCandidate(null);
+
+      // The above only updates local React state. Without this, the removed
+      // novel's own membership row survives in Supabase and
+      // list_author_hub_shared_novels() brings it right back on next
+      // load/refresh - "I removed it but it came back after refresh".
+      leaveSharedNovel(sharedId).catch((error) => {
+        console.warn("AuthorHub could not remove shared-novel membership on the server; restoring it locally.", error);
+        detachedSharedIdsRef.current.delete(sharedId);
+        if (removedRow) setSharedNovels((current) => upsertSharedNovelRow(current, removedRow));
+        setShareNotice("移除失败，请检查网络后重试。");
+        window.setTimeout(() => setShareNotice(""), 2600);
+      });
       return;
     }
     const remainingNovels = novels.filter((novel) => novel.id !== deleteCandidate.id);
@@ -810,9 +825,9 @@ export default function App() {
               </>
             ) : (
               <>
-                <p className="eyebrow">Delete novel</p>
-                <h2 id="delete-novel-title">是否确定删除该小说？</h2>
-                <p>该操作将永久清空《{deleteCandidate.title}》相关的全部星图、人物卡片及设定数据。</p>
+                <p className="eyebrow">Remove novel</p>
+                <h2 id="delete-novel-title">是否从手稿列表中移除该小说？</h2>
+                <p>移除后将永久清空《{deleteCandidate.title}》相关的全部星图、人物卡片及设定数据，且无法恢复。请谨慎确认。</p>
               </>
             )}
             <div className="confirm-actions">
