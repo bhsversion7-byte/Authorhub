@@ -146,22 +146,28 @@ async function listSupabaseAuthEmails() {
 
 function buildHtmlEmail({ feedbackEmail: replyTo }) {
   const replyLine = replyTo
-    ? `如需反馈或不想再收到这类产品更新，可以直接回复 <a href="mailto:${escapeHtml(replyTo)}">${escapeHtml(replyTo)}</a>。`
-    : "如需反馈或不想再收到这类产品更新，可以直接回复这封邮件。";
+    ? `如果使用中遇到问题，或者有新的建议，也欢迎直接回复 <a href="mailto:${escapeHtml(replyTo)}">${escapeHtml(replyTo)}</a>。如果不想再收到这类产品更新，也可以回复说明。`
+    : "如果使用中遇到问题，或者有新的建议，也欢迎直接回复这封邮件。如果不想再收到这类产品更新，也可以回复说明。";
   return `<!doctype html>
 <html lang="zh-CN">
   <body style="margin:0;background:#f7f1e7;color:#2f2924;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.7;">
     <main style="max-width:640px;margin:0 auto;padding:32px 20px;">
       <section style="background:#fffaf0;border:1px solid #e7d8bd;border-radius:12px;padding:28px;">
-        <h1 style="margin:0 0 14px;font-size:22px;">AuthorHub 更新说明</h1>
-        <p>你好，AuthorHub 最近完成了一轮精修，主要围绕写作工作台、分享协作和移动端使用体验。</p>
+        <p style="margin:0 0 8px;">亲爱的友友，</p>
+        <p style="margin:0 0 22px;">你好。</p>
+        <p>非常感谢这段时间的使用和陪伴❤！现根据评论区的建议和投票结果，AuthorHub 做了如下更新：</p>
         <ul>
-          <li>只读分享可以选择公开哪些内容，对方只能浏览，不能改动你的工作区。</li>
-          <li>人物星图、时间线、音乐播放器和移动端导航做了稳定性优化。</li>
-          <li>协作与分享的权限边界更清楚，私密人物字段不会出现在只读公开链接里。</li>
+          <li>新增「时间点卡片」拖拽排序，可以手动调整剧情时间线的顺序。</li>
+          <li>新增人物关系星图的视觉强化：标签中带有「主角」的人物之间，关系线会显示为红色，更方便快速识别核心关系。</li>
+          <li>新增分享链接功能：你可以邀请亲友一起编辑，也可以生成只读查看链接。</li>
+          <li>只读查看支持选择公开范围，例如大纲、设定集、主题标签、星图、人物详情、时间线。未选择的内容对方看不到。</li>
+          <li>新增分享链接撤回功能，发错或不想继续公开时，可以及时撤回。</li>
+          <li>修复了一些已知问题，并增强了云端备份、保存稳定性和安全性。</li>
+          <li>优化了手机端和网页端的一些细节体验。</li>
         </ul>
-        <p>你收到这封邮件，是因为你曾注册或使用 AuthorHub。${replyLine}</p>
-        <p style="margin-top:24px;color:#7a6c5e;font-size:13px;">AuthorHub 团队</p>
+        <p>大家可以通过这里继续使用：<br><a href="https://www.authorhub.cn" style="color:#6d4d3d;">https://www.authorhub.cn</a></p>
+        <p>${replyLine}真的很感谢大家愿意陪这个小工具慢慢变好。</p>
+        <p style="margin-top:24px;">此致敬礼，<br>本狗老师</p>
       </section>
     </main>
   </body>
@@ -169,18 +175,30 @@ function buildHtmlEmail({ feedbackEmail: replyTo }) {
 }
 
 function buildTextEmail({ feedbackEmail: replyTo }) {
+  const replyLine = replyTo
+    ? `如果使用中遇到问题，或者有新的建议，也欢迎直接回复 ${replyTo}。如果不想再收到这类产品更新，也可以回复说明。`
+    : "如果使用中遇到问题，或者有新的建议，也欢迎直接回复这封邮件。如果不想再收到这类产品更新，也可以回复说明。";
   return [
-    "AuthorHub 更新说明",
+    "亲爱的友友，",
+    "你好。",
     "",
-    "你好，AuthorHub 最近完成了一轮精修，主要围绕写作工作台、分享协作和移动端使用体验。",
+    "非常感谢这段时间的使用和陪伴❤！现根据评论区的建议和投票结果，AuthorHub 做了如下更新：",
     "",
-    "- 只读分享可以选择公开哪些内容，对方只能浏览，不能改动你的工作区。",
-    "- 人物星图、时间线、音乐播放器和移动端导航做了稳定性优化。",
-    "- 协作与分享的权限边界更清楚，私密人物字段不会出现在只读公开链接里。",
+    "- 新增「时间点卡片」拖拽排序，可以手动调整剧情时间线的顺序。",
+    "- 新增人物关系星图的视觉强化：标签中带有「主角」的人物之间，关系线会显示为红色，更方便快速识别核心关系。",
+    "- 新增分享链接功能：你可以邀请亲友一起编辑，也可以生成只读查看链接。",
+    "- 只读查看支持选择公开范围，例如大纲、设定集、主题标签、星图、人物详情、时间线。未选择的内容对方看不到。",
+    "- 新增分享链接撤回功能，发错或不想继续公开时，可以及时撤回。",
+    "- 修复了一些已知问题，并增强了云端备份、保存稳定性和安全性。",
+    "- 优化了手机端和网页端的一些细节体验。",
     "",
-    `你收到这封邮件，是因为你曾注册或使用 AuthorHub。${replyTo ? `如需反馈或不想再收到这类产品更新，可以直接回复 ${replyTo}。` : "如需反馈或不想再收到这类产品更新，可以直接回复这封邮件。"}`,
+    "大家可以通过这里继续使用：",
+    "https://www.authorhub.cn",
     "",
-    "AuthorHub 团队",
+    `${replyLine}真的很感谢大家愿意陪这个小工具慢慢变好。`,
+    "",
+    "此致敬礼，",
+    "本狗老师",
   ].join("\n");
 }
 
