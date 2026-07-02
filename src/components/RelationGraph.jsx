@@ -213,7 +213,7 @@ export default function RelationGraph({
       .data(links)
       .join("path")
       .attr("stroke", (relationship) =>
-        relationship.isPreview ? "#7E9A9A" : isMainPairRelationship(relationship, nodes, getNodeId) ? MAIN_PAIR_RELATION_COLOR : novel.color,
+        isMainPairRelationship(relationship, nodes, getNodeId) ? MAIN_PAIR_RELATION_COLOR : relationship.isPreview ? "#7E9A9A" : novel.color,
       )
       .attr("stroke-width", (relationship) => (relationship.isPreview ? 2.2 : isCoreRelationship(relationship, nodes) ? 1.7 : 1.25))
       .attr("stroke-dasharray", (relationship) => (relationship.isPreview ? "3 5" : "5 7"))

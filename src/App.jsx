@@ -10,6 +10,7 @@ import {
   createShareLink as createSharedNovelLink,
   decorateSharedNovel,
   ensureSharedNovel,
+  getOrCreateShareLink,
   getSharedNovelByToken,
   joinSharedNovel,
   loadSharedNovelsForUser,
@@ -602,7 +603,7 @@ export default function App() {
     });
   }
 
-  async function createNovelShareLink(novel, role, sections) {
+  async function createNovelShareLink(novel, role, sections, { forceNew = false } = {}) {
     const existingSharedId = novel.sharedMeta?.id;
     let sharedRow = existingSharedId ? sharedNovels.find((row) => row.id === existingSharedId) : null;
     if (!sharedRow) {
@@ -610,7 +611,12 @@ export default function App() {
       setSharedNovels((current) => upsertSharedNovelRow(current, sharedRow));
       setActiveView(`shared-${sharedRow.id}`);
     }
-    const link = await createSharedNovelLink(sharedRow.id, role, sections);
+    // Only an explicit "重新生成" forces a brand-new token (revoking the old
+    // one). Every other call (opening the share panel, switching the
+    // 共同编辑/只读查看 tab) reuses the current active link so the owner can
+    // hand out one stable URL to many collaborators instead of it silently
+    // changing - which also avoids an insert+update round trip on every view.
+    const link = forceNew ? await createSharedNovelLink(sharedRow.id, role, sections) : await getOrCreateShareLink(sharedRow.id, role, sections);
     setShareNotice(role === SHARE_ROLES.EDITOR ? "共同编辑链接已生成。" : "只读查看链接已生成。");
     window.setTimeout(() => setShareNotice(""), 1800);
     return link;
