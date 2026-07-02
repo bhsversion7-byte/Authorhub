@@ -8,6 +8,9 @@
     "dev:any": "vite --host 127.0.0.1",
     "build": "vite build",
     "verify:markdown": "node scripts/verify-markdown-export.mjs",
+    "verify:share": "node scripts/verify-share-sections.mjs",
+    "verify:graph": "node scripts/verify-relation-graph-rules.mjs",
+    "email:update:dry-run": "node scripts/send-user-update-email.mjs --dry-run",
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {

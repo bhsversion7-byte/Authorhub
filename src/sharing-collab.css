@@ -1,0 +1,539 @@
+/* Sharing and timeline sorting: scoped feature layer. */
+
+.novel-hero-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  justify-self: center;
+  align-self: center;
+}
+
+.novel-section .novel-meta {
+  grid-template-columns: minmax(174px, 1.06fr) minmax(106px, 0.74fr) 102px !important;
+  width: min(510px, 100%) !important;
+  column-gap: 10px !important;
+}
+
+.novel-section .novel-meta .novel-meta-field:nth-of-type(2) {
+  justify-self: start;
+  width: min(104px, 100%) !important;
+}
+
+.novel-section .novel-meta .novel-hero-actions {
+  justify-self: end;
+  width: max-content;
+}
+
+.novel-share-control {
+  position: relative;
+  z-index: 6;
+}
+
+.novel-share-button {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid rgba(132, 111, 79, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 253, 248, 0.68);
+  color: rgba(77, 67, 58, 0.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 10px 22px rgba(88, 70, 42, 0.08);
+  transition:
+    transform 180ms var(--ease),
+    border-color 180ms var(--ease),
+    box-shadow 180ms var(--ease);
+}
+
+.novel-share-button:hover,
+.novel-share-button:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(108, 139, 136, 0.36);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 12px 24px rgba(88, 70, 42, 0.12);
+}
+
+.novel-share-button:active {
+  transform: translateY(0);
+}
+
+.novel-share-popover {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  display: grid;
+  width: min(360px, calc(100vw - 34px));
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid rgba(218, 203, 178, 0.82);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(255, 253, 248, 0.68), transparent 34%),
+    rgba(250, 246, 237, 0.96);
+  color: #3f382f;
+  text-align: left;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 18px 42px rgba(44, 38, 30, 0.14);
+  backdrop-filter: blur(14px) saturate(0.98);
+}
+
+.novel-share-popover::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  right: 18px;
+  width: 14px;
+  height: 14px;
+  border-left: 1px solid rgba(218, 203, 178, 0.82);
+  border-top: 1px solid rgba(218, 203, 178, 0.82);
+  background: rgba(250, 246, 237, 0.96);
+  transform: rotate(45deg);
+}
+
+.share-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(234, 223, 212, 0.54);
+  color: rgba(65, 56, 47, 0.72);
+}
+
+.share-heading {
+  display: grid;
+  gap: 5px;
+  padding-right: 34px;
+}
+
+.share-heading span,
+.share-heading small {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.share-heading span {
+  font-weight: 800;
+  color: #332d27;
+  background: none;
+  border: 0;
+  padding: 0;
+  border-radius: 0;
+}
+
+.share-heading small {
+  color: rgba(85, 75, 65, 0.68);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.share-mode-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(235, 225, 209, 0.48);
+}
+
+.share-mode-tabs button {
+  min-height: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(74, 64, 54, 0.7);
+  font-weight: 800;
+}
+
+.share-mode-tabs button.is-active {
+  background: rgba(255, 253, 248, 0.9);
+  color: #2f2a25;
+  box-shadow: 0 8px 18px rgba(44, 38, 30, 0.08);
+}
+
+.novel-share-popover p {
+  margin: 0;
+  color: rgba(75, 65, 55, 0.72);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.share-section-picker {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid rgba(218, 203, 178, 0.56);
+  border-radius: 16px;
+  background: rgba(244, 237, 224, 0.42);
+}
+
+.share-section-picker legend {
+  padding: 0 5px;
+  color: rgba(91, 79, 68, 0.74);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.share-section-picker > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.share-section-picker button {
+  min-height: 30px;
+  padding: 6px 11px;
+  border: 1px solid rgba(224, 210, 189, 0.8);
+  border-radius: 999px;
+  background: rgba(255, 250, 244, 0.92);
+  color: rgba(90, 78, 66, 0.82);
+  font-size: 12px;
+  font-weight: 850;
+  transition:
+    transform 160ms var(--ease),
+    background 160ms var(--ease),
+    border-color 160ms var(--ease),
+    color 160ms var(--ease);
+}
+
+.share-section-picker button.is-selected {
+  border-color: #2c2a29;
+  background: #2c2a29;
+  color: #fff8ef;
+  box-shadow: 0 10px 22px rgba(44, 38, 30, 0.16);
+}
+
+.share-section-picker button:hover:not(:disabled),
+.share-section-picker button:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(108, 139, 136, 0.34);
+}
+
+.novel-share-popover .share-link-field {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: rgba(91, 79, 68, 0.78);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.share-link-field > div {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 13px;
+  border: 1px solid rgba(218, 203, 178, 0.7);
+  border-radius: 999px;
+  background: rgba(255, 253, 248, 0.72);
+}
+
+.share-link-field input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: #2f2924;
+  font-size: 12px;
+}
+
+/* .novel-section .novel-hero :where(input, textarea, select) forces a light
+   !important background on every input inside the hero (specificity 0,2,0),
+   including this one since the popover is a DOM descendant of .novel-hero.
+   Needs 2 classes + !important to win. */
+.novel-share-popover .share-link-field input {
+  background: transparent !important;
+}
+
+.share-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.share-actions button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.share-actions button:first-child {
+  border: 1px solid rgba(44, 38, 33, 0.12);
+  background: rgba(255, 253, 248, 0.72);
+  color: rgba(44, 38, 33, 0.84);
+}
+
+.share-actions button:last-child {
+  border: 1px solid rgba(255, 248, 239, 0.24);
+  background: linear-gradient(135deg, #2c2621, #3a3028);
+  color: #fff8ef;
+}
+
+.share-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.44;
+}
+
+.share-error {
+  color: #8a4c44;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.timeline-sort-chosen {
+  border-color: rgba(108, 139, 136, 0.48) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 18px 34px rgba(44, 38, 30, 0.14) !important;
+}
+
+.timeline-sort-drag {
+  opacity: 0.94 !important;
+  transform: translateY(-3px) !important;
+}
+
+.timeline-sort-ghost {
+  opacity: 0.38 !important;
+  background: rgba(255, 253, 248, 0.58) !important;
+  border-style: dashed !important;
+}
+
+.share-sync-toast {
+  position: fixed;
+  right: clamp(18px, 4vw, 44px);
+  bottom: clamp(24px, 5vw, 54px);
+  z-index: 120;
+  max-width: min(360px, calc(100vw - 32px));
+  padding: 12px 16px;
+  border: 1px solid rgba(218, 203, 178, 0.8);
+  border-radius: 999px;
+  background: rgba(255, 253, 248, 0.92);
+  color: rgba(60, 52, 44, 0.88);
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    0 14px 32px rgba(44, 38, 30, 0.14);
+  backdrop-filter: blur(12px);
+}
+
+.shared-view-shell {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 74% 12%, rgba(196, 176, 142, 0.12), transparent 34%),
+    rgba(245, 241, 232, 0.1) url("/texture-3-bg.jpg") center center / cover no-repeat,
+    #f5f1e8;
+}
+
+.shared-view-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: url("/texture-3-bg.jpg") center center / cover no-repeat;
+  opacity: 0.42;
+  mix-blend-mode: multiply;
+}
+
+.shared-view-shell .content-shell,
+.shared-view-content {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+}
+
+.shared-view-content {
+  padding: clamp(18px, 3vw, 42px) clamp(16px, 4vw, 56px) 56px !important;
+}
+
+.shared-view-ribbon {
+  display: inline-flex;
+  max-width: min(760px, 100%);
+  margin: 0 0 16px;
+  padding: 10px 16px;
+  border: 1px solid rgba(218, 203, 178, 0.72);
+  border-radius: 999px;
+  background: rgba(255, 253, 248, 0.72);
+  color: rgba(66, 58, 50, 0.78);
+  box-shadow: 0 10px 26px rgba(44, 38, 30, 0.08);
+}
+
+.shared-view-ribbon strong {
+  color: #312b26;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.shared-view-ribbon small {
+  display: none;
+}
+
+.shared-view-empty {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.novel-section.is-read-only :is(input, textarea) {
+  cursor: default;
+}
+
+.novel-section.is-read-only :is(.tag-chip-board button, .node-color-picker button):disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+body[data-theme="dark"] .novel-share-popover {
+  border-color: rgba(230, 210, 184, 0.26);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(255, 248, 232, 0.1), transparent 34%),
+    rgba(42, 37, 32, 0.96);
+  color: rgba(255, 248, 239, 0.94);
+}
+
+body[data-theme="dark"] .novel-share-popover::before {
+  border-color: rgba(230, 210, 184, 0.26);
+  background: rgba(42, 37, 32, 0.96);
+}
+
+body[data-theme="dark"] .share-heading span,
+body[data-theme="dark"] .share-link-field input {
+  color: rgba(255, 248, 239, 0.96);
+}
+
+body[data-theme="dark"] .share-heading small,
+body[data-theme="dark"] .novel-share-popover p,
+body[data-theme="dark"] .share-link-field {
+  color: rgba(236, 218, 196, 0.74);
+}
+
+body[data-theme="dark"] .share-mode-tabs,
+body[data-theme="dark"] .share-link-field > div {
+  background: rgba(255, 248, 232, 0.1);
+  border-color: rgba(230, 210, 184, 0.18);
+}
+
+body[data-theme="dark"] .share-mode-tabs button {
+  color: rgba(236, 218, 196, 0.72);
+}
+
+body[data-theme="dark"] .share-mode-tabs button.is-active {
+  background: rgba(255, 248, 232, 0.84);
+  color: rgba(44, 38, 33, 0.92);
+}
+
+body[data-theme="dark"] .share-section-picker {
+  border-color: rgba(230, 210, 184, 0.18);
+  background: rgba(255, 248, 232, 0.08);
+}
+
+body[data-theme="dark"] .share-section-picker legend,
+body[data-theme="dark"] .share-section-picker button {
+  color: rgba(236, 218, 196, 0.72);
+}
+
+body[data-theme="dark"] .share-section-picker button {
+  border-color: rgba(255, 248, 232, 0.22);
+  background: rgba(255, 248, 232, 0.85);
+  color: rgba(58, 50, 42, 0.88);
+}
+
+body[data-theme="dark"] .share-section-picker button.is-selected {
+  border-color: rgba(38, 35, 31, 0.92);
+  background: rgba(38, 35, 31, 0.92);
+  color: rgba(255, 244, 228, 0.92);
+}
+
+body[data-theme="dark"] .share-sync-toast {
+  border-color: rgba(230, 210, 184, 0.24);
+  background: rgba(42, 37, 32, 0.94);
+  color: rgba(255, 248, 239, 0.9);
+}
+
+body[data-theme="dark"] .shared-view-shell {
+  background:
+    radial-gradient(circle at 74% 14%, rgba(111, 72, 88, 0.2), transparent 28%),
+    linear-gradient(135deg, rgba(20, 25, 28, 0.94), rgba(28, 25, 30, 0.92)),
+    url("/texture-3-wide.jpg") center center / cover no-repeat,
+    #111418;
+}
+
+body[data-theme="dark"] .shared-view-ribbon {
+  border-color: rgba(230, 210, 184, 0.22);
+  background: rgba(42, 37, 32, 0.78);
+  color: rgba(236, 218, 196, 0.74);
+}
+
+body[data-theme="dark"] .shared-view-ribbon strong {
+  color: rgba(255, 248, 239, 0.95);
+}
+
+.relation-layout.has-no-details,
+.relation-layout.has-no-graph {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.relation-layout.has-no-details .graph-card.relation-graph {
+  min-height: clamp(520px, 56vh, 720px);
+}
+
+/* Below a genuinely wide desktop window, .novel-hero-actions (AO3 + share)
+   sits in its own dedicated 3rd grid column spanning both field rows,
+   centered top-to-bottom - at 1280px this reads fine because the novel-hero
+   card has enough surrounding width for that to look like deliberate side
+   placement, but the same layout at any narrower window (a laptop or a
+   resized/snapped browser, not just phones) makes it look like a floating
+   island that doesn't belong to either field row. 1180px matches this
+   codebase's existing "tablet/small-laptop" cutoff (.dashboard-grid,
+   .relation-layout use the same value) rather than a one-off guess. */
+@media (max-width: 1180px) {
+  /* Was grid-column: auto with a leftover 3rd 56px track from desktop's
+     dedicated actions column: the 4 meta fields auto-flowed through all 3
+     tracks first, so the 3rd field (预计总字数) landed in that 56px column
+     meant for icon buttons and had its digits clipped. Two even field
+     columns + a dedicated full-width row for AO3/share avoids that. */
+  .novel-hero-actions {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    justify-self: end;
+  }
+
+  .novel-section .novel-meta {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .novel-share-popover {
+    right: -62px;
+  }
+}

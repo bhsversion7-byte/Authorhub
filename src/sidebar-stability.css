@@ -164,7 +164,7 @@ body[data-theme="dark"] .sidebar-collapse-toggle:focus-visible {
 .sidebar .novel-nav-item {
   cursor: grab;
   user-select: none;
-  touch-action: none;
+  touch-action: pan-x;
   transition:
     transform 180ms var(--ease),
     background 180ms var(--ease),
@@ -177,6 +177,57 @@ body[data-theme="dark"] .sidebar-collapse-toggle:focus-visible {
 .sidebar .novel-sort-chosen,
 .sidebar .novel-sort-drag {
   cursor: grabbing;
+}
+
+.sidebar .novel-drag-handle {
+  position: absolute;
+  right: 42px;
+  z-index: 5;
+  display: none;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  color: rgba(93, 83, 73, 0.34);
+  cursor: grab;
+  border-radius: 999px;
+  opacity: 0.68;
+  touch-action: none;
+  transition:
+    color 160ms var(--ease),
+    opacity 160ms var(--ease),
+    transform 160ms var(--ease);
+}
+
+.sidebar .novel-drag-handle:hover,
+.sidebar .novel-nav-item:hover .novel-drag-handle {
+  color: rgba(69, 61, 53, 0.58);
+  opacity: 0.9;
+}
+
+.sidebar .novel-sort-chosen .novel-drag-handle,
+.sidebar .novel-sort-drag .novel-drag-handle {
+  cursor: grabbing;
+  transform: translateY(-1px);
+}
+
+.sidebar .novel-nav-item.is-active .novel-drag-handle {
+  color: rgba(255, 248, 239, 0.58);
+}
+
+@media (pointer: coarse) {
+  .sidebar .novel-nav-item {
+    cursor: default;
+  }
+
+  .sidebar .novel-nav-item:active,
+  .sidebar .novel-sort-chosen,
+  .sidebar .novel-sort-drag {
+    cursor: default;
+  }
+
+  .sidebar .novel-drag-handle {
+    display: grid;
+  }
 }
 
 .sidebar .novel-sort-chosen {

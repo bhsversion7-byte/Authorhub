@@ -1,69 +1,3 @@
--- Author Hub production schema template.
--- Use Supabase Auth for email/password registration and login.
--- Password hashes are managed by Supabase Auth; do not store plaintext passwords.
---
--- This template mirrors the canonical migration in
--- supabase/migrations/20260613143000_author_hub_documents.sql so a fresh
--- project set up from this file behaves identically to the deployed instance.
-
-create extension if not exists pgcrypto;
-
-create table if not exists public.profiles (
-  user_id uuid primary key references auth.users(id) on delete cascade,
-  username text not null default 'writer',
-  email text,
-  has_completed_tour boolean not null default false,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-create table if not exists public.author_hub_documents (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  title text not null default 'default-author-hub',
-  document jsonb not null default '{}'::jsonb,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  unique (user_id, title)
-);
-
-create or replace function public.set_updated_at()
-returns trigger
-language plpgsql
-as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$;
-
-drop trigger if exists profiles_set_updated_at on public.profiles;
-create trigger profiles_set_updated_at
-before update on public.profiles
-for each row execute function public.set_updated_at();
-
-drop trigger if exists documents_set_updated_at on public.author_hub_documents;
-create trigger documents_set_updated_at
-before update on public.author_hub_documents
-for each row execute function public.set_updated_at();
-
-alter table public.profiles enable row level security;
-alter table public.author_hub_documents enable row level security;
-
-drop policy if exists "profiles are private" on public.profiles;
-create policy "profiles are private"
-  on public.profiles
-  for all
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
-
-drop policy if exists "documents are private" on public.author_hub_documents;
-create policy "documents are private"
-  on public.author_hub_documents
-  for all
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
-
 -- Shared novel workspaces.
 -- Editor links require login and join the shared source document. Viewer links
 -- are public-by-token but read-only in the app.
@@ -94,7 +28,6 @@ create table if not exists public.author_hub_share_links (
   role text not null check (role in ('editor', 'viewer')),
   created_by uuid references auth.users(id) on delete cascade default auth.uid(),
   is_active boolean not null default true,
-  public_sections text[],
   created_at timestamptz not null default now()
 );
 
@@ -386,95 +319,23 @@ begin
 end;
 $$;
 
-drop function if exists public.sanitize_author_hub_public_novel(jsonb);
-drop function if exists public.author_hub_strip_private_jsonb(jsonb);
-
-create or replace function public.author_hub_strip_private_jsonb(p_value jsonb)
-returns jsonb
-language sql
-immutable
-as $$
-  select case jsonb_typeof(p_value)
-    when 'object' then coalesce(
-      (
-        select jsonb_object_agg(key, public.author_hub_strip_private_jsonb(value))
-        from jsonb_each(p_value)
-        where key <> all(array['secret', 'hidden', 'privateNote'])
-      ),
-      '{}'::jsonb
-    )
-    when 'array' then coalesce(
-      (
-        select jsonb_agg(public.author_hub_strip_private_jsonb(value) order by ord)
-        from jsonb_array_elements(p_value) with ordinality as item(value, ord)
-      ),
-      '[]'::jsonb
-    )
-    else p_value
-  end;
-$$;
-
-create or replace function public.sanitize_author_hub_public_novel(
-  p_novel jsonb,
-  p_sections text[] default null
-)
+create or replace function public.sanitize_author_hub_public_novel(p_novel jsonb)
 returns jsonb
 language sql
 stable
 as $$
-  with cleaned as (
-    select public.author_hub_strip_private_jsonb(coalesce(p_novel, '{}'::jsonb)) as novel
-  ),
-  selected as (
-    select coalesce(
-      p_sections,
-      array['outline', 'setting', 'themes', 'graph', 'characters', 'timeline']::text[]
-    ) as sections
-  )
-  select jsonb_strip_nulls(
-    cleaned.novel
-    || jsonb_build_object(
-      'outline',
-        case when 'outline' = any(selected.sections) then coalesce(cleaned.novel->>'outline', '') else '' end,
-      'setting',
-        case when 'setting' = any(selected.sections) then coalesce(cleaned.novel->>'setting', '') else '' end,
-      'themes',
-        case when 'themes' = any(selected.sections) then coalesce(cleaned.novel->'themes', '[]'::jsonb) else '[]'::jsonb end,
-      'characters',
-        case
-          when 'characters' = any(selected.sections) then coalesce(
-            (
-              select jsonb_agg(character order by ord)
-              from jsonb_array_elements(coalesce(cleaned.novel->'characters', '[]'::jsonb)) with ordinality as item(character, ord)
-            ),
-            '[]'::jsonb
-          )
-          when 'graph' = any(selected.sections) then coalesce(
-            (
-              select jsonb_agg(
-                jsonb_strip_nulls(jsonb_build_object(
-                  'id', character->'id',
-                  'name', character->'name',
-                  'role', character->'role',
-                  'tag', character->'tag',
-                  'faction', character->'faction',
-                  'color', character->'color'
-                ))
-                order by ord
-              )
-              from jsonb_array_elements(coalesce(cleaned.novel->'characters', '[]'::jsonb)) with ordinality as item(character, ord)
-            ),
-            '[]'::jsonb
-          )
-          else '[]'::jsonb
-        end,
-      'relationships',
-        case when 'graph' = any(selected.sections) then coalesce(cleaned.novel->'relationships', '[]'::jsonb) else '[]'::jsonb end,
-      'timeline',
-        case when 'timeline' = any(selected.sections) then coalesce(cleaned.novel->'timeline', '[]'::jsonb) else '[]'::jsonb end
-    )
-  )
-  from selected, cleaned;
+  select jsonb_set(
+    p_novel,
+    '{characters}',
+    coalesce(
+      (
+        select jsonb_agg(character - 'secret' - 'hidden' - 'privateNote' order by ord)
+        from jsonb_array_elements(coalesce(p_novel->'characters', '[]'::jsonb)) with ordinality as item(character, ord)
+      ),
+      '[]'::jsonb
+    ),
+    true
+  );
 $$;
 
 create or replace function public.get_author_hub_shared_novel_by_token(p_token text)
@@ -484,8 +345,7 @@ returns table (
   role text,
   novel jsonb,
   collaborator_count integer,
-  updated_at timestamptz,
-  public_sections text[]
+  updated_at timestamptz
 )
 language sql
 security definer
@@ -495,13 +355,9 @@ as $$
     shared.id,
     shared.source_novel_id,
     'viewer'::text as role,
-    public.sanitize_author_hub_public_novel(shared.novel, link.public_sections),
+    public.sanitize_author_hub_public_novel(shared.novel),
     (select count(*)::integer from public.author_hub_share_members member where member.shared_novel_id = shared.id),
-    shared.updated_at,
-    coalesce(
-      link.public_sections,
-      array['outline', 'setting', 'themes', 'graph', 'characters', 'timeline']::text[]
-    )
+    shared.updated_at
   from public.author_hub_share_links link
   join public.author_hub_shared_novels shared on shared.id = link.shared_novel_id
   where link.token = p_token
@@ -516,8 +372,7 @@ revoke all on function public.list_author_hub_shared_novels() from public;
 revoke all on function public.join_author_hub_shared_novel(text) from public;
 revoke all on function public.get_author_hub_shared_novel_by_token(text) from public;
 revoke all on function public.save_author_hub_shared_novel(uuid, jsonb, timestamptz) from public;
-revoke all on function public.sanitize_author_hub_public_novel(jsonb, text[]) from public;
-revoke all on function public.author_hub_strip_private_jsonb(jsonb) from public;
+revoke all on function public.sanitize_author_hub_public_novel(jsonb) from public;
 
 grant execute on function public.ensure_author_hub_shared_novel(text, jsonb) to authenticated;
 grant execute on function public.author_hub_can_access_shared_novel(uuid, text[]) to authenticated;
@@ -539,3 +394,4 @@ begin
   end if;
 end;
 $$;
+
