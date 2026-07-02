@@ -15,6 +15,7 @@ import {
   joinSharedNovel,
   loadSharedNovelsForUser,
   parseShareRoute,
+  revokeShareRole,
   saveSharedNovel,
   stripSharedNovel,
   subscribeToSharedNovel,
@@ -629,6 +630,20 @@ export default function App() {
     return link;
   }
 
+  async function revokeNovelShareRole(novel, role) {
+    const sharedId = novel.sharedMeta?.id;
+    if (!sharedId) return;
+    await revokeShareRole(sharedId, role);
+    // Editor revoke also removes every joined collaborator's membership
+    // server-side, so the count drops back to just the owner; viewer access
+    // was never tracked as membership, so its count is unaffected.
+    if (role === SHARE_ROLES.EDITOR) {
+      setSharedNovels((current) => upsertSharedNovelRow(current, { id: sharedId, collaboratorCount: 1 }));
+    }
+    setShareNotice(role === SHARE_ROLES.EDITOR ? "共同编辑链接已撤回。" : "只读查看链接已撤回。");
+    window.setTimeout(() => setShareNotice(""), 1800);
+  }
+
   if (shareRoute?.intent === SHARE_ROLES.VIEWER) {
     return <SharedNovelPublicPage state={publicShare} />;
   }
@@ -718,6 +733,7 @@ export default function App() {
               onDeleteEvent={deleteEvent}
               onReorderEvent={reorderEvent}
               onCreateShareLink={createNovelShareLink}
+              onRevokeShareLink={revokeNovelShareRole}
               shareInfo={activeNovel.sharedMeta}
               visibleSections={activeNovel.sharedMeta?.publicSections}
             />
