@@ -267,7 +267,7 @@
 
 .share-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 9px;
 }
 
@@ -291,6 +291,21 @@
   border: 1px solid rgba(255, 248, 239, 0.24);
   background: linear-gradient(135deg, #2c2621, #3a3028);
   color: #fff8ef;
+}
+
+/* Same rose/red "danger-lite" palette used by 删除人物/删除时间点 elsewhere
+   in the app, kept as a pill (not their rounded-rect radius) to match this
+   row's other two buttons. */
+.share-actions button.share-revoke-button {
+  border: 1px solid rgba(184, 141, 133, 0.42);
+  background: rgba(184, 141, 133, 0.14);
+  color: #7a4a42;
+}
+
+.share-actions button.share-revoke-button:hover:not(:disabled),
+.share-actions button.share-revoke-button:focus-visible {
+  border-color: rgba(184, 141, 133, 0.6);
+  background: rgba(184, 141, 133, 0.22);
 }
 
 .share-actions button:disabled {
@@ -460,6 +475,12 @@ body[data-theme="dark"] .share-section-picker button.is-selected {
   border-color: rgba(38, 35, 31, 0.92);
   background: rgba(38, 35, 31, 0.92);
   color: rgba(255, 244, 228, 0.92);
+}
+
+body[data-theme="dark"] .share-actions button.share-revoke-button {
+  border-color: rgba(184, 141, 133, 0.4);
+  background: rgba(184, 141, 133, 0.2);
+  color: #f3c9c4;
 }
 
 body[data-theme="dark"] .share-sync-toast {

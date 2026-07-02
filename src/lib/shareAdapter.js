@@ -123,6 +123,20 @@ export async function getOrCreateShareLink(sharedNovelId, role, sections = DEFAU
   return createShareLink(sharedNovelId, role, sections);
 }
 
+// Explicit "撤回": deletes the link so it stops working immediately, and for
+// editor also removes every already-joined collaborator's membership - not
+// just future joins via that URL, since the point is taking back access the
+// owner regrets having handed out. Viewer access is purely token-based (no
+// membership row), so deleting the link alone fully revokes it.
+export async function revokeShareRole(sharedNovelId, role) {
+  assertSharingAvailable();
+  const { error } = await supabase.rpc("revoke_author_hub_share_role", {
+    p_shared_novel_id: sharedNovelId,
+    p_role: role,
+  });
+  if (error) throw error;
+}
+
 export async function getSharedNovelByToken(token) {
   assertSharingAvailable();
   const { data, error } = await supabase.rpc("get_author_hub_shared_novel_by_token", {
