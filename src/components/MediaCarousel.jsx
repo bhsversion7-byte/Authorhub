@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, ImagePlus, Link, Trash2, X } from "lucide-react";
 import { deleteImageFromStorage, uploadImageToStorage } from "../lib/mediaStorage.js";
 
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 
 const previewDialogStyle = {
   position: "relative",
@@ -104,7 +104,7 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
 
     const allowedFiles = files.filter((file) => file.size <= MAX_IMAGE_BYTES);
     const rejectedCount = files.length - allowedFiles.length;
-    setMediaError(rejectedCount ? `已跳过 ${rejectedCount} 张超过 5MB 的图片。` : "");
+    setMediaError(rejectedCount ? `已跳过 ${rejectedCount} 张超过 2MB 的图片。` : "");
 
     Promise.all(
       allowedFiles.map(async (file) => {
@@ -338,7 +338,7 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
             ) : (
               <>
                 添加 2 张或更多图片后，可滑动查看。
-                <span className="media-empty-hint">单张图片最大 5MB。</span>
+                <span className="media-empty-hint">单张图片最大 2MB。</span>
               </>
             )}
           </div>

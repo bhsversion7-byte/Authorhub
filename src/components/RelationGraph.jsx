@@ -202,22 +202,37 @@ export default function RelationGraph({
         key: previewRelationshipKey,
       });
     }
-    const nodes = (novel.characters ?? []).map((character, index) => {
+    // Obsidian-style ring sizing: with only a few supporting characters a
+    // tight ring looks intentional, but the old fixed 150px starting radius
+    // (plus a fixed 270px force target below) crammed every supporting
+    // character onto the same-size ring regardless of how many there were,
+    // which is what actually got messy past ~5 - not enough circumference
+    // for everyone, so collision force had to fight to un-overlap them.
+    // Both the starting layout and the ongoing radial pull now grow with
+    // the supporting-character count instead of staying fixed.
+    const nonMainCharacters = (novel.characters ?? []).filter((character) => !isMainTag(character));
+    const nonMainCount = Math.max(1, nonMainCharacters.length);
+    const supportRingRadius = Math.max(150, Math.min(420, 60 + nonMainCount * 34));
+    let nonMainIndex = 0;
+    const nodes = (novel.characters ?? []).map((character) => {
       const tag = getCharacterTag(character);
       // Resume from wherever this character last settled (survives clicks/
       // new-character-added rebuilds without visually jumping). A character
       // with no remembered position yet - first render, or just after
       // 重置视图 cleared the map - starts at dead center if it's a main
-      // character, otherwise at its usual distributed starting point.
+      // character, otherwise evenly spaced around the support ring (true
+      // angular spacing instead of an arbitrary Lissajous cos/sin pattern,
+      // so the starting layout is already organized before physics runs).
       const remembered = nodePositionsRef.current.get(character.id);
       const isMain = isMainTag(character);
+      const angle = isMain ? 0 : (nonMainIndex++ / nonMainCount) * Math.PI * 2;
       return {
         ...character,
         tag,
         labelWidth: Math.max(54, tag.length * 12 + 24),
         radius: isMain ? 28 : 24,
-        x: remembered?.x ?? (isMain ? width / 2 : width / 2 + Math.cos(index * 1.7) * 150),
-        y: remembered?.y ?? (isMain ? height / 2 : height / 2 + Math.sin(index * 1.4) * 110),
+        x: remembered?.x ?? (isMain ? width / 2 : width / 2 + Math.cos(angle) * supportRingRadius),
+        y: remembered?.y ?? (isMain ? height / 2 : height / 2 + Math.sin(angle) * supportRingRadius),
       };
     });
     linksRef.current = links;
@@ -284,9 +299,11 @@ export default function RelationGraph({
       .force("charge", d3.forceManyBody().strength((character) => (isMainTag(character) ? -700 : -470)))
       .force("center", d3.forceCenter(width / 2, height / 2).strength(0.018))
       // Main character(s) settle on a near-zero-radius ring (practically dead
-      // center) instead of the old 130px orbit; everyone else keeps their
-      // usual 270px spread.
-      .force("radial", d3.forceRadial((character) => (isMainTag(character) ? 20 : 270), width / 2, height / 2).strength((character) => (isMainTag(character) ? 0.12 : 0.024)))
+      // center) instead of the old 130px orbit; everyone else is pulled
+      // toward supportRingRadius, which grows with the supporting-character
+      // count (see above) instead of a fixed 270px every node had to
+      // compete for.
+      .force("radial", d3.forceRadial((character) => (isMainTag(character) ? 20 : supportRingRadius), width / 2, height / 2).strength((character) => (isMainTag(character) ? 0.12 : 0.05)))
       .force("collision", d3.forceCollide().radius((character) => Math.max(character.radius + 82, character.labelWidth / 2 + 44)).strength(0.96))
       .force("x", d3.forceX(width / 2).strength((character) => (isMainTag(character) ? 0.05 : 0.01)))
       .force("y", d3.forceY(height / 2).strength((character) => (isMainTag(character) ? 0.05 : 0.01)));
@@ -324,11 +341,17 @@ export default function RelationGraph({
           }),
       );
 
+    // Halo colors are fixed, not tinted by novel.color (same reasoning as
+    // the ordinary relationship lines) - the main-character halo uses a
+    // light-yellow outer ring (stroke) and light-red inner glow (fill),
+    // deliberately distinct from any planet color in the picker so the
+    // rings read clearly instead of blending into the node's own color.
+    // Size/opacity numbers are unchanged from before, only the hues moved.
     node
       .append("circle")
       .attr("r", (character) => character.radius + (isMainTag(character) ? 21 : 12))
-      .attr("fill", (character) => (isMainTag(character) ? "rgba(244,213,191,0.42)" : novel.color))
-      .attr("stroke", (character) => (isMainTag(character) ? "rgba(198,212,225,0.52)" : "none"))
+      .attr("fill", (character) => (isMainTag(character) ? "rgba(230,140,130,0.42)" : "#8BA09C"))
+      .attr("stroke", (character) => (isMainTag(character) ? "rgba(242,217,138,0.85)" : "none"))
       .attr("stroke-width", (character) => (isMainTag(character) ? 8 : 0))
       .attr("opacity", (character) => (isMainTag(character) ? 0.52 : 0.1))
       .attr("class", (character) => `planet-halo ${isMainTag(character) ? "is-celestial" : ""}`);
