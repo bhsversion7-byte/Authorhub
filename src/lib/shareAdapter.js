@@ -233,6 +233,7 @@ export function decorateSharedNovel(row) {
       collaboratorCount: row.collaboratorCount ?? row.collaborator_count ?? 1,
       updatedAt: row.updatedAt ?? row.updated_at ?? null,
       publicSections,
+      activeLinks: row.activeLinks ?? row.active_links ?? {},
     },
   };
 }

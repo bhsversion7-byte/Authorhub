@@ -10,6 +10,7 @@ import {
   createShareLink as createSharedNovelLink,
   decorateSharedNovel,
   ensureSharedNovel,
+  getActiveShareLink,
   getOrCreateShareLink,
   getSharedNovelByToken,
   joinSharedNovel,
@@ -606,11 +607,10 @@ export default function App() {
 
   async function createNovelShareLink(novel, role, sections, { forceNew = false, matchSections = true } = {}) {
     const existingSharedId = novel.sharedMeta?.id;
+    const shouldSwitchToSharedView = !existingSharedId;
     let sharedRow = existingSharedId ? sharedNovels.find((row) => row.id === existingSharedId) : null;
     if (!sharedRow) {
       sharedRow = await ensureSharedNovel(novel);
-      setSharedNovels((current) => upsertSharedNovelRow(current, sharedRow));
-      setActiveView(`shared-${sharedRow.id}`);
     }
     // Only the explicit "生成链接/重新生成" action reaches this path. Tab
     // switching in the popover is local UI state and must not fetch or create
@@ -619,8 +619,20 @@ export default function App() {
     const link = forceNew
       ? await createSharedNovelLink(sharedRow.id, role, sections)
       : await getOrCreateShareLink(sharedRow.id, role, sections, { requireSectionMatch: matchSections });
+    setSharedNovels((current) => upsertSharedNovelRow(current, withActiveShareLink(sharedRow, link)));
+    if (shouldSwitchToSharedView) setActiveView(`shared-${sharedRow.id}`);
     setShareNotice(role === SHARE_ROLES.EDITOR ? "共同编辑链接已生成。" : "只读查看链接已生成。");
     window.setTimeout(() => setShareNotice(""), 1800);
+    return link;
+  }
+
+  async function getNovelActiveShareLink(novel, role, sections) {
+    const sharedId = novel.sharedMeta?.id;
+    if (!sharedId) return null;
+    const link = await getActiveShareLink(sharedId, role, sections, { requireSectionMatch: false });
+    if (link?.url) {
+      setSharedNovels((current) => current.map((row) => (row.id === sharedId ? withActiveShareLink(row, link) : row)));
+    }
     return link;
   }
 
@@ -631,9 +643,17 @@ export default function App() {
     // Editor revoke also removes every joined collaborator's membership
     // server-side, so the count drops back to just the owner; viewer access
     // was never tracked as membership, so its count is unaffected.
-    if (role === SHARE_ROLES.EDITOR) {
-      setSharedNovels((current) => upsertSharedNovelRow(current, { id: sharedId, collaboratorCount: 1 }));
-    }
+    setSharedNovels((current) =>
+      current.map((row) => {
+        if (row.id !== sharedId) return row;
+        const { [role]: _removed, ...activeLinks } = row.activeLinks ?? {};
+        return {
+          ...row,
+          ...(role === SHARE_ROLES.EDITOR ? { collaboratorCount: 1 } : {}),
+          activeLinks,
+        };
+      }),
+    );
     setShareNotice(role === SHARE_ROLES.EDITOR ? "共同编辑链接已撤回。" : "只读查看链接已撤回。");
     window.setTimeout(() => setShareNotice(""), 1800);
   }
@@ -727,6 +747,7 @@ export default function App() {
               onDeleteEvent={deleteEvent}
               onReorderEvent={reorderEvent}
               onCreateShareLink={createNovelShareLink}
+              onGetActiveShareLink={getNovelActiveShareLink}
               onRevokeShareLink={revokeNovelShareRole}
               shareInfo={activeNovel.sharedMeta}
               visibleSections={activeNovel.sharedMeta?.publicSections}
@@ -847,6 +868,7 @@ function SharedNovelPublicPage({ state }) {
           onDeleteEvent={noop}
           onReorderEvent={noop}
           onCreateShareLink={noop}
+          onGetActiveShareLink={noop}
           shareInfo={novel.sharedMeta}
           visibleSections={novel.sharedMeta?.publicSections}
         />
@@ -932,6 +954,18 @@ function upsertSharedNovelRow(current, row) {
     ...next[index],
     ...row,
     role: row.role ?? next[index].role,
+    activeLinks: row.activeLinks ?? next[index].activeLinks,
   };
   return next;
+}
+
+function withActiveShareLink(row, link) {
+  if (!row?.id || !link?.role || !link?.url) return row;
+  return {
+    ...row,
+    activeLinks: {
+      ...(row.activeLinks ?? {}),
+      [link.role]: link,
+    },
+  };
 }
