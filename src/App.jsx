@@ -37,10 +37,12 @@ const ESCAPE_BLOCKING_SELECTOR = ".modal-backdrop, .zen-overlay, .logo-lightbox-
 const TEXT_ENTRY_SELECTOR = "input, textarea, select, [contenteditable='true']";
 const THEME_MODE_KEY = "author-hub-theme-mode";
 const APPEARANCE_KEY = "author-hub-appearance";
+const ACTIVE_VIEW_KEY = "author-hub-active-view";
 
 export default function App() {
   const [data, setData] = useState(null);
-  const [activeView, setActiveView] = useState("author");
+  const [activeView, setActiveView] = useState(() => localStorage.getItem(ACTIVE_VIEW_KEY) || "author");
+  const [sharedNovelsReady, setSharedNovelsReady] = useState(false);
   const [deleteCandidate, setDeleteCandidate] = useState(null);
   const [tourStep, setTourStep] = useState(null);
   const [authUser, setAuthUser] = useState(null);
@@ -161,11 +163,15 @@ export default function App() {
     if (isPublicShareRoute) return;
     if (!authUser || !data) {
       setSharedNovels([]);
+      setSharedNovelsReady(false);
       return;
     }
     let mounted = true;
     loadSharedNovelsForUser().then((rows) => {
-      if (mounted) setSharedNovels(rows);
+      if (mounted) {
+        setSharedNovels(rows);
+        setSharedNovelsReady(true);
+      }
     });
     return () => {
       mounted = false;
@@ -342,6 +348,11 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [deleteCandidate, tourStep]);
 
+  useEffect(() => {
+    if (!authUser) return;
+    localStorage.setItem(ACTIVE_VIEW_KEY, activeView);
+  }, [activeView, authUser]);
+
   const sharedWorkspaceNovels = useMemo(() => sharedNovels.map(decorateSharedNovel).filter(Boolean), [sharedNovels]);
   const sharedSourceIds = useMemo(() => new Set(sharedWorkspaceNovels.map((novel) => novel.sourceNovelId).filter(Boolean)), [sharedWorkspaceNovels]);
   const novels = useMemo(() => {
@@ -350,6 +361,17 @@ export default function App() {
   }, [data?.novels, sharedSourceIds, sharedWorkspaceNovels]);
   const activeNovel = useMemo(() => novels.find((novel) => novel.id === activeView), [activeView, novels]);
   const appearance = data?.appearance ?? { fontFamily: "sans", fontSize: 14 };
+
+  useEffect(() => {
+    if (!data || activeView === "author" || activeView === "user") return;
+    if (activeView.startsWith("shared-") && !sharedNovelsReady) return;
+    if (activeNovel) return;
+    setActiveView("author");
+    // A restored view (from a previous session, via ACTIVE_VIEW_KEY) can
+    // point at a novel that no longer exists (deleted elsewhere, share
+    // revoked). Once both private and shared novels have finished loading,
+    // fall back to the author dashboard instead of leaving the user stuck.
+  }, [data, activeView, activeNovel, sharedNovelsReady]);
 
   function handleAuthed(user, meta = {}) {
     if (meta.isNew) {
@@ -378,6 +400,7 @@ export default function App() {
     setAuthUser(null);
     setData(null);
     setActiveView("author");
+    localStorage.removeItem(ACTIVE_VIEW_KEY);
   }
 
   async function unregisterAccount() {
@@ -393,6 +416,7 @@ export default function App() {
     setAuthUser(null);
     setData(null);
     setActiveView("author");
+    localStorage.removeItem(ACTIVE_VIEW_KEY);
   }
 
   function saveDataImmediately(nextData) {
@@ -872,7 +896,7 @@ export default function App() {
               shareInfo={activeNovel.sharedMeta}
               visibleSections={activeNovel.sharedMeta?.publicSections}
             />
-          ) : activeView !== "author" && activeView !== "user" ? (
+          ) : activeView.startsWith("shared-") && !sharedNovelsReady ? null : activeView !== "author" && activeView !== "user" ? (
             <section className="section empty-state">
               <Sparkles size={22} />
               <h2>这里还没有小说</h2>

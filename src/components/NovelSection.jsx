@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Database, ExternalLink, FileText, Network, Tags, X } from "lucide-react";
+import { Database, ExternalLink, FileText, Maximize2, Network, Tags, X } from "lucide-react";
 import { FULL_PUBLIC_SECTIONS } from "../lib/shareSections.js";
 import { usePopoverDismiss } from "../lib/usePopoverDismiss.js";
 import FocusTextarea from "./FocusTextarea.jsx";
@@ -37,6 +37,8 @@ export default function NovelSection({
   readOnly = false,
   visibleSections,
 }) {
+  const outlineEditorRef = useRef(null);
+  const settingEditorRef = useRef(null);
   const sectionSet = useMemo(() => new Set(visibleSections ?? FULL_PUBLIC_SECTIONS), [visibleSections]);
   const showOutline = sectionSet.has("outline");
   const showSetting = sectionSet.has("setting");
@@ -124,9 +126,19 @@ export default function NovelSection({
               <div className="panel-title">
                 <FileText size={17} />
                 <h3>大纲</h3>
+                <button
+                  type="button"
+                  className="panel-title-expand"
+                  onClick={() => outlineEditorRef.current?.open()}
+                  aria-label={readOnly ? "查看大纲" : "专注编辑大纲"}
+                >
+                  <Maximize2 size={14} />
+                </button>
               </div>
               <FocusTextarea
+                ref={outlineEditorRef}
                 label="大纲"
+                hideLabel
                 value={novel.outline}
                 readOnly={readOnly}
                 onChange={(value) => patchNovel({ outline: value })}
@@ -140,9 +152,19 @@ export default function NovelSection({
               <div className="panel-title">
                 <Database size={17} />
                 <h3>设定集</h3>
+                <button
+                  type="button"
+                  className="panel-title-expand"
+                  onClick={() => settingEditorRef.current?.open()}
+                  aria-label={readOnly ? "查看设定集" : "专注编辑设定集"}
+                >
+                  <Maximize2 size={14} />
+                </button>
               </div>
               <FocusTextarea
+                ref={settingEditorRef}
                 label="设定集"
+                hideLabel
                 value={novel.setting}
                 readOnly={readOnly}
                 onChange={(value) => patchNovel({ setting: value })}
