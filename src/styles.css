@@ -2750,6 +2750,13 @@ body[data-theme="dark"] .toggle-pill.is-active {
   line-height: 1.45;
 }
 
+.media-size-hint {
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .node-color-picker.is-wide div {
   grid-template-columns: repeat(auto-fill, minmax(34px, 42px));
 }

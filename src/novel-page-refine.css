@@ -161,8 +161,13 @@
   box-shadow: none !important;
   outline: none !important;
   color: var(--ink) !important;
-  font-size: 13px !important;
-  font-weight: 760 !important;
+  /* Must match the fixed 12px/700 chrome size these fields keep everywhere
+     else (authorhub-state-corrections.css) - the previous 13px/760 here
+     only won during :focus because pairing the selector with `:focus`
+     raised its specificity above that plain (non-focus-qualified) override,
+     so the field visibly grew the moment it was clicked. */
+  font-size: 12px !important;
+  font-weight: 700 !important;
   line-height: 1.35 !important;
 }
 

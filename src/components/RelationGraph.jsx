@@ -13,23 +13,30 @@ import FocusTextarea from "./FocusTextarea.jsx";
 import MediaCarousel from "./MediaCarousel.jsx";
 
 const ROLE_TAGS = ["主角1", "主角2", "主要配角", "反派", "亲友", "家族线"];
+// Cool tones first, then warm tones (pure visual ordering only - the
+// values/behavior of the picker are unchanged). #9FA2A4 grey added per user
+// request; #96AAB8, #8FA893, and #C08B6E added to round the palette out to 20.
 const NODE_COLORS = [
-  "#A9A084",
-  "#BFA57B",
-  "#DDA96A",
-  "#8BA09C",
+  "#9FA2A4",
   "#A7B8C8",
-  "#C8A2A0",
-  "#B7AA98",
-  "#9EA58E",
-  "#C6B7D2",
-  "#D8B7A6",
-  "#AFC7B6",
-  "#C9C3AF",
   "#9FB1C5",
-  "#D3AFA6",
+  "#96AAB8",
+  "#8BA09C",
+  "#C6B7D2",
+  "#AFC7B6",
+  "#8FA893",
+  "#9EA58E",
   "#B9C4A6",
   "#C3B49A",
+  "#BFA57B",
+  "#A9A084",
+  "#DDA96A",
+  "#C08B6E",
+  "#D8B7A6",
+  "#C9C3AF",
+  "#B7AA98",
+  "#C8A2A0",
+  "#D3AFA6",
 ];
 
 function emptyCharacter(novelId) {
@@ -66,10 +73,16 @@ export default function RelationGraph({
   const zoomRef = useRef(null);
   const dimsRef = useRef({ width: 0, height: 0 });
   const nodesRef = useRef([]);
+  // Survives the simulation being rebuilt (new character added, a node
+  // clicked to select it, etc.) so an existing character resumes from
+  // wherever it last settled instead of jumping back to a fresh formula
+  // position every time. Cleared only by 重置视图.
+  const nodePositionsRef = useRef(new Map());
 
   const [selectedId, setSelectedId] = useState(novel.characters[0]?.id);
   const [graphFocusId, setGraphFocusId] = useState("");
   const [hoverId, setHoverId] = useState("");
+  const [layoutResetKey, setLayoutResetKey] = useState(0);
   const [hoverLinkKey, setHoverLinkKey] = useState("");
   const [draft, setDraft] = useState(novel.characters[0] ?? null);
   const [connectFrom, setConnectFrom] = useState("");
@@ -191,13 +204,20 @@ export default function RelationGraph({
     }
     const nodes = (novel.characters ?? []).map((character, index) => {
       const tag = getCharacterTag(character);
+      // Resume from wherever this character last settled (survives clicks/
+      // new-character-added rebuilds without visually jumping). A character
+      // with no remembered position yet - first render, or just after
+      // 重置视图 cleared the map - starts at dead center if it's a main
+      // character, otherwise at its usual distributed starting point.
+      const remembered = nodePositionsRef.current.get(character.id);
+      const isMain = isMainTag(character);
       return {
         ...character,
         tag,
         labelWidth: Math.max(54, tag.length * 12 + 24),
-        radius: isMainTag(character) ? 28 : 24,
-        x: width / 2 + Math.cos(index * 1.7) * 150,
-        y: height / 2 + Math.sin(index * 1.4) * 110,
+        radius: isMain ? 28 : 24,
+        x: remembered?.x ?? (isMain ? width / 2 : width / 2 + Math.cos(index * 1.7) * 150),
+        y: remembered?.y ?? (isMain ? height / 2 : height / 2 + Math.sin(index * 1.4) * 110),
       };
     });
     linksRef.current = links;
@@ -261,10 +281,13 @@ export default function RelationGraph({
       )
       .force("charge", d3.forceManyBody().strength((character) => (isMainTag(character) ? -700 : -470)))
       .force("center", d3.forceCenter(width / 2, height / 2).strength(0.018))
-      .force("radial", d3.forceRadial((character) => (isMainTag(character) ? 130 : 270), width / 2, height / 2).strength(0.024))
+      // Main character(s) settle on a near-zero-radius ring (practically dead
+      // center) instead of the old 130px orbit; everyone else keeps their
+      // usual 270px spread.
+      .force("radial", d3.forceRadial((character) => (isMainTag(character) ? 20 : 270), width / 2, height / 2).strength((character) => (isMainTag(character) ? 0.12 : 0.024)))
       .force("collision", d3.forceCollide().radius((character) => Math.max(character.radius + 82, character.labelWidth / 2 + 44)).strength(0.96))
-      .force("x", d3.forceX(width / 2).strength(0.01))
-      .force("y", d3.forceY(height / 2).strength(0.01));
+      .force("x", d3.forceX(width / 2).strength((character) => (isMainTag(character) ? 0.05 : 0.01)))
+      .force("y", d3.forceY(height / 2).strength((character) => (isMainTag(character) ? 0.05 : 0.01)));
 
     const node = graphLayer
       .append("g")
@@ -332,7 +355,7 @@ export default function RelationGraph({
       .attr("font-size", 10)
       .attr("font-weight", 800);
 
-    node.append("text").text((character) => character.name.slice(0, 2)).attr("text-anchor", "middle").attr("dy", "0.35em").attr("fill", "#fff").attr("font-size", 13).attr("font-weight", 800);
+    node.append("text").text((character) => character.name.slice(0, 1)).attr("text-anchor", "middle").attr("dy", "0.35em").attr("fill", "#fff").attr("font-size", 13).attr("font-weight", 800);
     node.append("text").text((character) => character.name).attr("text-anchor", "middle").attr("y", (character) => character.radius + 27).attr("fill", "#3D3731").attr("font-size", 13).attr("font-weight", 800);
     node.append("text").text((character) => character.role).attr("text-anchor", "middle").attr("y", (character) => character.radius + 46).attr("fill", "#8D7A6B").attr("font-size", 11);
 
@@ -342,6 +365,7 @@ export default function RelationGraph({
         const padTop = character.radius + 58;
         character.x = Math.max(padX, Math.min(width - padX, character.x));
         character.y = Math.max(padTop, Math.min(height - 72, character.y));
+        nodePositionsRef.current.set(character.id, { x: character.x, y: character.y });
       });
       link.attr("d", (relationship, index) => organicLinkPath(relationship, index, simulation.alpha()));
       label.attr("transform", (relationship) => {
@@ -376,6 +400,7 @@ export default function RelationGraph({
     selectedRelationshipIndex,
     activeRelationshipKey,
     previewRelationshipKey,
+    layoutResetKey,
   ]);
 
   useEffect(() => {
@@ -414,15 +439,11 @@ export default function RelationGraph({
       .transition()
       .duration(160)
       .attr("opacity", (character) => (hasFocus ? (focus.nodeIds.has(character.id) ? 1 : 0.15) : 1));
-    link
-      .transition()
-      .duration(160)
-      .attr("stroke-opacity", (relationship) => (hasFocus ? (focus.linkKeys.has(relationship.key) ? 0.84 : 0.08) : relationship.isPreview ? 0.82 : 0.48))
-      .attr("stroke-width", (relationship) => {
-        if ((activeRelationshipKey || previewRelationshipKey) && focus.linkKeys.has(relationship.key)) return 2.7;
-        if (relationship.isPreview) return 2.2;
-        return isCoreRelationship(relationship, nodesRef.current) ? 1.7 : 1.35;
-      });
+    // Relationship lines intentionally keep the same color/opacity/width
+    // before and after selection or hover (user preference) - the only line
+    // color distinction in this graph is the fixed main-pair red, set once
+    // at link creation and never touched here. Only the label text's
+    // visibility follows focus.
     label.transition().duration(160).attr("opacity", (relationship) => (focus.linkKeys.has(relationship.key) ? 1 : 0));
   }, [focusId, hoverLinkKey, graphFocusId, activeRelationshipKey, previewRelationshipKey, connectFrom, connectTo, connectLabel]);
 
@@ -448,6 +469,11 @@ export default function RelationGraph({
     const zoom = zoomRef.current;
     if (!svgElement || !zoom) return;
     d3.select(svgElement).transition().duration(520).ease(d3.easeCubicOut).call(zoom.transform, d3.zoomIdentity);
+    // Drop every remembered position so the rebuild this triggers puts the
+    // main character(s) back at dead center instead of resuming wherever
+    // they'd drifted to - the one thing 重置视图 is supposed to restore.
+    nodePositionsRef.current.clear();
+    setLayoutResetKey((current) => current + 1);
   }
 
   function handleSaveCharacter() {
