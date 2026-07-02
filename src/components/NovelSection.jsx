@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Database, ExternalLink, FileText, Network, Tags, X } from "lucide-react";
 import { FULL_PUBLIC_SECTIONS } from "../lib/shareSections.js";
 import { usePopoverDismiss } from "../lib/usePopoverDismiss.js";
+import FocusTextarea from "./FocusTextarea.jsx";
 import NovelShareControl from "./NovelShareControl.jsx";
 import RelationGraph from "./RelationGraph.jsx";
 import TagEditor from "./TagEditor.jsx";
@@ -124,7 +125,13 @@ export default function NovelSection({
                 <FileText size={17} />
                 <h3>大纲</h3>
               </div>
-              <textarea value={novel.outline} readOnly={readOnly} onChange={(event) => patchNovel({ outline: event.target.value })} />
+              <FocusTextarea
+                label="大纲"
+                value={novel.outline}
+                readOnly={readOnly}
+                onChange={(value) => patchNovel({ outline: value })}
+                onSave={() => {}}
+              />
             </article>
           )}
 
@@ -134,7 +141,13 @@ export default function NovelSection({
                 <Database size={17} />
                 <h3>设定集</h3>
               </div>
-              <textarea value={novel.setting} readOnly={readOnly} onChange={(event) => patchNovel({ setting: event.target.value })} />
+              <FocusTextarea
+                label="设定集"
+                value={novel.setting}
+                readOnly={readOnly}
+                onChange={(value) => patchNovel({ setting: value })}
+                onSave={() => {}}
+              />
             </article>
           )}
 

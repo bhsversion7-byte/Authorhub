@@ -195,7 +195,9 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
                   keyboardEvent.preventDefault();
                   openEvent(event);
                 }}
-                style={{ "--node-color": novel.color, "--node-index": index, animationDelay: `${index * 42}ms` }}
+                // Fixed grey-green halo/orb color, not tinted by novel.color -
+                // user preference, matches the relation graph's ordinary lines.
+                style={{ "--node-color": "#8BA09C", "--node-index": index, animationDelay: `${index * 42}ms` }}
                 aria-current={event.id === selectedId ? "step" : undefined}
               >
                 {!readOnly && (

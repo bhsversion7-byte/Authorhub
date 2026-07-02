@@ -5,6 +5,7 @@ import Sidebar from "./components/Sidebar.jsx";
 import TourProvider from "./components/TourProvider.jsx";
 import { createKeyedDebouncer } from "./lib/debounce.js";
 import { buildMarkdownExport, getRelationshipEndpointId } from "./lib/markdownExport.js";
+import { deleteImageFromStorage } from "./lib/mediaStorage.js";
 import {
   SHARE_ROLES,
   createShareLink as createSharedNovelLink,
@@ -502,6 +503,14 @@ export default function App() {
   }
 
   function deleteCharacter(novelId, characterId) {
+    // MediaCarousel's own removeImage() cleans up Supabase Storage one image
+    // at a time while editing, but deleting the whole character bypasses
+    // that entirely - without this, every image that character had ever
+    // uploaded becomes permanently orphaned in the author-hub-media bucket
+    // (removed from the document, but never removed from Storage).
+    const novel = novels.find((item) => item.id === novelId);
+    const character = novel?.characters.find((item) => item.id === characterId);
+    deleteImagesFor(character?.images);
     updateNovelRecord(novelId, (novel) => ({
       ...novel,
       characters: novel.characters.filter((character) => character.id !== characterId),
@@ -577,6 +586,9 @@ export default function App() {
 
   function clearAllUserData() {
     if (!data) return Promise.resolve();
+    // Same orphaned-Storage-object risk as a single novel delete, just for
+    // every private novel at once.
+    (data.novels ?? []).forEach((novel) => deleteImagesForNovel(novel));
     const nextData = {
       ...data,
       novels: [],
@@ -668,6 +680,11 @@ export default function App() {
       });
       return;
     }
+    // This is a real permanent delete (unlike the shared "detach" branch
+    // above) - every image every character/timeline event in this novel
+    // ever uploaded needs to actually leave Storage too, or it just becomes
+    // permanently unreachable garbage in the bucket.
+    deleteImagesForNovel(deleteCandidate);
     const remainingNovels = novels.filter((novel) => novel.id !== deleteCandidate.id);
     const nextActiveView = activeView === deleteCandidate.id ? remainingNovels[0]?.id ?? "author" : activeView;
     const nextData = { ...data, novels: data.novels.filter((novel) => novel.id !== deleteCandidate.id) };
@@ -689,6 +706,10 @@ export default function App() {
   }
 
   function deleteEvent(novelId, eventId) {
+    // Same orphaned-Storage-object risk as deleteCharacter above.
+    const novel = novels.find((item) => item.id === novelId);
+    const event = novel?.timeline.find((item) => item.id === eventId);
+    deleteImagesFor(event?.images);
     updateNovelRecord(novelId, (novel) => ({ ...novel, timeline: novel.timeline.filter((event) => event.id !== eventId) }));
   }
 
@@ -1004,6 +1025,26 @@ function createBlankNovel(id, index) {
     timeline: [],
     sourceLinks: [],
   };
+}
+
+// Bulk-delete paths (a whole character, event, novel, or "清空数据") remove
+// content from the document but must also clean up any images that content
+// had uploaded to the author-hub-media Storage bucket - MediaCarousel's own
+// removeImage() only covers removing one image at a time while editing.
+function getImageSrc(image) {
+  return typeof image === "string" ? image : image?.src;
+}
+
+function deleteImagesFor(images) {
+  (images ?? []).forEach((image) => {
+    const src = getImageSrc(image);
+    if (src) deleteImageFromStorage(src);
+  });
+}
+
+function deleteImagesForNovel(novel) {
+  (novel?.characters ?? []).forEach((character) => deleteImagesFor(character.images));
+  (novel?.timeline ?? []).forEach((event) => deleteImagesFor(event.images));
 }
 
 function downloadText(filename, content, type) {

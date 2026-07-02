@@ -232,8 +232,10 @@ export default function RelationGraph({
       .selectAll("path")
       .data(links)
       .join("path")
+      // Ordinary line color is fixed (not tinted by novel.color) - user
+      // preference, only the main-pair line is meaningful color here.
       .attr("stroke", (relationship) =>
-        isMainPairRelationship(relationship, nodes, getNodeId) ? MAIN_PAIR_RELATION_COLOR : relationship.isPreview ? "#7E9A9A" : novel.color,
+        isMainPairRelationship(relationship, nodes, getNodeId) ? MAIN_PAIR_RELATION_COLOR : relationship.isPreview ? "#7E9A9A" : "#8BA09C",
       )
       .attr("stroke-width", (relationship) => (relationship.isPreview ? 2.2 : isCoreRelationship(relationship, nodes) ? 1.7 : 1.25))
       .attr("stroke-dasharray", (relationship) => (relationship.isPreview ? "3 5" : "5 7"))
