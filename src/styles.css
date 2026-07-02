@@ -1327,6 +1327,10 @@ body[data-theme="dark"] .toggle-pill.is-active {
 .story-card textarea {
   margin-top: 13px;
   min-height: 150px;
+  /* The 放大 (expand) button is now the intended way to get more editing
+     room; a native resize handle's height was never persisted anywhere, so
+     it silently reverted on every refresh. */
+  resize: none !important;
 }
 
 .story-card textarea,
@@ -1346,7 +1350,10 @@ body[data-theme="dark"] .toggle-pill.is-active {
 }
 
 .tag-list span {
-  color: color-mix(in srgb, var(--novel-color) 65%, var(--ink));
+  /* Fixed grey-green, per-novel color-mix intentionally removed - user
+     wants theme tag text stable across every novel, not tinted per-novel
+     like the AO3 pill/sidebar bookmark/timeline glow. */
+  color: #8ba09c;
   font-weight: 700;
 }
 
@@ -1363,7 +1370,8 @@ body[data-theme="dark"] .toggle-pill.is-active {
   padding: 8px 11px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.72);
-  color: color-mix(in srgb, var(--novel-color) 65%, var(--ink));
+  /* Fixed grey-green, matching .tag-list span - see comment there. */
+  color: #8ba09c;
   font-weight: 800;
 }
 
@@ -1771,6 +1779,13 @@ body[data-theme="dark"] .toggle-pill.is-active {
   font-size: 13px;
   line-height: 1.7;
   text-align: center;
+}
+
+.media-empty-hint {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  opacity: 0.72;
 }
 
 
@@ -2744,16 +2759,13 @@ body[data-theme="dark"] .toggle-pill.is-active {
 }
 
 .media-error {
-  margin: -4px 0 0;
-  color: #9d5e56;
-  font-size: 11px;
-  line-height: 1.45;
-}
-
-.media-size-hint {
-  margin: -4px 0 0;
-  color: var(--muted);
-  font-size: 11px;
+  margin: -2px 0 0;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(157, 94, 86, 0.12);
+  color: #7a3e3e;
+  font-size: 12px;
+  font-weight: 700;
   line-height: 1.45;
 }
 

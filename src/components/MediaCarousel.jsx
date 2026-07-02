@@ -257,7 +257,6 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
           </button>
         </div>
       )}
-      {!readOnly && <p className="media-size-hint">单张图片最大 5MB</p>}
       {mediaError && <p className="media-error">{mediaError}</p>}
 
       <div
@@ -333,7 +332,16 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
             )}
           </>
         ) : (
-          <div className="media-empty">{readOnly ? "暂无图片。" : "添加 2 张或更多图片后，可滑动查看。"}</div>
+          <div className="media-empty">
+            {readOnly ? (
+              "暂无图片。"
+            ) : (
+              <>
+                添加 2 张或更多图片后，可滑动查看。
+                <span className="media-empty-hint">单张图片最大 5MB。</span>
+              </>
+            )}
+          </div>
         )}
       </div>
 
