@@ -68,7 +68,7 @@ export async function loadAuthorHubData(user) {
 const CLOUD_SAVE_DEBOUNCE_MS = 1000;
 const cloudSaveDebouncer = createDebouncer(CLOUD_SAVE_DEBOUNCE_MS);
 
-export function saveAuthorHubData(data, user) {
+export function saveAuthorHubData(data, user, options = {}) {
   const migrated = migrateData(data);
   // Local cache write stays synchronous/immediate (not debounced): it's the
   // offline-safety net, so a crash or force-quit a moment after the last
@@ -86,18 +86,29 @@ export function saveAuthorHubData(data, user) {
     const cloudSignature = createDocumentSignature(serialized);
     if (lastCloudSignatures.get(cloudKey) === cloudSignature) return;
 
+    const saveNow = () =>
+      saveCloudData(migrated, user).then(() => {
+        lastCloudSignatures.set(cloudKey, cloudSignature);
+    });
+
+    if (options.immediate) {
+      cloudSaveDebouncer.cancel();
+      return saveNow().catch((error) => {
+        console.warn("Author Hub cloud save failed; local cache is preserved.", error);
+        throw error;
+      });
+    }
+
     // Coalesce the network upsert separately from the immediate local write.
     // Page-hide/logout paths call flushCloudSave().
     cloudSaveDebouncer.schedule(() =>
-      saveCloudData(migrated, user)
-        .then(() => {
-          lastCloudSignatures.set(cloudKey, cloudSignature);
-        })
-        .catch((error) => {
-          console.warn("Author Hub cloud save failed; local cache is preserved.", error);
-        }),
+      saveNow().catch((error) => {
+        console.warn("Author Hub cloud save failed; local cache is preserved.", error);
+      }),
     );
   }
+
+  return Promise.resolve();
 }
 
 // Force any pending debounced cloud write to run immediately. Safe to call
@@ -204,8 +215,9 @@ async function fetchFromShimoOrMock() {
   return mockAuthorHubData;
 }
 
-function migrateData(data) {
-  const novels = (data.novels?.length ? data.novels : mockAuthorHubData.novels).map((novel) => ({
+export function migrateData(data) {
+  const sourceNovels = Array.isArray(data.novels) ? data.novels : mockAuthorHubData.novels;
+  const novels = sourceNovels.map((novel) => ({
     ...novel,
     urls: { ao3: "", jjwxc: "", qidian: "", qimao: "", fanqie: "", changpei: "", ...(novel.urls ?? {}) },
     characters: (novel.characters ?? []).map((character, index) => ({
