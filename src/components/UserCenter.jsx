@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { FileJson, FileText, KeyRound, LogOut, Mail, Moon, ShieldCheck, Sun, Trash2, UserX, WalletCards } from "lucide-react";
-import { hasSupabaseConfig, supabase } from "../lib/supabaseClient.js";
 
 const DONATION_QR = {
   wechat: "/donation-wechat.png",
@@ -16,6 +15,7 @@ export default function UserCenter({
   onExportMarkdown,
   onClearData,
   onLogout,
+  onUnregister,
   appearance,
   onAppearanceChange,
 }) {
@@ -110,8 +110,8 @@ export default function UserCenter({
                 <button
                   type="button"
                   className="danger-button"
-                  onClick={() => {
-                    onClearData();
+                  onClick={async () => {
+                    await onClearData();
                     setConfirmClear(false);
                   }}
                 >
@@ -169,17 +169,13 @@ export default function UserCenter({
         )}
       {confirmUnregister &&
         createPortal(
-        <UnregisterModal
-          onClose={() => setConfirmUnregister(false)}
-          onConfirm={async () => {
-            if (hasSupabaseConfig && supabase) {
-              await supabase.auth.updateUser({ data: { account_deletion_requested: true } }).catch(() => {});
-            }
-            onClearData();
-            setConfirmUnregister(false);
-            onLogout();
-          }}
-        />,
+          <UnregisterModal
+            onClose={() => setConfirmUnregister(false)}
+            onConfirm={async () => {
+              await onUnregister?.();
+              setConfirmUnregister(false);
+            }}
+          />,
           document.body,
         )}
     </section>
@@ -251,6 +247,9 @@ function PasswordModal({ onClose }) {
 }
 
 function UnregisterModal({ onClose, onConfirm }) {
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+
   useEffect(() => {
     function onKeyDown(event) {
       if (event.key !== "Escape") return;
@@ -263,6 +262,17 @@ function UnregisterModal({ onClose, onConfirm }) {
     return () => window.removeEventListener("keydown", onKeyDown, true);
   }, [onClose]);
 
+  async function confirm() {
+    setBusy(true);
+    setMessage("");
+    try {
+      await onConfirm();
+    } catch (error) {
+      setMessage(error.message || "注销失败，请稍后再试。");
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="modal-backdrop user-unregister-backdrop" role="presentation" onMouseDown={onClose}>
       <section
@@ -274,13 +284,14 @@ function UnregisterModal({ onClose, onConfirm }) {
       >
         <p className="eyebrow">Account</p>
         <h2 id="user-unregister-title">确认注销账号？</h2>
-        <p>注销后会清空当前账号下的作品数据，并退出登录。这个操作请谨慎确认。</p>
+        <p>注销后会删除当前账号、作品数据、分享链接和协作权限，并退出登录。这个操作请谨慎确认。</p>
+        {message && <p className="auth-message">{message}</p>}
         <div className="confirm-actions">
-          <button type="button" className="ghost-button" onClick={onClose}>
+          <button type="button" className="ghost-button" onClick={onClose} disabled={busy}>
             取消
           </button>
-          <button type="button" className="btn-unregister" onClick={onConfirm}>
-            确认注销
+          <button type="button" className="btn-unregister" onClick={confirm} disabled={busy}>
+            {busy ? "注销中..." : "确认注销"}
           </button>
         </div>
       </section>
