@@ -20,6 +20,7 @@ import "./authorhub-refine-pass.css";
 import "./authorhub-detail-polish.css";
 import "./material-system.css";
 import "./authorhub-state-corrections.css";
+import "./sharing-collab.css";
 import "./modal-empty-qa.js";
 
 // Auto-recover from stale chunk references after a new deploy. If a browser is

@@ -3,7 +3,21 @@ import { Sparkles } from "lucide-react";
 import FloatingMusicPlayer from "./components/FloatingMusicPlayer.jsx";
 import Sidebar from "./components/Sidebar.jsx";
 import TourProvider from "./components/TourProvider.jsx";
+import { createKeyedDebouncer } from "./lib/debounce.js";
 import { buildMarkdownExport, getRelationshipEndpointId } from "./lib/markdownExport.js";
+import {
+  SHARE_ROLES,
+  createShareLink as createSharedNovelLink,
+  decorateSharedNovel,
+  ensureSharedNovel,
+  getSharedNovelByToken,
+  joinSharedNovel,
+  loadSharedNovelsForUser,
+  parseShareRoute,
+  saveSharedNovel,
+  stripSharedNovel,
+  subscribeToSharedNovel,
+} from "./lib/shareAdapter.js";
 import { getLocalAuthUser, hasSupabaseConfig, setLocalAuthUser, supabase } from "./lib/supabaseClient.js";
 import { flushCloudSave, loadAuthorHubData, saveAuthorHubData } from "./lib/shimoAdapter.js";
 
@@ -14,7 +28,7 @@ const NovelSection = lazy(() => import("./components/NovelSection.jsx"));
 const UserCenter = lazy(() => import("./components/UserCenter.jsx"));
 
 const BOOK_COLORS = ["#4A6357", "#7A3E3E", "#2E4C6D", "#8C6239", "#6C5E7A", "#6F7D5E"];
-const ESCAPE_BLOCKING_SELECTOR = ".modal-backdrop, .zen-overlay, .logo-lightbox-overlay, .publish-popover";
+const ESCAPE_BLOCKING_SELECTOR = ".modal-backdrop, .zen-overlay, .logo-lightbox-overlay, .publish-popover, .novel-share-popover";
 const TEXT_ENTRY_SELECTOR = "input, textarea, select, [contenteditable='true']";
 const THEME_MODE_KEY = "author-hub-theme-mode";
 const APPEARANCE_KEY = "author-hub-appearance";
@@ -29,11 +43,25 @@ export default function App() {
   const [justRegistered, setJustRegistered] = useState(false);
   const [privacyBlur, setPrivacyBlur] = useState(() => localStorage.getItem("author-hub-privacy-blur") === "true");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sharedNovels, setSharedNovels] = useState([]);
+  const [shareRoute] = useState(() => parseShareRoute());
+  const [publicShare, setPublicShare] = useState({ status: "idle", row: null, error: "" });
+  const [shareNotice, setShareNotice] = useState("");
   const skipNextCloudSaveRef = useRef(false);
+  const joinedShareTokenRef = useRef("");
+  const sharedSaveDebouncerRef = useRef(createKeyedDebouncer(900));
+  const sharedSaveInFlightRef = useRef(new Set());
+  const detachedSharedIdsRef = useRef(new Set());
 
+  const isPublicShareRoute = shareRoute?.intent === SHARE_ROLES.VIEWER;
   const sidebarWidth = sidebarCollapsed ? "72px" : "clamp(184px, 15vw, 224px)";
 
   useEffect(() => {
+    if (isPublicShareRoute) {
+      setAuthReady(true);
+      return undefined;
+    }
+
     let mounted = true;
     let cleanup;
 
@@ -61,9 +89,10 @@ export default function App() {
       mounted = false;
       cleanup?.();
     };
-  }, []);
+  }, [isPublicShareRoute]);
 
   useEffect(() => {
+    if (isPublicShareRoute) return;
     if (authUser && !data) {
       loadAuthorHubData(authUser).then((loadedData) => {
         const storedTheme = getStoredThemeMode();
@@ -83,7 +112,106 @@ export default function App() {
       });
     }
     if (!authUser) setData(null);
-  }, [authUser, data]);
+    // Keyed on authUser?.id, not the authUser object: onAuthStateChange fires
+    // repeatedly (cross-tab session sync, token refresh) with a new object
+    // reference each time even for the same signed-in user, and depending on
+    // the object identity here would re-run data loading on every tick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authUser?.id, data, isPublicShareRoute]);
+
+  useEffect(() => {
+    if (!shareRoute || shareRoute.intent !== SHARE_ROLES.VIEWER) return;
+    let mounted = true;
+    let intervalId;
+    async function loadPublicShare({ quiet = false } = {}) {
+      if (!quiet) setPublicShare({ status: "loading", row: null, error: "" });
+      try {
+        const row = await getSharedNovelByToken(shareRoute.token);
+        if (mounted) {
+          setPublicShare((current) => {
+            if (quiet && current.row?.updatedAt === row?.updatedAt) return current;
+            return { status: "ready", row, error: "" };
+          });
+        }
+      } catch (error) {
+        console.warn("AuthorHub public share could not be opened.", error);
+        if (mounted && !quiet) setPublicShare({ status: "error", row: null, error: "这个分享链接暂时无法打开。" });
+      }
+    }
+    setPublicShare({ status: "loading", row: null, error: "" });
+    loadPublicShare();
+    intervalId = window.setInterval(() => {
+      if (document.visibilityState === "hidden") return;
+      loadPublicShare({ quiet: true });
+    }, 12000);
+    return () => {
+      mounted = false;
+      window.clearInterval(intervalId);
+    };
+  }, [shareRoute]);
+
+  useEffect(() => {
+    if (isPublicShareRoute) return;
+    if (!authUser || !data) {
+      setSharedNovels([]);
+      return;
+    }
+    let mounted = true;
+    loadSharedNovelsForUser().then((rows) => {
+      if (mounted) setSharedNovels(rows);
+    });
+    return () => {
+      mounted = false;
+    };
+    // Intentionally NOT depending on `data` itself: every keystroke anywhere
+    // in the app produces a new `data` reference, and this effect has no
+    // debounce, so depending on the object identity re-fires this RPC on
+    // every edit. All post-load mutations (create/join/realtime/detach)
+    // already update `sharedNovels` locally via setSharedNovels, so this
+    // only needs to run once data becomes available after login.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authUser?.id, Boolean(data), isPublicShareRoute]);
+
+  useEffect(() => {
+    if (!authUser || !data || shareRoute?.intent !== SHARE_ROLES.EDITOR || !shareRoute.token) return;
+    if (joinedShareTokenRef.current === shareRoute.token) return;
+    joinedShareTokenRef.current = shareRoute.token;
+    joinSharedNovel(shareRoute.token)
+      .then((row) => {
+        setSharedNovels((current) => upsertSharedNovelRow(current, row));
+        setActiveView(`shared-${row.id}`);
+        window.history.replaceState({}, "", "/");
+        setShareNotice("已加入共同编辑。之后保存的版本会同步给协作者。");
+      })
+      .catch((error) => {
+        console.warn("AuthorHub shared novel join failed.", error);
+        setShareNotice("共同编辑链接暂时无法加入，请确认链接是否有效。");
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authUser?.id, Boolean(data), shareRoute]);
+
+  useEffect(() => {
+    const cleanups = sharedNovels.map((row) =>
+      subscribeToSharedNovel(row.id, (nextRow) => {
+        // A collaborator's save can broadcast in the middle of the 900ms
+        // window before our own edit to this same novel has saved yet. With
+        // no guard here, that incoming version would blindly replace
+        // `novel` and silently discard whatever we just typed. If a local
+        // save is still pending OR already in flight (the debounce entry is
+        // gone the instant the timer fires, before the network round trip
+        // even starts) for this novel, skip the incoming update - our own
+        // save's stale-version guard (scheduleSharedSave/
+        // save_author_hub_shared_novel) will surface a conflict notice
+        // instead once it resolves, and the next realtime event after that
+        // applies normally.
+        if (sharedSaveDebouncerRef.current.has(row.id) || sharedSaveInFlightRef.current.has(row.id)) return;
+        setSharedNovels((current) => upsertSharedNovelRow(current, { ...nextRow, role: row.role }));
+        setShareNotice("协作者刚刚保存了新版本，页面已同步。");
+        window.setTimeout(() => setShareNotice(""), 2200);
+      }),
+    );
+    return () => cleanups.forEach((cleanup) => cleanup());
+  }, [sharedNovels.map((row) => row.id).join("|")]);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -101,26 +229,38 @@ export default function App() {
   }, [privacyBlur]);
 
   useEffect(() => {
+    if (isPublicShareRoute) return;
     if (!data || !authUser) return;
     if (skipNextCloudSaveRef.current) {
       skipNextCloudSaveRef.current = false;
       return;
     }
     saveAuthorHubData(data, authUser);
-  }, [data, authUser]);
+    // Keyed on authUser?.id, not the authUser object: onAuthStateChange fires
+    // repeatedly (cross-tab session sync, token refresh) with a new object
+    // reference each time even for the same signed-in user. Depending on the
+    // object identity re-saved the document on every such tick with no
+    // actual edit, hammering Supabase continuously.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, authUser?.id, isPublicShareRoute]);
 
   useEffect(() => {
-    function flushOnHide() {
-      if (document.visibilityState === "hidden") flushCloudSave();
+    if (isPublicShareRoute) return undefined;
+    function flushAll() {
+      flushCloudSave();
+      flushSharedSaves();
     }
-    window.addEventListener("beforeunload", flushCloudSave);
+    function flushOnHide() {
+      if (document.visibilityState === "hidden") flushAll();
+    }
+    window.addEventListener("beforeunload", flushAll);
     document.addEventListener("visibilitychange", flushOnHide);
     return () => {
-      window.removeEventListener("beforeunload", flushCloudSave);
+      window.removeEventListener("beforeunload", flushAll);
       document.removeEventListener("visibilitychange", flushOnHide);
-      flushCloudSave();
+      flushAll();
     };
-  }, []);
+  }, [isPublicShareRoute]);
 
   useEffect(() => {
     if (!data || !justRegistered) return;
@@ -154,7 +294,12 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [deleteCandidate, tourStep]);
 
-  const novels = useMemo(() => data?.novels ?? [], [data]);
+  const sharedWorkspaceNovels = useMemo(() => sharedNovels.map(decorateSharedNovel).filter(Boolean), [sharedNovels]);
+  const sharedSourceIds = useMemo(() => new Set(sharedWorkspaceNovels.map((novel) => novel.sourceNovelId).filter(Boolean)), [sharedWorkspaceNovels]);
+  const novels = useMemo(() => {
+    const privateNovels = (data?.novels ?? []).filter((novel) => !sharedSourceIds.has(novel.id));
+    return [...privateNovels, ...sharedWorkspaceNovels];
+  }, [data?.novels, sharedSourceIds, sharedWorkspaceNovels]);
   const activeNovel = useMemo(() => novels.find((novel) => novel.id === activeView), [activeView, novels]);
   const appearance = data?.appearance ?? { fontFamily: "sans", fontSize: 14 };
 
@@ -170,6 +315,7 @@ export default function App() {
   async function logout() {
     if (hasSupabaseConfig && supabase) {
       await flushCloudSave();
+      flushSharedSaves();
       await supabase.auth.signOut();
     }
     setLocalAuthUser(null);
@@ -198,82 +344,103 @@ export default function App() {
     });
   }
 
-  function updateNovel(novelId, patch) {
+  function updateNovelRecord(novelId, updater) {
+    const sharedRow = sharedNovels.find((row) => `shared-${row.id}` === novelId);
+    if (sharedRow) {
+      setSharedNovels((current) =>
+        current.map((row) => {
+          if (`shared-${row.id}` !== novelId) return row;
+          const workspaceNovel = decorateSharedNovel(row);
+          const nextWorkspaceNovel = updater(workspaceNovel);
+          const nextNovel = stripSharedNovel(nextWorkspaceNovel);
+          scheduleSharedSave(row.id, nextNovel, row.updatedAt);
+          return {
+            ...row,
+            novel: nextNovel,
+          };
+        }),
+      );
+      return;
+    }
+
     setData((current) => ({
       ...current,
-      novels: current.novels.map((novel) => (novel.id === novelId ? { ...novel, ...patch } : novel)),
+      novels: current.novels.map((novel) => (novel.id === novelId ? updater(novel) : novel)),
     }));
   }
 
+  function scheduleSharedSave(sharedNovelId, novel, expectedUpdatedAt) {
+    sharedSaveDebouncerRef.current.schedule(sharedNovelId, () => {
+      // The debounce entry is gone the instant this timer fires (before the
+      // network round trip even starts), so the realtime guard's `has()`
+      // check alone left a gap for the whole in-flight duration of the
+      // request. Track that window explicitly so an incoming realtime update
+      // for this novel is skipped until our own save has actually settled.
+      sharedSaveInFlightRef.current.add(sharedNovelId);
+      saveSharedNovel(sharedNovelId, novel, expectedUpdatedAt)
+        .then((row) => {
+          // The novel may have been detached (confirmDeleteNovel) while this
+          // request was in flight - don't let a late-arriving response
+          // resurrect it into sharedNovels.
+          if (detachedSharedIdsRef.current.has(sharedNovelId)) return;
+          setSharedNovels((current) => upsertSharedNovelRow(current, row));
+        })
+        .catch((error) => {
+          console.warn("AuthorHub shared novel save failed.", error);
+          const stale = /stale|conflict|newer/i.test(error.message || "");
+          setShareNotice(stale ? "协作者已保存更新版本，请先查看同步后的内容再继续编辑。" : "共享小说保存失败，本地内容仍保留，请稍后再试。");
+        })
+        .finally(() => {
+          sharedSaveInFlightRef.current.delete(sharedNovelId);
+        });
+    });
+  }
+
+  // Unlike the private cloud save, shared-novel saves had no unload/hide flush:
+  // a quick edit-then-close on a shared novel lost the edit outright. Fires
+  // every still-pending 900ms shared save immediately, same as flushCloudSave.
+  function flushSharedSaves() {
+    sharedSaveDebouncerRef.current.flush();
+  }
+
+  function updateNovel(novelId, patch) {
+    updateNovelRecord(novelId, (novel) => ({ ...novel, ...patch }));
+  }
+
   function addCharacter(novelId, character) {
-    setData((current) => ({
-      ...current,
-      novels: current.novels.map((novel) =>
-        novel.id === novelId
-          ? {
-              ...novel,
-              characters: [...novel.characters, character],
-            }
-          : novel,
-      ),
+    updateNovelRecord(novelId, (novel) => ({
+      ...novel,
+      characters: [...novel.characters, character],
     }));
   }
 
   function updateCharacter(novelId, characterId, patch) {
-    setData((current) => ({
-      ...current,
-      novels: current.novels.map((novel) =>
-        novel.id === novelId
-          ? {
-              ...novel,
-              characters: novel.characters.map((character) => (character.id === characterId ? { ...character, ...patch } : character)),
-            }
-          : novel,
-      ),
+    updateNovelRecord(novelId, (novel) => ({
+      ...novel,
+      characters: novel.characters.map((character) => (character.id === characterId ? { ...character, ...patch } : character)),
     }));
   }
 
   function deleteCharacter(novelId, characterId) {
-    setData((current) => ({
-      ...current,
-      novels: current.novels.map((novel) =>
-        novel.id === novelId
-          ? {
-              ...novel,
-              characters: novel.characters.filter((character) => character.id !== characterId),
-              relationships: (novel.relationships ?? []).filter((relationship) => {
-                const sourceId = getRelationshipEndpointId(relationship.source);
-                const targetId = getRelationshipEndpointId(relationship.target);
-                return sourceId !== characterId && targetId !== characterId;
-              }),
-            }
-          : novel,
-      ),
+    updateNovelRecord(novelId, (novel) => ({
+      ...novel,
+      characters: novel.characters.filter((character) => character.id !== characterId),
+      relationships: (novel.relationships ?? []).filter((relationship) => {
+        const sourceId = getRelationshipEndpointId(relationship.source);
+        const targetId = getRelationshipEndpointId(relationship.target);
+        return sourceId !== characterId && targetId !== characterId;
+      }),
     }));
   }
 
   function addRelationship(novelId, relationship) {
-    setData((current) => ({
-      ...current,
-      novels: current.novels.map((novel) =>
-        novel.id === novelId ? { ...novel, relationships: [...(novel.relationships ?? []), relationship] } : novel,
-      ),
-    }));
+    updateNovelRecord(novelId, (novel) => ({ ...novel, relationships: [...(novel.relationships ?? []), relationship] }));
   }
 
   function updateRelationship(novelId, relationshipIndex, patch) {
-    setData((current) => ({
-      ...current,
-      novels: current.novels.map((novel) =>
-        novel.id === novelId
-          ? {
-              ...novel,
-              relationships: (novel.relationships ?? []).map((relationship, index) =>
-                index === relationshipIndex ? { ...relationship, ...patch } : relationship,
-              ),
-            }
-          : novel,
-      ),
+    updateNovelRecord(novelId, (novel) => ({
+      ...novel,
+      relationships: (novel.relationships ?? []).map((relationship, index) => (index === relationshipIndex ? { ...relationship, ...patch } : relationship)),
     }));
   }
 
@@ -288,6 +455,34 @@ export default function App() {
   }
 
   function reorderNovel(novelId, targetIndex) {
+    // The sidebar renders one merged list (private novels, then shared ones),
+    // but a shared novel's id (`shared-<id>`) never appears in `data.novels`,
+    // so the private-only reorder below was a silent no-op for shared rows.
+    // Shared novels have no server-side order column, so this reorders them
+    // among themselves for the current session only (matches how the private
+    // list already reorders via local state; both persist through their own
+    // existing save paths).
+    if (sharedNovels.some((row) => `shared-${row.id}` === novelId)) {
+      const privateCount = (data?.novels ?? []).filter((novel) => !sharedSourceIds.has(novel.id)).length;
+      setSharedNovels((current) => {
+        const fromIndex = current.findIndex((row) => `shared-${row.id}` === novelId);
+        if (fromIndex < 0 || targetIndex == null) return current;
+        // targetIndex is an index into the merged (private-then-shared) list.
+        // A drop that lands within the private section has no meaningful
+        // position within the shared sublist - clamping it to 0 used to
+        // silently snap the novel to the front of the shared group
+        // regardless of where it was actually dropped. Ignore it instead.
+        if (targetIndex < privateCount) return current;
+        const localTarget = Math.min(current.length - 1, targetIndex - privateCount);
+        if (localTarget === fromIndex) return current;
+        const next = [...current];
+        const [movedRow] = next.splice(fromIndex, 1);
+        next.splice(localTarget, 0, movedRow);
+        return next;
+      });
+      return;
+    }
+
     setData((current) => {
       const fromIndex = current.novels.findIndex((novel) => novel.id === novelId);
       if (fromIndex < 0 || targetIndex == null || targetIndex === fromIndex) return current;
@@ -345,6 +540,35 @@ export default function App() {
 
   function confirmDeleteNovel() {
     if (!deleteCandidate) return;
+    if (deleteCandidate.sharedMeta?.id) {
+      // Drop any edit still waiting out its 900ms debounce for this novel -
+      // otherwise it fires after we've already removed the row and its
+      // .then() re-adds the just-detached novel right back into
+      // sharedNovels. Also mark it detached so a save that was already
+      // in flight (network round trip already started) doesn't resurrect it
+      // when its own response comes back a moment later.
+      sharedSaveDebouncerRef.current.cancel(deleteCandidate.sharedMeta.id);
+      detachedSharedIdsRef.current.add(deleteCandidate.sharedMeta.id);
+      const nextSharedNovels = sharedNovels.filter((row) => row.id !== deleteCandidate.sharedMeta.id);
+      setSharedNovels(nextSharedNovels);
+      // The pre-share private copy is frozen at whatever the novel looked like
+      // the moment it was first shared (ensureSharedNovel snapshots it, but
+      // never removes it from data.novels). Every edit made afterward only
+      // ever lived on the shared row, so if we leave that stale duplicate in
+      // data.novels, detaching silently resurrects the old content and the
+      // debounced cloud save then persists it, discarding the collaboration.
+      const remainingPrivateNovels = deleteCandidate.sourceNovelId
+        ? data.novels.filter((novel) => novel.id !== deleteCandidate.sourceNovelId)
+        : data.novels;
+      if (remainingPrivateNovels !== data.novels) {
+        setData((current) => ({ ...current, novels: current.novels.filter((novel) => novel.id !== deleteCandidate.sourceNovelId) }));
+      }
+      setActiveView(nextSharedNovels[0] ? `shared-${nextSharedNovels[0].id}` : remainingPrivateNovels[0]?.id ?? "author");
+      setShareNotice("已从当前视图移除共享小说；云端协作空间仍保留。");
+      window.setTimeout(() => setShareNotice(""), 2200);
+      setDeleteCandidate(null);
+      return;
+    }
     const remainingNovels = novels.filter((novel) => novel.id !== deleteCandidate.id);
     const nextActiveView = activeView === deleteCandidate.id ? remainingNovels[0]?.id ?? "author" : activeView;
     setData((current) => ({ ...current, novels: current.novels.filter((novel) => novel.id !== deleteCandidate.id) }));
@@ -353,30 +577,47 @@ export default function App() {
   }
 
   function addEvent(novelId, event) {
-    setData((current) => ({
-      ...current,
-      novels: current.novels.map((novel) =>
-        novel.id === novelId ? { ...novel, timeline: [...novel.timeline, event].sort((a, b) => timelineRank(a) - timelineRank(b)) } : novel,
-      ),
-    }));
+    updateNovelRecord(novelId, (novel) => ({ ...novel, timeline: [...novel.timeline, event] }));
   }
 
   function updateEvent(novelId, eventId, patch) {
-    setData((current) => ({
-      ...current,
-      novels: current.novels.map((novel) =>
-        novel.id === novelId
-          ? { ...novel, timeline: novel.timeline.map((event) => (event.id === eventId ? { ...event, ...patch } : event)) }
-          : novel,
-      ),
+    updateNovelRecord(novelId, (novel) => ({
+      ...novel,
+      timeline: novel.timeline.map((event) => (event.id === eventId ? { ...event, ...patch } : event)),
     }));
   }
 
   function deleteEvent(novelId, eventId) {
-    setData((current) => ({
-      ...current,
-      novels: current.novels.map((novel) => (novel.id === novelId ? { ...novel, timeline: novel.timeline.filter((event) => event.id !== eventId) } : novel)),
-    }));
+    updateNovelRecord(novelId, (novel) => ({ ...novel, timeline: novel.timeline.filter((event) => event.id !== eventId) }));
+  }
+
+  function reorderEvent(novelId, eventId, targetIndex) {
+    updateNovelRecord(novelId, (novel) => {
+      const fromIndex = novel.timeline.findIndex((event) => event.id === eventId);
+      if (fromIndex < 0 || targetIndex == null || fromIndex === targetIndex) return novel;
+      const nextTimeline = [...novel.timeline];
+      const [movedEvent] = nextTimeline.splice(fromIndex, 1);
+      nextTimeline.splice(Math.max(0, Math.min(nextTimeline.length, targetIndex)), 0, movedEvent);
+      return { ...novel, timeline: nextTimeline };
+    });
+  }
+
+  async function createNovelShareLink(novel, role, sections) {
+    const existingSharedId = novel.sharedMeta?.id;
+    let sharedRow = existingSharedId ? sharedNovels.find((row) => row.id === existingSharedId) : null;
+    if (!sharedRow) {
+      sharedRow = await ensureSharedNovel(novel);
+      setSharedNovels((current) => upsertSharedNovelRow(current, sharedRow));
+      setActiveView(`shared-${sharedRow.id}`);
+    }
+    const link = await createSharedNovelLink(sharedRow.id, role, sections);
+    setShareNotice(role === SHARE_ROLES.EDITOR ? "共同编辑链接已生成。" : "只读查看链接已生成。");
+    window.setTimeout(() => setShareNotice(""), 1800);
+    return link;
+  }
+
+  if (shareRoute?.intent === SHARE_ROLES.VIEWER) {
+    return <SharedNovelPublicPage state={publicShare} />;
   }
 
   if (authReady && !authUser) {
@@ -452,6 +693,7 @@ export default function App() {
             <NovelSection
               key={activeNovel.id}
               novel={activeNovel}
+              readOnly={activeNovel.sharedMeta?.role === SHARE_ROLES.VIEWER}
               onNovelChange={updateNovel}
               onAddCharacter={addCharacter}
               onUpdateCharacter={updateCharacter}
@@ -461,6 +703,10 @@ export default function App() {
               onAddEvent={addEvent}
               onUpdateEvent={updateEvent}
               onDeleteEvent={deleteEvent}
+              onReorderEvent={reorderEvent}
+              onCreateShareLink={createNovelShareLink}
+              shareInfo={activeNovel.sharedMeta}
+              visibleSections={activeNovel.sharedMeta?.publicSections}
             />
           ) : activeView !== "author" && activeView !== "user" ? (
             <section className="section empty-state">
@@ -475,18 +721,29 @@ export default function App() {
         </Suspense>
       </main>
       <FloatingMusicPlayer />
+      {shareNotice && <div className="share-sync-toast" role="status">{shareNotice}</div>}
       {deleteCandidate && (
         <div className="modal-backdrop" role="presentation" onMouseDown={() => setDeleteCandidate(null)}>
           <section className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-novel-title" onMouseDown={(event) => event.stopPropagation()}>
-            <p className="eyebrow">Delete novel</p>
-            <h2 id="delete-novel-title">是否确定删除该小说？</h2>
-            <p>该操作将永久清空《{deleteCandidate.title}》相关的全部星图、人物卡片及设定数据。</p>
+            {deleteCandidate.sharedMeta?.id ? (
+              <>
+                <p className="eyebrow">Remove shared novel</p>
+                <h2 id="delete-novel-title">是否从手稿列表中移除该共享小说？</h2>
+                <p>这只会把《{deleteCandidate.title}》从你的手稿列表中移除；云端协作空间和其他协作者的内容不受影响。</p>
+              </>
+            ) : (
+              <>
+                <p className="eyebrow">Delete novel</p>
+                <h2 id="delete-novel-title">是否确定删除该小说？</h2>
+                <p>该操作将永久清空《{deleteCandidate.title}》相关的全部星图、人物卡片及设定数据。</p>
+              </>
+            )}
             <div className="confirm-actions">
               <button type="button" className="ghost-button" onClick={() => setDeleteCandidate(null)}>
                 取消
               </button>
               <button type="button" className="danger-button" onClick={confirmDeleteNovel}>
-                确定删除
+                {deleteCandidate.sharedMeta?.id ? "确定移除" : "确定删除"}
               </button>
             </div>
           </section>
@@ -518,6 +775,64 @@ function LandingShellFallback() {
   );
 }
 
+function SharedNovelPublicPage({ state }) {
+  const novel = useMemo(() => decorateSharedNovel(state.row), [state.row]);
+  const noop = useCallback(() => {}, []);
+
+  if (state.status === "loading" || state.status === "idle") {
+    return (
+      <main className="loading-screen" aria-label="正在打开分享小说">
+        <div className="privacy-loader" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+        <p>正在打开分享小说</p>
+      </main>
+    );
+  }
+
+  if (state.status === "error" || !novel) {
+    return (
+      <main className="shared-view-shell shared-view-empty">
+        <section className="section empty-state">
+          <Sparkles size={22} />
+          <h2>分享链接暂时无法打开</h2>
+          <p>{state.error || "请确认链接是否完整，或请作者重新生成只读查看链接。"}</p>
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <div className="shared-view-shell">
+      <main className="content-shell font-serif shared-view-content">
+        <div className="shared-view-ribbon">
+          <strong>只读查看《{novel.title}》 · 可浏览作者公开分享的内容，不能编辑。</strong>
+        </div>
+        <NovelSection
+          novel={novel}
+          readOnly
+          onNovelChange={noop}
+          onAddCharacter={noop}
+          onUpdateCharacter={noop}
+          onAddRelationship={noop}
+          onUpdateRelationship={noop}
+          onDeleteCharacter={noop}
+          onAddEvent={noop}
+          onUpdateEvent={noop}
+          onDeleteEvent={noop}
+          onReorderEvent={noop}
+          onCreateShareLink={noop}
+          shareInfo={novel.sharedMeta}
+          visibleSections={novel.sharedMeta?.publicSections}
+        />
+      </main>
+      <FloatingMusicPlayer />
+    </div>
+  );
+}
+
 function createBlankNovel(id, index) {
   return {
     id,
@@ -537,12 +852,6 @@ function createBlankNovel(id, index) {
     timeline: [],
     sourceLinks: [],
   };
-}
-
-function timelineRank(event) {
-  const parsed = Date.parse(event.date);
-  if (!Number.isNaN(parsed)) return parsed;
-  return String(event.date ?? "").localeCompare("");
 }
 
 function downloadText(filename, content, type) {
@@ -589,4 +898,17 @@ function storeAppearance(appearance) {
   } catch {
     // Appearance persistence is a local preference only.
   }
+}
+
+function upsertSharedNovelRow(current, row) {
+  if (!row?.id) return current;
+  const index = current.findIndex((item) => item.id === row.id);
+  if (index < 0) return [...current, row];
+  const next = [...current];
+  next[index] = {
+    ...next[index],
+    ...row,
+    role: row.role ?? next[index].role,
+  };
+  return next;
 }

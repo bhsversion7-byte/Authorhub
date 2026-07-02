@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Database, ExternalLink, FileText, Network, Tags, X } from "lucide-react";
+import { FULL_PUBLIC_SECTIONS } from "../lib/shareSections.js";
+import { usePopoverDismiss } from "../lib/usePopoverDismiss.js";
+import NovelShareControl from "./NovelShareControl.jsx";
 import RelationGraph from "./RelationGraph.jsx";
 import TagEditor from "./TagEditor.jsx";
 import TimelineFlow from "./TimelineFlow.jsx";
@@ -25,7 +28,21 @@ export default function NovelSection({
   onAddEvent,
   onUpdateEvent,
   onDeleteEvent,
+  onReorderEvent,
+  onCreateShareLink,
+  shareInfo,
+  readOnly = false,
+  visibleSections,
 }) {
+  const sectionSet = useMemo(() => new Set(visibleSections ?? FULL_PUBLIC_SECTIONS), [visibleSections]);
+  const showOutline = sectionSet.has("outline");
+  const showSetting = sectionSet.has("setting");
+  const showThemes = sectionSet.has("themes");
+  const showGraph = sectionSet.has("graph");
+  const showCharacters = sectionSet.has("characters");
+  const showTimeline = sectionSet.has("timeline");
+  const showStoryGrid = showOutline || showSetting || showThemes;
+  const showRelations = showGraph || showCharacters;
   const publishLink = useMemo(() => {
     const links = novel.sourceLinks ?? [];
     const sourceLink = links.find((link) => PLATFORMS.some((platform) => platform.label === link.label)) ?? links.find((link) => link.url?.startsWith("http"));
@@ -37,7 +54,13 @@ export default function NovelSection({
     };
   }, [novel.sourceLinks, novel.urls]);
 
+  function patchNovel(patch) {
+    if (readOnly) return;
+    onNovelChange(novel.id, patch);
+  }
+
   function updatePublishLink(nextLink) {
+    if (readOnly) return;
     const platform = PLATFORMS.find((item) => item.label === nextLink.label) ?? PLATFORMS[0];
     onNovelChange(novel.id, {
       urls: { ...(novel.urls ?? {}), [platform.key]: nextLink.url },
@@ -46,89 +69,116 @@ export default function NovelSection({
   }
 
   return (
-    <section id={novel.id} className="section novel-section" style={{ "--novel-color": novel.color, "--novel-accent": novel.accent }}>
+    <section id={novel.id} className={`section novel-section ${readOnly ? "is-read-only" : ""}`} style={{ "--novel-color": novel.color, "--novel-accent": novel.accent }}>
       <div className="novel-hero">
         <div>
           <p className="eyebrow">Novel section</p>
-          <input className="novel-title-input" value={novel.title} onChange={(event) => onNovelChange(novel.id, { title: event.target.value })} aria-label="小说书名" />
+          <input className="novel-title-input" value={novel.title} readOnly={readOnly} onChange={(event) => patchNovel({ title: event.target.value })} aria-label="小说书名" />
           <input
             className="novel-subtitle-input"
             value={novel.subtitle}
-            onChange={(event) => onNovelChange(novel.id, { subtitle: event.target.value })}
+            readOnly={readOnly}
+            onChange={(event) => patchNovel({ subtitle: event.target.value })}
             aria-label="小说副标题"
           />
         </div>
         <div className="novel-meta" aria-label="作品档案">
           <label className="novel-meta-field">
             <span>类型</span>
-            <input value={novel.genre} onChange={(event) => onNovelChange(novel.id, { genre: event.target.value })} />
+            <input value={novel.genre} readOnly={readOnly} onChange={(event) => patchNovel({ genre: event.target.value })} />
           </label>
           <label className="novel-meta-field">
             <span>当前字数</span>
-            <input type="number" value={novel.currentWords} onChange={(event) => onNovelChange(novel.id, { currentWords: Number(event.target.value) })} />
+            <input type="number" value={novel.currentWords} readOnly={readOnly} onChange={(event) => patchNovel({ currentWords: Number(event.target.value) })} />
           </label>
           <label className="novel-meta-field">
             <span>预计总字数</span>
-            <input type="number" value={novel.targetWords} onChange={(event) => onNovelChange(novel.id, { targetWords: Number(event.target.value) })} />
+            <input type="number" value={novel.targetWords} readOnly={readOnly} onChange={(event) => patchNovel({ targetWords: Number(event.target.value) })} />
           </label>
           <label className="novel-meta-field">
             <span>完结时间</span>
-            <input type="date" value={novel.finishDate} onChange={(event) => onNovelChange(novel.id, { finishDate: event.target.value })} />
+            <input type="date" value={novel.finishDate} readOnly={readOnly} onChange={(event) => patchNovel({ finishDate: event.target.value })} />
           </label>
-          <PublishLinkPill link={publishLink} onChange={updatePublishLink} />
-        </div>
-      </div>
-
-      <div className="story-grid">
-        <article className="panel story-card">
-          <div className="panel-title">
-            <FileText size={17} />
-            <h3>大纲</h3>
-          </div>
-          <textarea value={novel.outline} onChange={(event) => onNovelChange(novel.id, { outline: event.target.value })} />
-        </article>
-
-        <article className="panel story-card">
-          <div className="panel-title">
-            <Database size={17} />
-            <h3>设定集</h3>
-          </div>
-          <textarea value={novel.setting} onChange={(event) => onNovelChange(novel.id, { setting: event.target.value })} />
-        </article>
-
-        <article className="panel theme-card">
-          <div className="panel-title">
-            <Tags size={17} />
-            <h3>主题标签</h3>
-          </div>
-          <TagEditor tags={novel.themes} onChange={(themes) => onNovelChange(novel.id, { themes })} />
-        </article>
-      </div>
-
-      <RelationGraph
-        novel={novel}
-        onAddCharacter={onAddCharacter}
-        onUpdateCharacter={onUpdateCharacter}
-        onAddRelationship={onAddRelationship}
-        onUpdateRelationship={onUpdateRelationship}
-        onDeleteCharacter={onDeleteCharacter}
-      />
-
-      <div className="timeline-shell">
-        <div className="timeline-title">
-          <Network size={18} />
-          <div>
-            <p className="eyebrow">Story causality</p>
-            <h3>事件、背景与设定双向关联</h3>
+          <div className="novel-hero-actions">
+            <PublishLinkPill link={publishLink} onChange={updatePublishLink} readOnly={readOnly} />
+            {!readOnly && <NovelShareControl novel={novel} shareInfo={shareInfo} onCreateShareLink={onCreateShareLink} />}
           </div>
         </div>
-        <TimelineFlow novel={novel} onAddEvent={onAddEvent} onUpdateEvent={onUpdateEvent} onDeleteEvent={onDeleteEvent} />
       </div>
+
+      {showStoryGrid && (
+        <div className="story-grid">
+          {showOutline && (
+            <article className="panel story-card">
+              <div className="panel-title">
+                <FileText size={17} />
+                <h3>大纲</h3>
+              </div>
+              <textarea value={novel.outline} readOnly={readOnly} onChange={(event) => patchNovel({ outline: event.target.value })} />
+            </article>
+          )}
+
+          {showSetting && (
+            <article className="panel story-card">
+              <div className="panel-title">
+                <Database size={17} />
+                <h3>设定集</h3>
+              </div>
+              <textarea value={novel.setting} readOnly={readOnly} onChange={(event) => patchNovel({ setting: event.target.value })} />
+            </article>
+          )}
+
+          {showThemes && (
+            <article className="panel theme-card">
+              <div className="panel-title">
+                <Tags size={17} />
+                <h3>主题标签</h3>
+              </div>
+              {readOnly ? (
+                <div className="tag-list readonly-tags">
+                  {(novel.themes ?? []).map((tag) => (
+                    <span key={tag}>{tag}</span>
+                  ))}
+                </div>
+              ) : (
+                <TagEditor tags={novel.themes} onChange={(themes) => onNovelChange(novel.id, { themes })} />
+              )}
+            </article>
+          )}
+        </div>
+      )}
+
+      {showRelations && (
+        <RelationGraph
+          novel={novel}
+          onAddCharacter={onAddCharacter}
+          onUpdateCharacter={onUpdateCharacter}
+          onAddRelationship={onAddRelationship}
+          onUpdateRelationship={onUpdateRelationship}
+          onDeleteCharacter={onDeleteCharacter}
+          readOnly={readOnly}
+          showGraph={showGraph}
+          showDetails={showCharacters}
+        />
+      )}
+
+      {showTimeline && (
+        <div className="timeline-shell">
+          <div className="timeline-title">
+            <Network size={18} />
+            <div>
+              <p className="eyebrow">Story causality</p>
+              <h3>事件、背景与设定双向关联</h3>
+            </div>
+          </div>
+          <TimelineFlow novel={novel} onAddEvent={onAddEvent} onUpdateEvent={onUpdateEvent} onDeleteEvent={onDeleteEvent} onReorderEvent={onReorderEvent} readOnly={readOnly} />
+        </div>
+      )}
     </section>
   );
 }
 
-function PublishLinkPill({ link, onChange }) {
+function PublishLinkPill({ link, onChange, readOnly = false }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState({ label: link.label || "AO3", url: link.url || "" });
   const buttonRef = useRef(null);
@@ -138,35 +188,10 @@ function PublishLinkPill({ link, onChange }) {
     setDraft({ label: link.label || "AO3", url: link.url || "" });
   }, [link.label, link.url]);
 
-  useEffect(() => {
-    if (!open) return;
-
-    function closePopover() {
-      setOpen(false);
-      window.setTimeout(() => buttonRef.current?.focus?.(), 0);
-    }
-
-    function onKeyDown(event) {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      event.stopPropagation();
-      closePopover();
-    }
-
-    function onPointerDown(event) {
-      if (popoverRef.current?.contains(event.target) || buttonRef.current?.contains(event.target)) return;
-      closePopover();
-    }
-
-    window.addEventListener("keydown", onKeyDown, true);
-    window.addEventListener("pointerdown", onPointerDown, true);
-    return () => {
-      window.removeEventListener("keydown", onKeyDown, true);
-      window.removeEventListener("pointerdown", onPointerDown, true);
-    };
-  }, [open]);
+  usePopoverDismiss(open, { buttonRef, popoverRef, onClose: setOpen });
 
   function save() {
+    if (readOnly) return;
     onChange({ label: draft.label || "AO3", url: draft.url.trim() });
     setOpen(false);
   }
@@ -183,7 +208,7 @@ function PublishLinkPill({ link, onChange }) {
         ref={buttonRef}
         type="button"
         className="publish-pill"
-        onClick={() => setOpen(true)}
+        onClick={() => !readOnly && setOpen(true)}
         title={link.url ? "已配置发布页，点击可修改或打开" : "配置小说发布页"}
       >
         {draft.label || "AO3"}

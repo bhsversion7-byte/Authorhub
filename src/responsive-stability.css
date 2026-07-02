@@ -175,6 +175,14 @@
     grid-template-columns: minmax(0, 1fr) !important;
   }
 
+  /* .novel-hero drops to single-column at this same breakpoint too, but that
+     rule has to live in authorhub-state-corrections.css (loads last) rather
+     than here: material-system.css's own .novel-hero !important rule (at a
+     narrower 980px) has equal selector specificity, and at equal specificity
+     the later-loaded file wins a tie regardless of which media query is
+     narrower - this file loads before material-system.css, so a same-
+     specificity override placed here would lose that tie and never apply. */
+
   .story-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
@@ -220,12 +228,27 @@
     gap: 8px !important;
     overflow-x: auto !important;
     overscroll-behavior-x: contain;
-    padding-bottom: 2px;
-    scrollbar-width: none;
+    padding-bottom: 10px;
+    /* Now that the :: drag handle is gone, a visible scrollbar is the only
+       hint this row scrolls sideways - was previously suppressed entirely.
+       iOS Safari ignores ::-webkit-scrollbar styling and just shows its own
+       native translucent overlay indicator while scrolling, which is fine;
+       this mainly targets Android Chrome / touch-Chromium (iPad w/ Chrome). */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(141, 122, 107, 0.4) transparent;
   }
 
   .nav-stack::-webkit-scrollbar {
-    display: none;
+    height: 6px;
+  }
+
+  .nav-stack::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .nav-stack::-webkit-scrollbar-thumb {
+    background: rgba(141, 122, 107, 0.4);
+    border-radius: 999px;
   }
 
   .nav-label {
@@ -254,7 +277,12 @@
     flex: 0 0 auto !important;
     width: auto !important;
     min-width: 132px !important;
-    padding-right: 34px !important;
+    padding-right: 58px !important;
+  }
+
+  .sidebar .novel-drag-handle {
+    right: 34px !important;
+    opacity: 0.72 !important;
   }
 
   .add-novel-button {
@@ -296,6 +324,18 @@
 
   .floating-music:not(.is-collapsed) {
     width: min(276px, calc(100vw - 20px)) !important;
+  }
+
+  /* Desktop "collapse" shrinks the vertical rail to an icon-only column -
+     that treatment doesn't translate to the phone top bar (.nav-stack here
+     is a horizontal flex row): the icon-only nav items, drag handles, and
+     zero inline padding rules above all still apply, producing a cramped
+     unlabeled strip of icons with no clear grouping. On a phone there's no
+     good "iconified" middle ground for a horizontal bar, so collapsing here
+     just hides the row entirely instead - the collapse toggle (still
+     visible) expands it back. Desktop's own collapsed rail is untouched. */
+  .sidebar.is-collapsed .nav-stack {
+    display: none !important;
   }
 }
 

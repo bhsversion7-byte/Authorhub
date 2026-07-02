@@ -1,26 +1,48 @@
-import React, { useEffect, useRef } from "react";
-import { BookOpen, X } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { BookOpen, GripVertical, X } from "lucide-react";
 import Sortable from "sortablejs";
 
 const BOOK_ICON_COLORS = ["#4A6357", "#7A3E3E", "#2E4C6D", "#8C6239", "#6C5E7A", "#6F7D5E"];
+const TOUCH_NAV_QUERY = "(pointer: coarse)";
 
 export default function DraggableNovelList({ novels, activeView, onSelect, onDeleteNovel, onReorderNovel }) {
   const listRef = useRef(null);
   const reorderRef = useRef(onReorderNovel);
+  const [requiresDragHandle, setRequiresDragHandle] = useState(() => getRequiresDragHandle());
 
   useEffect(() => {
     reorderRef.current = onReorderNovel;
   }, [onReorderNovel]);
 
   useEffect(() => {
+    const media = window.matchMedia?.(TOUCH_NAV_QUERY);
+    if (!media) return undefined;
+
+    function syncDragMode() {
+      setRequiresDragHandle(media.matches);
+    }
+
+    syncDragMode();
+    if (media.addEventListener) {
+      media.addEventListener("change", syncDragMode);
+      return () => media.removeEventListener("change", syncDragMode);
+    }
+    media.addListener?.(syncDragMode);
+    return () => media.removeListener?.(syncDragMode);
+  }, []);
+
+  useEffect(() => {
     if (!listRef.current) return undefined;
 
-    const sortable = Sortable.create(listRef.current, {
+    const sortableOptions = {
       animation: 180,
       easing: "cubic-bezier(0.25, 1, 0.5, 1)",
       draggable: ".novel-nav-item",
       fallbackTolerance: 4,
       filter: ".novel-delete-button",
+      delayOnTouchOnly: true,
+      delay: 120,
+      touchStartThreshold: 8,
       preventOnFilter: false,
       chosenClass: "novel-sort-chosen",
       dragClass: "novel-sort-drag",
@@ -30,10 +52,13 @@ export default function DraggableNovelList({ novels, activeView, onSelect, onDel
         const movedId = event.item?.dataset.novelId;
         if (movedId) reorderRef.current(movedId, event.newIndex);
       },
-    });
+    };
+    if (requiresDragHandle) sortableOptions.handle = ".novel-drag-handle";
+
+    const sortable = Sortable.create(listRef.current, sortableOptions);
 
     return () => sortable.destroy();
-  }, [novels.length]);
+  }, [novels.length, requiresDragHandle]);
 
   return (
     <div ref={listRef} className="draggable-novel-list">
@@ -55,6 +80,11 @@ export default function DraggableNovelList({ novels, activeView, onSelect, onDel
               <BookOpen size={16} />
               <span className="novel-nav-title">{novel.title}</span>
             </button>
+            {requiresDragHandle && (
+              <span className="novel-drag-handle" aria-hidden="true" title="拖拽调整排序">
+                <GripVertical size={14} />
+              </span>
+            )}
             <button
               type="button"
               className="novel-delete-button"
@@ -76,4 +106,9 @@ export default function DraggableNovelList({ novels, activeView, onSelect, onDel
       })}
     </div>
   );
+}
+
+function getRequiresDragHandle() {
+  if (typeof window === "undefined") return false;
+  return Boolean(window.matchMedia?.(TOUCH_NAV_QUERY).matches);
 }

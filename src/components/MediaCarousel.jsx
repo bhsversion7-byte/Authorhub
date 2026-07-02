@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, ImagePlus, Link, Trash2, X } from "lucide-react";
+import { deleteImageFromStorage, uploadImageToStorage } from "../lib/mediaStorage.js";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
@@ -46,7 +47,7 @@ const previewHotspotStyle = {
   cursor: "zoom-in",
 };
 
-export default function MediaCarousel({ images = [], onChange, label = "参考图片" }) {
+export default function MediaCarousel({ images = [], onChange, label = "参考图片", readOnly = false }) {
   const [url, setUrl] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const [dragX, setDragX] = useState(0);
@@ -92,6 +93,12 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
   }, [previewImage]);
 
   function addFiles(event) {
+    // Unlike sibling components (RelationGraph/TimelineFlow/NovelSection),
+    // these mutators only relied on the calling JSX hiding their trigger
+    // buttons in readOnly mode - a stray call (future regression, ref call)
+    // could still fire a real onChange and a real deleteImageFromStorage
+    // side effect for a viewer who should have zero write access.
+    if (readOnly) return;
     const files = Array.from(event.target.files ?? []);
     if (!files.length) return;
 
@@ -100,34 +107,39 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
     setMediaError(rejectedCount ? `已跳过 ${rejectedCount} 张超过 5MB 的图片。` : "");
 
     Promise.all(
-      allowedFiles.map(
-        (file) =>
-          new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () =>
-              resolve({
-                id: `${Date.now()}-${file.name}`,
-                src: reader.result,
-                alt: file.name,
-              });
-            reader.readAsDataURL(file);
-          }),
-      ),
+      allowedFiles.map(async (file) => {
+        const storedUrl = await uploadImageToStorage(file);
+        if (storedUrl) return { id: `${Date.now()}-${file.name}`, src: storedUrl, alt: file.name };
+
+        // Offline / local-demo / upload failure: embed as before so the
+        // upload never silently fails from the user's point of view.
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () =>
+            resolve({
+              id: `${Date.now()}-${file.name}`,
+              src: reader.result,
+              alt: file.name,
+            });
+          reader.readAsDataURL(file);
+        });
+      }),
     ).then((nextImages) => {
       if (!nextImages.length) return;
       const nextActiveIndex = safeImages.length;
-      onChange([...safeImages, ...nextImages]);
+      onChange?.([...safeImages, ...nextImages]);
       setActiveIndex(nextActiveIndex);
     });
     event.target.value = "";
   }
 
   function addUrl() {
+    if (readOnly) return;
     const trimmed = url.trim();
     if (!trimmed) return;
     setMediaError("");
     const nextActiveIndex = safeImages.length;
-    onChange([...safeImages, { id: `${Date.now()}-${trimmed}`, src: trimmed, alt: label }]);
+    onChange?.([...safeImages, { id: `${Date.now()}-${trimmed}`, src: trimmed, alt: label }]);
     setActiveIndex(nextActiveIndex);
     setUrl("");
   }
@@ -135,10 +147,13 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
   function removeImage(index, event) {
     event?.preventDefault();
     event?.stopPropagation();
+    if (readOnly) return;
+    const removed = safeImages[index];
     const nextImages = safeImages.filter((_, itemIndex) => itemIndex !== index);
-    onChange(nextImages);
+    onChange?.(nextImages);
     setActiveIndex((current) => Math.max(0, Math.min(current, nextImages.length - 1)));
     setPreviewImage(null);
+    if (removed?.src) deleteImageFromStorage(removed.src);
   }
 
   function move(delta, event) {
@@ -213,29 +228,35 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
     <div className="media-carousel-block">
       <div className="media-carousel-head">
         <span>{label}</span>
-        <button type="button" className="media-upload-button" onClick={() => fileInputRef.current?.click()}>
-          <ImagePlus size={15} />
-          添加图片
-        </button>
-        <input ref={fileInputRef} className="media-upload-input" type="file" accept="image/*" multiple onChange={addFiles} />
+        {!readOnly && (
+          <>
+            <button type="button" className="media-upload-button" onClick={() => fileInputRef.current?.click()}>
+              <ImagePlus size={15} />
+              添加图片
+            </button>
+            <input ref={fileInputRef} className="media-upload-input" type="file" accept="image/*" multiple onChange={addFiles} />
+          </>
+        )}
       </div>
 
-      <div className="media-url-row compact-media-url">
-        <input
-          value={url}
-          onChange={(event) => setUrl(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              addUrl();
-            }
-          }}
-          placeholder="粘贴图片 URL"
-        />
-        <button type="button" onClick={addUrl} aria-label="添加图片链接">
-          <Link size={15} />
-        </button>
-      </div>
+      {!readOnly && (
+        <div className="media-url-row compact-media-url">
+          <input
+            value={url}
+            onChange={(event) => setUrl(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                addUrl();
+              }
+            }}
+            placeholder="粘贴图片 URL"
+          />
+          <button type="button" onClick={addUrl} aria-label="添加图片链接">
+            <Link size={15} />
+          </button>
+        </div>
+      )}
       {mediaError && <p className="media-error">{mediaError}</p>}
 
       <div
@@ -277,9 +298,11 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
                     onPointerUp={onHotspotPointerUp}
                     onPointerCancel={onHotspotPointerUp}
                   />
-                  <button type="button" onClick={(event) => removeImage(index, event)} aria-label="删除图片" style={{ zIndex: 3 }}>
-                    <Trash2 size={14} />
-                  </button>
+                  {!readOnly && (
+                    <button type="button" onClick={(event) => removeImage(index, event)} aria-label="删除图片" style={{ zIndex: 3 }}>
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </figure>
               );
             })}
@@ -309,7 +332,7 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
             )}
           </>
         ) : (
-          <div className="media-empty">添加 2 张或更多图片后，可滑动查看。</div>
+          <div className="media-empty">{readOnly ? "暂无图片。" : "添加 2 张或更多图片后，可滑动查看。"}</div>
         )}
       </div>
 
