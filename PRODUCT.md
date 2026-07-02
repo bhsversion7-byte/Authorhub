@@ -1,33 +1,72 @@
-# Product
+# AuthorHub Product Memo
 
-## Register
+这份文档给后续维护 AuthorHub 的 agent / developer 使用。它记录产品方向、设计偏好和不能轻易破坏的体验边界。
 
-product
+## 产品一句话
 
-## Users
+AuthorHub 是写作者用来整理小说宇宙的私人工作区：把多本小说、大纲、设定、人物关系、时间线、主题标签、图片和分享协作放在一个安静、可靠、可长期使用的手稿桌面里。
 
-AuthorHub serves novel writers, fanfic creators, worldbuilders, and indie authors who manage multi-character story universes. They use it during active writing sessions to organize outlines, settings, character relationships, timelines, publication links, and private author metadata without leaving a focused creative workspace.
+## 目标用户
 
-## Product Purpose
+- 连载小说作者、同人作者、原创作者、世界观设定创作者。
+- 需要同时管理多本小说、复杂人物关系和大量设定的人。
+- 对隐私敏感，草稿、秘密设定和未公开内容不能被误分享。
+- 使用场景偏长期：反复增删、修改、回看，而不是一次性填表。
 
-AuthorHub is a privacy-first creative command center for structured fiction planning. It helps writers turn scattered notes into an editable atlas of novels, characters, relationship graphs, timeline events, media references, and exportable data. Success means the creator can inspect and revise a fictional universe quickly, trust that private drafts are protected, and keep the interface visually calm enough for long writing sessions.
+## 产品目标
 
-## Brand Personality
+AuthorHub 的目标不是成为通用文档工具，而是成为“小说结构管理工具”。
 
-Calm, literary, meticulous. The interface should feel like a Midnight Jazz Cafe editorial workspace: warm paper, restrained Morandi ink, compact SaaS density, and tactile manuscript materials.
+好的状态是：用户打开页面后，能快速知道自己正在写哪本小说、主要设定是什么、人物之间怎么连、时间线如何排列、哪些内容可以分享给亲友，哪些仍然留在自己的私人工作区。
 
-## Anti-references
+## 体验原则
 
-Avoid cold enterprise dashboards, saturated blue SaaS defaults, toy-like fantasy UI, over-decorated glassmorphism, heavy black tutorial overlays, and AI-looking generic beige card grids. Avoid any visual change that makes manuscript text harder to read or makes controls feel unfamiliar.
+1. 稳定优先。保存、删除、分享、撤回、导出都必须可预期，不允许因为 fallback、缓存或自动同步覆盖真实数据。
+2. 不打扰写作。动画、纹理和装饰只能服务氛围，不能抢走文字和控件的可读性。
+3. 信息密度要温和。桌面端可以紧凑，但不能像企业后台；移动端要避免误触，特别是拖拽排序。
+4. 隐私是核心功能。只读分享必须服务端裁剪内容，不能只靠前端隐藏。
+5. 设计语言保持一致。纸感、低饱和色、清楚的按钮状态、lucide 图标、柔和阴影和克制动效。
 
-## Design Principles
+## 视觉方向
 
-1. Preserve the writer's flow: editing, saving, deleting, and navigating must feel predictable and reversible.
-2. Make structure visible without shouting: graphs, timelines, and metadata should expose complexity through calm hierarchy.
-3. Use texture as atmosphere, not interference: paper grain and shadows must support readability and never muddy inputs.
-4. Keep component vocabulary consistent: equivalent actions share shape, color, hover, focus, and confirmation behavior.
-5. Treat privacy as a core interaction: auth, exports, destructive actions, and user data controls must be explicit.
+- 关键词：手稿纸、温柔、文学感、安静、细致、私人创作桌。
+- 色彩：暖白纸面、深咖文字、柔和 Morandi 配色；危险操作使用柔和玫瑰/红色，不用刺眼纯红。
+- 动效：轻微、稳定、可预期；拖拽状态要清楚，但不要夸张。
+- 避免：冷蓝 SaaS、玻璃拟态过度、黑色重遮罩、AI 味装饰、过多渐变、巨大营销式 hero、卡片套卡片。
 
-## Accessibility & Inclusion
+## 当前核心功能
 
-Target WCAG AA contrast for form labels, body text, and action buttons. Respect reduced motion preferences, keep keyboard focus visible, avoid color-only meaning, and maintain usable touch targets for buttons and destructive confirmations.
+- 多小说管理和侧边导航。
+- 小说头部元信息：标题、描述、字数、完结时间、类型、发布页。
+- 大纲、设定集、主题标签。
+- 人物关系星图：节点拖拽、关系线、关系标签、主角关系红线、聚焦和重置。
+- 人物详情：图片、字段、标签、秘密/私密备注。
+- 多维交互时间线：时间点卡片可手动拖拽排序。
+- 分享弹窗：共同编辑、只读查看、生成/撤回/复制链接。
+- 只读分享范围：大纲、设定集、主题标签、星图、人物详情、时间线。
+- JSON / Markdown 导出。
+- 云端保存、本地缓存兜底、图片 Storage 迁移。
+
+## 数据与安全边界
+
+- Supabase 是生产数据源：Auth、Postgres、RLS、Storage。
+- `author_hub_documents.document` 是用户主文档，必须按 `user_id` 隔离。
+- 分享相关表必须只暴露必要字段，RPC 要保留权限检查。
+- 只读分享不得泄露 `secret`、`hidden`、`privateNote` 等私密字段。
+- 如果云端加载失败，本地 fallback/demo 只能用于临时展示，不能覆盖云端文档。
+- 任何涉及数据恢复、批量删除、备份回滚的操作，都先只读确认，再让用户明确同意。
+
+## 维护偏好
+
+- 小范围修复优先，不做无关重构。
+- 视觉修改必须同时看桌面、手机和 iPad，不破坏当前整体气质。
+- CSS 可以继续按功能文件拆分，但避免重复规则和无用旧代码。
+- 新增 Supabase schema 时必须配套 migration、RLS、grant 和验证查询。
+- 不要提交 `.env`、本地导出稿、用户数据、临时备份、QA 截图或工具缓存。
+
+## 当前高优先级风险
+
+- 数据恢复：`bhsversion7@gmail.com` 原有 4 本小说疑似被 demo/fallback 覆盖；当前 Supabase CLI 未发现可用 PITR 备份。
+- 备份策略：需要建立可下载、可恢复的用户级 JSON 备份机制，避免只依赖整库备份。
+- 分享安全：继续检查撤回链接、共同编辑成员权限和旧 token 失效。
+- 移动端误触：拖拽排序必须有明确 handle 或足够阈值，不能影响正常横向滑动。

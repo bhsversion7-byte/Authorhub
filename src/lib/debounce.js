@@ -30,7 +30,15 @@ export function createDebouncer(delayMs) {
     return run?.();
   }
 
-  return { schedule, flush };
+  function cancel() {
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+    }
+    pending = null;
+  }
+
+  return { schedule, flush, cancel };
 }
 
 // Independent per-key debouncing (e.g. one timer per shared novel id), so an

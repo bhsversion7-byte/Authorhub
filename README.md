@@ -1,90 +1,72 @@
 # AuthorHub
 
-AuthorHub is a private workspace for fiction writers who need more than a blank document. It brings together outlines, settings, theme tags, character details, relationship graphs, timelines, reference images, sharing, and export tools in one calm manuscript desk.
+AuthorHub 是一个写作者的私人手稿星图。
 
-The project is built for long writing sessions: warm paper textures, compact controls, readable panels, and a layout that keeps the story structure visible without turning the page into a generic dashboard.
+它不是一个单纯的文本编辑器，也不是把所有信息堆在一起的后台面板。它更像一张安静的创作桌：小说、大纲、设定集、人物关系、时间线、主题标签、参考图片和分享链接都放在同一个工作区里，写作者可以在长期创作中慢慢整理、修改和回看自己的故事宇宙。
 
-[Open AuthorHub](https://authorhub.cn)
+[打开 AuthorHub](https://authorhub.cn)
 
-## Screenshots
+## 截图
 
 ![AuthorHub landing page](docs/screenshots/landing.jpg)
 
 ![AuthorHub workspace](docs/screenshots/workspace.png)
 
-## What You Can Do
+## 为什么做它
 
-- Keep multiple novels in one author workspace.
-- Write and revise outlines, settings, theme tags, and publishing metadata.
-- Build a character relationship graph with draggable nodes and editable relationship labels.
-- Store character details, private notes, tags, colors, and reference images.
-- Arrange timeline events manually with drag ordering.
-- Share a novel as a read-only public link, choosing which sections are visible.
-- Invite a collaborator into a shared editing version.
-- Export your work to JSON or Markdown.
-- Use local fallback storage when the backend is not configured.
+很多小说不是只靠一份正文就能被管理好的。
 
-## Privacy Model
+写到中后期时，人物关系会变复杂，时间线会开始互相打架，设定会散落在聊天记录、备忘录、文档和脑子里。AuthorHub 想解决的是这种很真实的混乱：让写作者在不离开创作状态的情况下，把故事结构看清楚，也把私人草稿保护好。
 
-AuthorHub treats draft data as private user data.
+它的界面尽量保持温和、纸质、低打扰。功能可以复杂，但使用时不应该像在操作一套冷冰冰的企业系统。
 
-- The production app uses Supabase Auth before loading a workspace.
-- Private manuscript data is stored per user in Supabase with row-level security.
-- Public read-only links are token-based and server-filtered.
-- Read-only sharing removes private fields such as hidden notes and secrets.
-- Image uploads are moved to Supabase Storage when available, so large images do not keep bloating the main document JSON.
+## 主要功能
 
-## Tech Stack
+- 多本小说统一管理，每本小说都有独立的大纲、设定、标签和发布信息。
+- 人物关系星图支持拖拽、聚焦、重置、关系标签和主角关系线高亮。
+- 人物详情可以记录图片、年龄、身份、秘密、私密备注和关系信息。
+- 多维交互时间线支持手动拖拽排序，适合按剧情节奏而不只是日期管理事件。
+- 主题标签、世界设定、参考图片和文本卡片集中在同一个工作区。
+- 分享链接支持共同编辑和只读查看；只读查看可以选择公开哪些模块。
+- 只读分享会在服务端裁剪内容，未选择的设定和私密字段不会暴露给访问者。
+- 支持 JSON / Markdown 导出，方便作者保留自己的资料备份。
+- 登录后使用云端保存，并保留本地缓存作为临时兜底。
+
+## 设计气质
+
+AuthorHub 的视觉方向是安静、文学感、可长时间停留。
+
+我们更喜欢纸张纹理、柔和的莫兰迪色、清楚的按钮状态和稳定的布局；不追求夸张动画，也不希望界面抢走故事本身的注意力。它应该像一张被认真使用过的写作桌，而不是一个为了展示技术而存在的页面。
+
+## 隐私与数据
+
+AuthorHub 默认把草稿当成私密数据处理。
+
+- 用户工作区需要登录后访问。
+- 小说文档按用户隔离保存，并使用 Supabase RLS 做权限限制。
+- 分享链接使用 token 访问，不会公开用户的整个工作区。
+- 只读分享会移除 `secret`、`hidden`、`privateNote` 等私密字段。
+- 图片会尽量迁移到 Supabase Storage，避免大型图片长期塞在主文档 JSON 中。
+- 当前版本已经加入保护：如果云端文档加载失败，fallback/demo 数据不会继续覆盖云端文档。
+
+## 技术组成
 
 - React 19
 - Vite 8
-- Supabase Auth, Postgres, RLS, and Storage
-- D3 for the relationship graph
-- Three.js / React Three Fiber for the landing book
-- SortableJS for manual ordering
-- lucide-react for icons
+- Supabase Auth / Postgres / RLS / Storage
+- D3 relationship graph
+- Three.js / React Three Fiber landing interaction
+- SortableJS manual ordering
+- lucide-react icons
 
-## Local Development
+## 项目状态
 
-```bash
-git clone https://github.com/bhsversion7-byte/Authorhub.git
-cd Authorhub
-npm install
-npm run dev
-```
+AuthorHub 仍在持续精修中。当前重点是让核心写作体验更稳定：分享权限、云端保存、移动端触摸、人物星图性能、时间线排序和导出备份都会继续被认真打磨。
 
-The dev server runs at:
+如果你正在使用它，也欢迎把真实写作过程中遇到的不顺手之处告诉我。小问题也很重要，因为这个工具本来就是为长时间、反复使用而做的。
 
-```text
-http://localhost:6173
-```
+## 反馈
 
-Create a local `.env` from `.env.example` when you want to connect Supabase:
+问题、建议、使用感受都可以发到：
 
-```bash
-cp .env.example .env
-```
-
-Without Supabase variables, the app can still run in local demo mode for interface review.
-
-## Useful Checks
-
-```bash
-npm run build
-npm run verify:markdown
-npm run verify:share
-npm run verify:graph
-npm audit --omit=dev
-```
-
-## Notes For Contributors
-
-Please do not commit local drafts, exported manuscripts, `.env` files, Vercel output, Supabase temp files, or generated QA screenshots. The repository keeps those paths ignored by default.
-
-The visual direction should stay quiet and task-focused: manuscript paper, Morandi colors, clear typography, restrained motion, and controls that feel familiar to writers using the tool every day.
-
-## Feedback
-
-Questions, bug reports, and writing-workflow ideas are welcome.
-
-Email: [bhsversion@163.com](mailto:bhsversion@163.com?subject=AuthorHub_Feedback)
+[bhsversion@163.com](mailto:bhsversion@163.com?subject=AuthorHub_Feedback)
