@@ -27,12 +27,12 @@ export default function NovelShareControl({ novel, shareInfo, onCreateShareLink 
 
   usePopoverDismiss(open, { buttonRef, popoverRef, onClose: setOpen });
 
-  async function generateLink(nextMode = mode) {
+  async function generateLink(nextMode = mode, { forceNew = false } = {}) {
     setMode(nextMode);
     setBusy(true);
     setStatus("");
     try {
-      const result = await onCreateShareLink?.(novel, nextMode, selectedSections);
+      const result = await onCreateShareLink?.(novel, nextMode, selectedSections, { forceNew });
       setLink(result?.url ?? "");
       setStatus(result?.url ? "ready" : "");
     } catch (error) {
@@ -125,7 +125,7 @@ export default function NovelShareControl({ novel, shareInfo, onCreateShareLink 
           </label>
 
           <div className="share-actions">
-            <button type="button" onClick={() => generateLink(mode)} disabled={busy}>
+            <button type="button" onClick={() => generateLink(mode, { forceNew: Boolean(link) })} disabled={busy}>
               {busy ? "生成中" : link ? "重新生成" : "生成链接"}
             </button>
             <button type="button" onClick={copyLink} disabled={!link || busy}>
