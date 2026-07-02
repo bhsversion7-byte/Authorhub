@@ -2,7 +2,7 @@
 
 ## User update email
 
-Use the local one-off script. Do not add bulk email controls to the AuthorHub UI.
+Use the reusable local batch script. Do not add bulk email controls to the AuthorHub UI.
 
 1. Verify the sending domain in Resend: SPF, DKIM, and DMARC should pass before sending.
 2. Store secrets only in local `.env.local`: `RESEND_API_KEY`, `AUTHORHUB_EMAIL_FROM`, `AUTHORHUB_FEEDBACK_EMAIL`, `SUPABASE_SERVICE_ROLE_KEY`.
@@ -11,10 +11,20 @@ Use the local one-off script. Do not add bulk email controls to the AuthorHub UI
 4. Send to internal test addresses:
    `node scripts/send-user-update-email.mjs --send --test-to you@example.com`
 5. Send a small batch:
+   PowerShell:
+   `$env:AUTHORHUB_EMAIL_CONFIRM="SEND_AUTHORHUB_UPDATE"; node scripts/send-user-update-email.mjs --send --all --limit 20`
+   macOS/Linux:
    `AUTHORHUB_EMAIL_CONFIRM=SEND_AUTHORHUB_UPDATE node scripts/send-user-update-email.mjs --send --all --limit 20`
-6. If bounce/spam results are acceptable, send the remaining users with `--offset 20`.
+6. If bounce/spam results are acceptable, use the zero-cost daily batch flow.
+   PowerShell:
+   `$env:AUTHORHUB_EMAIL_CONFIRM="SEND_AUTHORHUB_UPDATE"; npm run email:update:daily`
+   macOS/Linux:
+   `AUTHORHUB_EMAIL_CONFIRM=SEND_AUTHORHUB_UPDATE npm run email:update:daily`
+7. Repeat the daily command on later days. The script keeps `logs/authorhub-email-state.json`, skips addresses already marked sent, and continues with the next unsent users.
 
-Each user receives an individual email, not BCC. The script writes JSONL send logs under `logs/`.
+Each user receives an individual email, not BCC. The script writes JSONL send logs under `logs/`. Use `--daily-limit 300` only after switching to a provider with a 300/day free quota, such as Brevo; the default npm daily script stays at Resend Free's 100/day limit.
+
+Optional template files are supported with `--html-template path/to/email.html` and `--text-template path/to/email.txt`. Templates can include `{{email}}` and `{{feedbackEmail}}`.
 
 ## First-stage attack response
 
@@ -27,3 +37,12 @@ Keep Aliyun DNS unchanged unless the attack cannot be handled at the Vercel edge
 5. Keep Aliyun WAF or Anti-DDoS as a second-stage option only if Vercel edge mitigation is not enough or if traffic must be routed through Aliyun cleaning.
 
 Before saving any dashboard setting, capture the rule text and expected user impact so it can be reviewed.
+
+Suggested first rules:
+
+- Rate-limit `/api/captcha` and `/api/verify-captcha` by IP, starting around 30 requests/minute with challenge or deny after the limit.
+- Rate-limit `/share/*` and `/join/*` by IP, starting around 120 requests/minute; raise only if real readers are affected.
+- Challenge obvious script clients such as empty user agents or `curl/*` on public pages.
+- Keep Bot Protection in log/challenge mode first, then tighten after checking Firewall events.
+
+The current custom captcha is useful against simple registration spam only. It does not protect login attempts, high-volume scraping, or DDoS traffic. Cloudflare Turnstile can replace the custom captcha later without moving DNS to Cloudflare; it only needs a site key on the page and server-side token verification.
