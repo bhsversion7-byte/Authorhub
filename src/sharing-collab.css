@@ -348,19 +348,9 @@
   min-height: 100vh;
   background:
     radial-gradient(circle at 74% 12%, rgba(196, 176, 142, 0.12), transparent 34%),
-    rgba(245, 241, 232, 0.1) url("/texture-3-bg.jpg") center center / cover no-repeat,
-    #f5f1e8;
-}
-
-.shared-view-shell::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: url("/texture-3-bg.jpg") center center / cover no-repeat;
-  opacity: 0.42;
-  mix-blend-mode: multiply;
+    linear-gradient(135deg, rgba(246, 241, 232, 0.16), rgba(223, 215, 202, 0.14)),
+    url("/texture-3-wide.jpg") center center / cover no-repeat,
+    var(--ah-bg-paper);
 }
 
 .shared-view-shell .content-shell,
