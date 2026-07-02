@@ -337,7 +337,7 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
               "暂无图片。"
             ) : (
               <>
-                添加 2 张或更多图片后，可滑动查看。
+                <span className="media-empty-hint">添加 2 张或更多图片后，可滑动查看。</span>
                 <span className="media-empty-hint">单张图片最大 2MB。</span>
               </>
             )}

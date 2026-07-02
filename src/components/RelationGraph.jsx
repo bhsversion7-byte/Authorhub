@@ -350,8 +350,8 @@ export default function RelationGraph({
     node
       .append("circle")
       .attr("r", (character) => character.radius + (isMainTag(character) ? 21 : 12))
-      .attr("fill", (character) => (isMainTag(character) ? "rgba(230,140,130,0.42)" : "#8BA09C"))
-      .attr("stroke", (character) => (isMainTag(character) ? "rgba(242,217,138,0.85)" : "none"))
+      .attr("fill", (character) => (isMainTag(character) ? "rgba(224,122,104,0.42)" : "#8BA09C"))
+      .attr("stroke", (character) => (isMainTag(character) ? "rgba(230,178,102,0.85)" : "none"))
       .attr("stroke-width", (character) => (isMainTag(character) ? 8 : 0))
       .attr("opacity", (character) => (isMainTag(character) ? 0.52 : 0.1))
       .attr("class", (character) => `planet-halo ${isMainTag(character) ? "is-celestial" : ""}`);

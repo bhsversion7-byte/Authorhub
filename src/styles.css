@@ -1776,7 +1776,7 @@ body[data-theme="dark"] .toggle-pill.is-active {
 .media-empty {
   max-width: 260px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.7;
   text-align: center;
 }
@@ -1784,7 +1784,7 @@ body[data-theme="dark"] .toggle-pill.is-active {
 .media-empty-hint {
   display: block;
   margin-top: 2px;
-  font-size: 11px;
+  font-size: 12px;
   opacity: 0.72;
 }
 
@@ -2152,7 +2152,9 @@ body[data-theme="dark"] .toggle-pill.is-active {
   gap: 10px;
 }
 
-.focus-textarea-label button {
+
+.focus-textarea-label button,
+.panel-title-expand {
   display: grid;
   width: 30px;
   height: 30px;
@@ -2161,6 +2163,10 @@ body[data-theme="dark"] .toggle-pill.is-active {
   background: #fffaf3;
   color: var(--teal);
   border: 1px solid var(--line);
+}
+
+.panel-title-expand {
+  margin-left: auto;
 }
 
 .zen-overlay {

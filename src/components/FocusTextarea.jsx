@@ -1,11 +1,16 @@
-import React, { useEffect, useId, useRef, useState } from "react";
+import React, { forwardRef, useEffect, useId, useImperativeHandle, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Maximize2, Minimize2, Save } from "lucide-react";
 
-export default function FocusTextarea({ label, value, onChange, onSave, rows = 5, placeholder, readOnly = false }) {
+const FocusTextarea = forwardRef(function FocusTextarea(
+  { label, value, onChange, onSave, rows = 5, placeholder, readOnly = false, hideLabel = false },
+  ref,
+) {
   const [focused, setFocused] = useState(false);
   const textareaRef = useRef(null);
   const titleId = useId();
+
+  useImperativeHandle(ref, () => ({ open: () => setFocused(true) }), []);
 
   useEffect(() => {
     if (!focused) return;
@@ -30,12 +35,14 @@ export default function FocusTextarea({ label, value, onChange, onSave, rows = 5
 
   return (
     <div className="focus-textarea-wrap">
-      <div className="focus-textarea-label">
-        <span>{label}</span>
-        <button type="button" onClick={() => setFocused(true)} aria-label={readOnly ? `查看${label}` : `专注编辑${label}`}>
-          <Maximize2 size={14} />
-        </button>
-      </div>
+      {!hideLabel && (
+        <div className="focus-textarea-label">
+          <span>{label}</span>
+          <button type="button" onClick={() => setFocused(true)} aria-label={readOnly ? `查看${label}` : `专注编辑${label}`}>
+            <Maximize2 size={14} />
+          </button>
+        </div>
+      )}
       <textarea
         value={value}
         rows={rows}
@@ -89,4 +96,6 @@ export default function FocusTextarea({ label, value, onChange, onSave, rows = 5
         )}
     </div>
   );
-}
+});
+
+export default FocusTextarea;

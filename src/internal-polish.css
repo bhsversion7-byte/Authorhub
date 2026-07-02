@@ -245,13 +245,15 @@
   font-weight: 800;
 }
 
-.focus-textarea-label button {
+.focus-textarea-label button,
+.panel-title-expand {
   background: rgba(255, 250, 244, 0.72);
   color: rgba(80, 72, 63, 0.78);
   box-shadow: none;
 }
 
-.focus-textarea-label button:hover {
+.focus-textarea-label button:hover,
+.panel-title-expand:hover {
   transform: none;
   background: rgba(255, 253, 248, 0.95);
   color: var(--ink);
