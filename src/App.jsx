@@ -23,7 +23,7 @@ import {
   subscribeToSharedNovel,
 } from "./lib/shareAdapter.js";
 import { getLocalAuthUser, hasSupabaseConfig, setLocalAuthUser, supabase } from "./lib/supabaseClient.js";
-import { flushCloudSave, loadAuthorHubData, saveAuthorHubData } from "./lib/shimoAdapter.js";
+import { flushCloudSave, isCloudSaveBlocked, loadAuthorHubData, retryCloudSync, saveAuthorHubData } from "./lib/shimoAdapter.js";
 
 const AuthGate = lazy(() => import("./components/AuthGate.jsx"));
 const AuthorDashboard = lazy(() => import("./components/AuthorDashboard.jsx"));
@@ -51,6 +51,7 @@ export default function App() {
   const [shareRoute] = useState(() => parseShareRoute());
   const [publicShare, setPublicShare] = useState({ status: "idle", row: null, error: "" });
   const [shareNotice, setShareNotice] = useState("");
+  const [cloudSyncBlocked, setCloudSyncBlocked] = useState(false);
   const skipNextCloudSaveRef = useRef(false);
   const joinedShareTokenRef = useRef("");
   const sharedSaveDebouncerRef = useRef(createKeyedDebouncer(900));
@@ -105,6 +106,7 @@ export default function App() {
         // load so settings survive refresh even if a debounced cloud save for
         // the document had not flushed yet.
         skipNextCloudSaveRef.current = true;
+        setCloudSyncBlocked(isCloudSaveBlocked(authUser.id));
         setData({
           ...loadedData,
           appearance: {
@@ -248,6 +250,47 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, authUser?.id, isPublicShareRoute]);
 
+  // A cloud load failure (real-world flaky network, one bad request) blocks
+  // saveAuthorHubData from reaching Supabase for the rest of the session so a
+  // stale local fallback can't overwrite a newer cloud document - but every
+  // edit made *after* that point (novel reorder, character save, anything)
+  // is real intent, not stale fallback data. Without this, that edit would
+  // sit in localStorage only and vanish on the next refresh, with nothing
+  // but a console warning - "my changes don't survive a refresh" with no
+  // visible cause. Retry in the background (network regain + a periodic
+  // fallback) and immediately re-push the current document the moment
+  // connectivity is confirmed, so nothing edited while blocked is lost.
+  useEffect(() => {
+    if (isPublicShareRoute || !authUser || !cloudSyncBlocked) return undefined;
+    let cancelled = false;
+    let retrying = false;
+
+    async function attemptRecovery() {
+      if (retrying || cancelled) return;
+      retrying = true;
+      try {
+        const recovered = await retryCloudSync(authUser);
+        if (cancelled || !recovered) return;
+        setCloudSyncBlocked(false);
+        setData((current) => {
+          if (current) saveAuthorHubData(current, authUser, { immediate: true }).catch(() => {});
+          return current;
+        });
+      } finally {
+        retrying = false;
+      }
+    }
+
+    attemptRecovery();
+    window.addEventListener("online", attemptRecovery);
+    const intervalId = window.setInterval(attemptRecovery, 20000);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("online", attemptRecovery);
+      window.clearInterval(intervalId);
+    };
+  }, [cloudSyncBlocked, authUser, isPublicShareRoute]);
+
   useEffect(() => {
     if (isPublicShareRoute) return undefined;
     function flushAll() {
@@ -314,6 +357,14 @@ export default function App() {
     }
     setJustRegistered(Boolean(meta.isNew));
     setAuthUser(user);
+  }
+
+  async function retrySyncNow() {
+    if (!authUser) return;
+    const recovered = await retryCloudSync(authUser);
+    if (!recovered) return;
+    setCloudSyncBlocked(false);
+    if (data) saveAuthorHubData(data, authUser, { immediate: true }).catch(() => {});
   }
 
   async function logout() {
@@ -813,6 +864,14 @@ export default function App() {
         </Suspense>
       </main>
       <FloatingMusicPlayer />
+      {cloudSyncBlocked && !isPublicShareRoute && (
+        <div className="cloud-sync-banner" role="alert">
+          <span>云端连接异常，你的更改目前只保存在本地，请检查网络。</span>
+          <button type="button" onClick={retrySyncNow}>
+            重试同步
+          </button>
+        </div>
+      )}
       {shareNotice && <div className="share-sync-toast" role="status">{shareNotice}</div>}
       {deleteCandidate && (
         <div className="modal-backdrop" role="presentation" onMouseDown={() => setDeleteCandidate(null)}>

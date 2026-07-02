@@ -117,6 +117,41 @@ export function flushCloudSave() {
   return cloudSaveDebouncer.flush() ?? Promise.resolve();
 }
 
+export function isCloudSaveBlocked(userId) {
+  return Boolean(userId) && cloudSaveBlockedUserIds.has(userId);
+}
+
+// A cloud load failure blocks saves for the rest of the session (see
+// loadAuthorHubData) so a stale local fallback can't silently overwrite a
+// newer cloud document. But that block must not be permanent - every edit
+// made afterward (a novel reorder, a character save, anything) is real user
+// intent, not stale fallback data, and deserves to reach Supabase once
+// connectivity returns. Call this in the background (network regain,
+// periodic retry, an explicit "重试" button) to re-probe connectivity; it
+// only tests the connection and clears the block on success. The caller is
+// responsible for immediately re-pushing the current in-memory document
+// afterward (saveAuthorHubData(data, user, { immediate: true })) so nothing
+// edited while blocked is lost.
+export async function retryCloudSync(user) {
+  if (!hasSupabaseConfig || !supabase || !user?.id) return false;
+  if (!cloudSaveBlockedUserIds.has(user.id)) return true;
+  try {
+    await ensureProfile(user);
+    const { error } = await supabase
+      .from("author_hub_documents")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .eq("title", DOCUMENT_TITLE)
+      .maybeSingle();
+    if (error) throw error;
+    cloudSaveBlockedUserIds.delete(user.id);
+    return true;
+  } catch (error) {
+    console.warn("Author Hub cloud sync retry failed; still saving locally only.", error);
+    return false;
+  }
+}
+
 function loadLocalData(user) {
   try {
     const cached = window.localStorage.getItem(storageKey(user));
