@@ -327,6 +327,31 @@ export default function App() {
     setActiveView("author");
   }
 
+  async function unregisterAccount() {
+    if (!authUser) return;
+    if (hasSupabaseConfig && supabase) {
+      await flushCloudSave();
+      flushSharedSaves();
+      const { error } = await supabase.rpc("delete_author_hub_account");
+      if (error) throw error;
+      await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+    }
+    setLocalAuthUser(null);
+    setAuthUser(null);
+    setData(null);
+    setActiveView("author");
+  }
+
+  function saveDataImmediately(nextData) {
+    if (!authUser) return Promise.resolve();
+    return saveAuthorHubData(nextData, authUser, { immediate: true }).catch((error) => {
+      console.warn("Author Hub immediate cloud save failed.", error);
+      setShareNotice("云端保存失败，本地内容仍保留，请稍后再试。");
+      window.setTimeout(() => setShareNotice(""), 2400);
+      throw error;
+    });
+  }
+
   const selectView = useCallback((viewId) => {
     setActiveView(viewId);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -499,16 +524,19 @@ export default function App() {
   }
 
   function clearAllUserData() {
-    setData((current) => ({
-      ...current,
+    if (!data) return Promise.resolve();
+    const nextData = {
+      ...data,
       novels: [],
       author: {
-        ...current.author,
+        ...data.author,
         hasCompletedTour: true,
       },
-    }));
+    };
+    setData(nextData);
     localStorage.setItem("author-hub-tour-complete", "true");
     setActiveView("author");
+    return saveDataImmediately(nextData);
   }
 
   function exportJsonData() {
@@ -564,7 +592,9 @@ export default function App() {
         ? data.novels.filter((novel) => novel.id !== deleteCandidate.sourceNovelId)
         : data.novels;
       if (remainingPrivateNovels !== data.novels) {
-        setData((current) => ({ ...current, novels: current.novels.filter((novel) => novel.id !== deleteCandidate.sourceNovelId) }));
+        const nextData = { ...data, novels: remainingPrivateNovels };
+        setData(nextData);
+        saveDataImmediately(nextData).catch(() => {});
       }
       setActiveView(nextSharedNovels[0] ? `shared-${nextSharedNovels[0].id}` : remainingPrivateNovels[0]?.id ?? "author");
       setShareNotice("已从当前视图移除共享小说；云端协作空间仍保留。");
@@ -574,7 +604,9 @@ export default function App() {
     }
     const remainingNovels = novels.filter((novel) => novel.id !== deleteCandidate.id);
     const nextActiveView = activeView === deleteCandidate.id ? remainingNovels[0]?.id ?? "author" : activeView;
-    setData((current) => ({ ...current, novels: current.novels.filter((novel) => novel.id !== deleteCandidate.id) }));
+    const nextData = { ...data, novels: data.novels.filter((novel) => novel.id !== deleteCandidate.id) };
+    setData(nextData);
+    saveDataImmediately(nextData).catch(() => {});
     setActiveView(nextActiveView);
     setDeleteCandidate(null);
   }
@@ -727,6 +759,7 @@ export default function App() {
               onExportMarkdown={exportMarkdownData}
               onClearData={clearAllUserData}
               onLogout={logout}
+              onUnregister={unregisterAccount}
               appearance={appearance}
               onAppearanceChange={updateAppearance}
             />
