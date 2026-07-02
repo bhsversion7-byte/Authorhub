@@ -17,7 +17,7 @@ import {
 // server. Nothing enforces they stay identical except this check - if either
 // list changes without the other, this must fail loudly instead of letting
 // the two silently drift apart.
-const MIGRATION_PATH = join(dirname(fileURLToPath(import.meta.url)), "..", "supabase/migrations/20260701072000_author_hub_share_sections.sql");
+const MIGRATION_PATH = join(dirname(fileURLToPath(import.meta.url)), "..", "supabase/migrations/20260701145543_author_hub_share_sections.sql");
 const migrationSource = readFileSync(MIGRATION_PATH, "utf8");
 const arrayLiteralMatch = migrationSource.match(/where key <> all\(array\[([^\]]+)\]\)/);
 assert.ok(arrayLiteralMatch, `Could not find the private-field array literal in ${MIGRATION_PATH}; update this check if that SQL was refactored.`);

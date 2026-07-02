@@ -13,7 +13,7 @@ export const DEFAULT_PUBLIC_SECTIONS = ["outline", "setting", "themes"];
 const VALID_SECTION_IDS = new Set(FULL_PUBLIC_SECTIONS);
 
 // Kept in lockstep with the identical array['secret', 'hidden', 'privateNote']
-// literal in supabase/migrations/20260701072000_author_hub_share_sections.sql
+// literal in supabase/migrations/20260701145543_author_hub_share_sections.sql
 // (author_hub_strip_private_jsonb) - that SQL copy is the real security
 // boundary for the public anon-facing RPC, this one is a client-side mirror
 // used before a viewer-role novel is even sent to the server. The two can't
