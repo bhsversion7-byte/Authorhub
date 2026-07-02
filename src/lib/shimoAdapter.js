@@ -7,6 +7,9 @@ const STORAGE_PREFIX = "author-hub-shimo-cache-v4";
 const DOCUMENT_TITLE = "default-author-hub";
 const ensuredProfileIds = new Set();
 const lastCloudSignatures = new Map();
+// Do not let fallback/local data overwrite a real cloud document after a
+// Supabase load failure in the same browser session.
+const cloudSaveBlockedUserIds = new Set();
 
 function storageKey(user) {
   return `${STORAGE_PREFIX}:${user?.id ?? "local"}`;
@@ -41,14 +44,17 @@ export async function loadAuthorHubData(user) {
         } else {
           markCloudSynced(serialized, user);
         }
+        cloudSaveBlockedUserIds.delete(user.id);
         return healed;
       }
 
       const initial = local ?? migrateData(await fetchFromShimoOrMock());
       await saveCloudData(initial, user);
       markCloudSynced(saveLocalData(initial, user), user);
+      cloudSaveBlockedUserIds.delete(user.id);
       return initial;
     } catch (error) {
+      cloudSaveBlockedUserIds.add(user.id);
       console.warn("Author Hub cloud load failed; using local cache fallback.", error);
     }
   }
@@ -71,6 +77,11 @@ export function saveAuthorHubData(data, user) {
   const serialized = saveLocalData(migrated, user);
 
   if (hasSupabaseConfig && supabase && user?.id) {
+    if (cloudSaveBlockedUserIds.has(user.id)) {
+      console.warn("Author Hub skipped cloud save because the cloud document did not load successfully in this session.");
+      return;
+    }
+
     const cloudKey = storageKey(user);
     const cloudSignature = createDocumentSignature(serialized);
     if (lastCloudSignatures.get(cloudKey) === cloudSignature) return;
