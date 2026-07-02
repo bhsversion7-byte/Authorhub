@@ -612,16 +612,10 @@ export default function App() {
       setSharedNovels((current) => upsertSharedNovelRow(current, sharedRow));
       setActiveView(`shared-${sharedRow.id}`);
     }
-    // Only an explicit "重新生成" forces a brand-new token (revoking the old
-    // one). Every other call (opening the share panel, switching the
-    // 共同编辑/只读查看 tab) reuses the current active link so the owner can
-    // hand out one stable URL to many collaborators/readers at once instead
-    // of it silently changing - which also avoids an insert+update round
-    // trip on every view. `matchSections: false` fetches whatever viewer
-    // link is currently active regardless of the popover's local section
-    // selection, so a remount (reopen, novel switch, page reload) that
-    // reset that local state to the defaults can't cause a spurious new
-    // token just because it no longer matches what was actually shared.
+    // Only the explicit "生成链接/重新生成" action reaches this path. Tab
+    // switching in the popover is local UI state and must not fetch or create
+    // a token. Non-forced generation reuses the current active link so owners
+    // can hand out one stable URL to many collaborators/readers at once.
     const link = forceNew
       ? await createSharedNovelLink(sharedRow.id, role, sections)
       : await getOrCreateShareLink(sharedRow.id, role, sections, { requireSectionMatch: matchSections });

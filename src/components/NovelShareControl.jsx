@@ -53,6 +53,14 @@ export default function NovelShareControl({ novel, shareInfo, onCreateShareLink,
     }
   }
 
+  function selectMode(nextMode) {
+    if (nextMode === mode) return;
+    setMode(nextMode);
+    setLink("");
+    setStatus("");
+    setConfirmRevoke(false);
+  }
+
   function toggleSection(sectionId) {
     const nextSections = selectedSections.includes(sectionId)
       ? selectedSections.length === 1
@@ -114,7 +122,7 @@ export default function NovelShareControl({ novel, shareInfo, onCreateShareLink,
                 key={role}
                 type="button"
                 className={mode === role ? "is-active" : ""}
-                onClick={() => generateLink(role, { matchSections: false })}
+                onClick={() => selectMode(role)}
                 disabled={busy}
               >
                 {SHARE_COPY[role].label}

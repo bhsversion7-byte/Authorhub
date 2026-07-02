@@ -5,6 +5,8 @@ import { hasSupabaseConfig, supabase } from "./supabaseClient.js";
 
 const STORAGE_PREFIX = "author-hub-shimo-cache-v4";
 const DOCUMENT_TITLE = "default-author-hub";
+const ensuredProfileIds = new Set();
+const lastCloudSignatures = new Map();
 
 function storageKey(user) {
   return `${STORAGE_PREFIX}:${user?.id ?? "local"}`;
@@ -31,18 +33,20 @@ export async function loadAuthorHubData(user) {
         // URIs; quietly upload those and persist the slimmed-down document
         // so future autosaves stop rewriting a multi-MB jsonb blob.
         const { data: healed, changed } = await migrateEmbeddedImagesToStorage(migrated);
-        saveLocalData(healed, user);
+        const serialized = saveLocalData(healed, user);
         if (changed) {
-          saveCloudData(healed, user).catch((error) =>
-            console.warn("Author Hub could not persist the image-storage migration; will retry next load.", error),
-          );
+          saveCloudData(healed, user)
+            .then(() => markCloudSynced(serialized, user))
+            .catch((error) => console.warn("Author Hub could not persist the image-storage migration; will retry next load.", error));
+        } else {
+          markCloudSynced(serialized, user);
         }
         return healed;
       }
 
       const initial = local ?? migrateData(await fetchFromShimoOrMock());
       await saveCloudData(initial, user);
-      saveLocalData(initial, user);
+      markCloudSynced(saveLocalData(initial, user), user);
       return initial;
     } catch (error) {
       console.warn("Author Hub cloud load failed; using local cache fallback.", error);
@@ -64,15 +68,23 @@ export function saveAuthorHubData(data, user) {
   // offline-safety net, so a crash or force-quit a moment after the last
   // keystroke must not be able to lose it. Only the network upsert below is
   // debounced.
-  saveLocalData(migrated, user);
+  const serialized = saveLocalData(migrated, user);
 
   if (hasSupabaseConfig && supabase && user?.id) {
+    const cloudKey = storageKey(user);
+    const cloudSignature = createDocumentSignature(serialized);
+    if (lastCloudSignatures.get(cloudKey) === cloudSignature) return;
+
     // Coalesce the network upsert separately from the immediate local write.
     // Page-hide/logout paths call flushCloudSave().
     cloudSaveDebouncer.schedule(() =>
-      saveCloudData(migrated, user).catch((error) => {
-        console.warn("Author Hub cloud save failed; local cache is preserved.", error);
-      }),
+      saveCloudData(migrated, user)
+        .then(() => {
+          lastCloudSignatures.set(cloudKey, cloudSignature);
+        })
+        .catch((error) => {
+          console.warn("Author Hub cloud save failed; local cache is preserved.", error);
+        }),
     );
   }
 }
@@ -97,8 +109,9 @@ function loadLocalData(user) {
 }
 
 function saveLocalData(data, user) {
+  const serialized = JSON.stringify(data);
   try {
-    window.localStorage.setItem(storageKey(user), JSON.stringify(data));
+    window.localStorage.setItem(storageKey(user), serialized);
   } catch (error) {
     try {
       window.localStorage.setItem(storageKey(user), JSON.stringify(createLocalCacheSnapshot(data)));
@@ -107,6 +120,7 @@ function saveLocalData(data, user) {
       console.warn("Author Hub local cache is full; latest large media changes may not persist.", compactError);
     }
   }
+  return serialized;
 }
 
 function createLocalCacheSnapshot(data) {
@@ -127,10 +141,14 @@ function createLocalCacheSnapshot(data) {
 }
 
 function compactMediaList(images) {
-  return (images ?? []).filter((image) => typeof image !== "string" || !image.startsWith("data:image/"));
+  return (images ?? []).filter((image) => {
+    if (typeof image === "string") return !image.startsWith("data:image/");
+    return typeof image?.src !== "string" || !image.src.startsWith("data:image/");
+  });
 }
 
 async function ensureProfile(user) {
+  if (ensuredProfileIds.has(user.id)) return;
   await supabase.from("profiles").upsert(
     {
       user_id: user.id,
@@ -140,6 +158,7 @@ async function ensureProfile(user) {
     },
     { onConflict: "user_id" },
   );
+  ensuredProfileIds.add(user.id);
 }
 
 async function saveCloudData(data, user) {
@@ -154,6 +173,20 @@ async function saveCloudData(data, user) {
     { onConflict: "user_id,title" },
   );
   if (error) throw error;
+}
+
+function markCloudSynced(serialized, user) {
+  if (!user?.id) return;
+  lastCloudSignatures.set(storageKey(user), createDocumentSignature(serialized));
+}
+
+function createDocumentSignature(serialized) {
+  let hash = 2166136261;
+  for (let index = 0; index < serialized.length; index += 1) {
+    hash ^= serialized.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `${serialized.length}:${hash >>> 0}`;
 }
 
 async function fetchFromShimoOrMock() {

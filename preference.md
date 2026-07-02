@@ -70,6 +70,7 @@ This is the short source of truth for future agents working on AuthorHub. Keep i
   - `共同编辑`: login required, joins the shared source workspace.
   - `只读查看`: public-by-token, read-only, server-filtered.
 - Share popover actions are three buttons: `生成链接/重新生成` | `撤回` | `复制`.
+- Switching between `共同编辑` and `只读查看` must not create or fetch a link. Only the explicit `生成链接/重新生成` action may call Supabase.
 - Generated share URLs should use canonical `https://www.authorhub.cn` in production. Localhost/127.0.0.1 keep local origins for QA. `VITE_PUBLIC_SITE_URL` may override this.
 - `撤回` uses the same muted rose/red danger-lite language as destructive actions such as 删除人物.
 - Viewer section selection supports: `大纲`, `设定集`, `主题标签`, `星图`, `人物详情`, `时间线`.
@@ -113,6 +114,7 @@ This is the short source of truth for future agents working on AuthorHub. Keep i
 
 - Avoid whole-document cloud writes on every keystroke; debounce cloud, flush deliberately.
 - Avoid storing large base64 images in the main document when Supabase Storage is available.
+- Supabase `author_hub_documents` is intentionally JSONB-centered for flexible fiction data, but large JSONB values live in TOAST. Optimize by preventing embedded base64 media, skipping duplicate upserts, and avoiding repeated profile writes.
 - Do not animate heavy blur/shadow in frequently toggled UI.
 - CSS is currently large and layered; cleanup must be incremental and visually verified. Do not flatten `!important` layers casually.
 - The large Three.js landing chunk is intentional for the cinematic book; optimize only with proof, not guesswork.
