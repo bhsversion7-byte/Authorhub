@@ -3321,6 +3321,17 @@ body {
   min-width: 0;
 }
 
+/* .character-attribute-grid is repeat(auto-fit, minmax(130px, 1fr)), so 姓名/
+   年龄/身份属性/标签 were all treated as equal same-width auto-fit columns.
+   That's fine for the single-line text fields, but 标签 holds a variable-length
+   wrapping tag list and got stuck in one narrow column no matter how much
+   room the card actually had - most visible once the screen is wider than a
+   phone and the wasted space next to the tags becomes obvious. Give it the
+   full row so its own flex-wrap can use all available width at any size. */
+.character-attribute-grid .tag-composer {
+  grid-column: 1 / -1;
+}
+
 .character-attribute-grid input,
 .character-attribute-grid select,
 .character-attribute-grid textarea {

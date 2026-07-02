@@ -37,7 +37,7 @@ const TOUR_STEPS = [
   {
     eyebrow: "Step 05",
     title: "小说顶部卡片",
-    body: "这里记录书名、副标题、类型、字数、完结时间和平台入口；下方三张卡片写大纲、设定集和主题标签。",
+    body: "这里记录书名、副标题、类型、字数、完结时间和平台入口；旁边的分享按钮可以生成「共同编辑」或「只读查看」链接，邀请他人协作或预览；下方三张卡片写大纲、设定集和主题标签。",
     selector: ".novel-section .story-grid",
     view: "novel",
     placement: "top",

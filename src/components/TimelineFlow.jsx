@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, Copy, ExternalLink, Plus, Save, Trash2, X } from "lucide-react";
+import Sortable from "sortablejs";
 import { copyPromptAndOpen } from "../lib/aiHandoff.js";
 import FocusTextarea from "./FocusTextarea.jsx";
 import MediaCarousel from "./MediaCarousel.jsx";
@@ -18,16 +19,45 @@ function createEvent(novelId) {
   };
 }
 
-export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDeleteEvent }) {
+export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDeleteEvent, onReorderEvent, readOnly = false }) {
   const [selectedId, setSelectedId] = useState(novel.timeline[0]?.id);
   const [slideIndex, setSlideIndex] = useState(0);
   const [handoffState, setHandoffState] = useState("");
   const [deleteEventCandidate, setDeleteEventCandidate] = useState(null);
+  const trackRef = useRef(null);
+  const reorderRef = useRef(onReorderEvent);
   const selectedIndex = useMemo(() => novel.timeline.findIndex((event) => event.id === selectedId), [novel.timeline, selectedId]);
   const selected = useMemo(() => novel.timeline.find((event) => event.id === selectedId) ?? novel.timeline[0], [novel.timeline, selectedId]);
   const [draft, setDraft] = useState(selected ?? null);
   const maxSlide = Math.max(0, novel.timeline.length - VISIBLE_TIMELINE_NODES);
   const keywords = buildReferenceKeywords(draft, novel);
+
+  useEffect(() => {
+    reorderRef.current = onReorderEvent;
+  }, [onReorderEvent]);
+
+  useEffect(() => {
+    if (readOnly || !trackRef.current || novel.timeline.length < 2) return undefined;
+
+    const sortable = Sortable.create(trackRef.current, {
+      animation: 180,
+      easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+      draggable: ".timeline-node",
+      fallbackTolerance: 4,
+      filter: ".timeline-node-delete",
+      preventOnFilter: false,
+      chosenClass: "timeline-sort-chosen",
+      dragClass: "timeline-sort-drag",
+      ghostClass: "timeline-sort-ghost",
+      onEnd(event) {
+        if (event.oldIndex === event.newIndex || event.newIndex == null) return;
+        const movedId = event.item?.dataset.eventId;
+        if (movedId) reorderRef.current?.(novel.id, movedId, event.newIndex);
+      },
+    });
+
+    return () => sortable.destroy();
+  }, [novel.id, novel.timeline.length, readOnly]);
 
   useEffect(() => {
     setSlideIndex((current) => Math.min(current, maxSlide));
@@ -55,6 +85,7 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
   }
 
   function addEvent() {
+    if (readOnly) return;
     const event = createEvent(novel.id);
     onAddEvent(novel.id, event);
     setSelectedId(event.id);
@@ -63,12 +94,12 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
   }
 
   function saveEvent() {
-    if (!draft) return;
+    if (!draft || readOnly) return;
     onUpdateEvent(novel.id, draft.id, draft);
   }
 
   function requestDeleteEvent(event = draft) {
-    if (!event) return;
+    if (!event || readOnly) return;
     setDeleteEventCandidate(event);
   }
 
@@ -124,10 +155,12 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
           <p className="eyebrow">Timeline flow</p>
           <h3>多维交互时间线</h3>
         </div>
-        <button type="button" onClick={addEvent}>
-          <Plus size={16} />
-          新增时间点
-        </button>
+        {!readOnly && (
+          <button type="button" onClick={addEvent}>
+            <Plus size={16} />
+            新增时间点
+          </button>
+        )}
       </div>
 
       <div className="timeline-mobile-switcher" aria-label="手机时间点切换">
@@ -148,10 +181,11 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
           <ChevronLeft size={24} />
         </button>
         <div className="timeline-track-viewport">
-          <div className="timeline-track" style={{ "--timeline-index": slideIndex }}>
+          <div ref={trackRef} className="timeline-track" style={{ "--timeline-index": slideIndex }}>
             {novel.timeline.map((event, index) => (
               <div
                 key={event.id}
+                data-event-id={event.id}
                 role="button"
                 tabIndex={0}
                 className={`timeline-node ${event.id === selectedId ? "is-active" : ""}`}
@@ -164,17 +198,19 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
                 style={{ "--node-color": novel.color, "--node-index": index, animationDelay: `${index * 42}ms` }}
                 aria-current={event.id === selectedId ? "step" : undefined}
               >
-                <button
-                  type="button"
-                  className="timeline-node-delete"
-                  onClick={(clickEvent) => {
-                    clickEvent.stopPropagation();
-                    requestDeleteEvent(event);
-                  }}
-                  aria-label={`删除时间点 ${event.title}`}
-                >
-                  <X size={13} />
-                </button>
+                {!readOnly && (
+                  <button
+                    type="button"
+                    className="timeline-node-delete"
+                    onClick={(clickEvent) => {
+                      clickEvent.stopPropagation();
+                      requestDeleteEvent(event);
+                    }}
+                    aria-label={`删除时间点 ${event.title}`}
+                  >
+                    <X size={13} />
+                  </button>
+                )}
                 <span>{event.date}</span>
                 <strong>{event.title}</strong>
               </div>
@@ -192,16 +228,16 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
             <div className="event-core-grid">
               <label>
                 时间点
-                <input value={draft.date} onChange={(event) => setDraft({ ...draft, date: event.target.value })} />
+                <input value={draft.date} readOnly={readOnly} onChange={(event) => setDraft({ ...draft, date: event.target.value })} />
               </label>
               <label>
                 事件名称
-                <input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} />
+                <input value={draft.title} readOnly={readOnly} onChange={(event) => setDraft({ ...draft, title: event.target.value })} />
               </label>
             </div>
-            <FocusTextarea label="发生背景" value={draft.background} onChange={(background) => setDraft({ ...draft, background })} onSave={saveEvent} />
-            <FocusTextarea label="具体剧情" value={draft.plot} onChange={(plot) => setDraft({ ...draft, plot })} onSave={saveEvent} />
-            <MediaCarousel label="时间线参考图片" images={draft.images ?? []} onChange={(images) => setDraft({ ...draft, images })} />
+            <FocusTextarea label="发生背景" value={draft.background} onChange={(background) => setDraft({ ...draft, background })} onSave={saveEvent} readOnly={readOnly} />
+            <FocusTextarea label="具体剧情" value={draft.plot} onChange={(plot) => setDraft({ ...draft, plot })} onSave={saveEvent} readOnly={readOnly} />
+            <MediaCarousel label="时间线参考图片" images={draft.images ?? []} onChange={(images) => setDraft({ ...draft, images })} readOnly={readOnly} />
             <div className="ai-nudge">
               <p>
                 想要完善这个时间点的背景设定？可以复制关键词，跳转到你熟悉的大模型助手中检索素材：
@@ -226,16 +262,18 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
                 </button>
               </div>
             </div>
-            <div className="timeline-action-row">
-              <button type="button" className="primary-button" onClick={saveEvent}>
-                <Save size={16} />
-                保存时间点
-              </button>
-              <button type="button" className="danger-lite-button" onClick={() => requestDeleteEvent()}>
-                <Trash2 size={15} />
-                删除时间点
-              </button>
-            </div>
+            {!readOnly && (
+              <div className="timeline-action-row">
+                <button type="button" className="primary-button" onClick={saveEvent}>
+                  <Save size={16} />
+                  保存时间点
+                </button>
+                <button type="button" className="danger-lite-button" onClick={() => requestDeleteEvent()}>
+                  <Trash2 size={15} />
+                  删除时间点
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

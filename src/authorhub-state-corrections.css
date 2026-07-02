@@ -746,3 +746,39 @@ body[data-theme="dark"] .novel-section .graph-card.relation-graph > .graph-hint 
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
+
+/* material-system.css forces every input/textarea/select under .content-shell
+   to the user's global reading font size (16px+) so manuscript fields (outline,
+   setting, character background, timeline detail) match that preference. That
+   rule is too broad: it also blows up compact chrome fields that must stay at
+   their own fixed size regardless of the reading font size setting - the novel
+   metadata number/date inputs (needs >= .novel-section .novel-meta > label input
+   specificity to win) and the generated share-link URL display. */
+.novel-section .novel-meta > label input {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+.novel-share-popover .share-link-field input {
+  font-size: 12px !important;
+}
+
+/* .novel-hero's 2-column desktop grid (material-system.css) only drops to a
+   single stacked column at max-width:980px, sized as if that's when the
+   sidebar+content math finally gets tight. It isn't: the sidebar alone eats
+   ~200-230px, so a 1000px browser window leaves .novel-hero only ~768px of
+   actual box width - less than the ~900px its 2 fixed-minimum columns
+   (minmax(360px,1fr) + minmax(420px,auto), plus gap/padding) need. Below
+   980px the row simply overflowed, pushing .novel-meta (and AO3/share inside
+   it) outside the card's right edge - not "missing", just rendered off the
+   visible card. Repeats the same single-column override already used at
+   980px in material-system.css/novel-page-refine.css/internal-polish.css/
+   novel-section-restore.css, just wide enough (1180px, matching this file's
+   own .novel-hero-actions/.novel-meta reflow) to actually close the gap;
+   loads last so it wins for the 981-1180px range those don't cover. */
+@media (max-width: 1180px) {
+  .novel-section .novel-hero,
+  .novel-section .novel-hero:hover {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}

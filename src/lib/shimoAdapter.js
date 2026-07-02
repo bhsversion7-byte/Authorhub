@@ -1,4 +1,6 @@
 import { mockAuthorHubData } from "../data/mockData.js";
+import { createDebouncer } from "./debounce.js";
+import { migrateEmbeddedImagesToStorage } from "./mediaStorage.js";
 import { hasSupabaseConfig, supabase } from "./supabaseClient.js";
 
 const STORAGE_PREFIX = "author-hub-shimo-cache-v4";
@@ -25,8 +27,17 @@ export async function loadAuthorHubData(user) {
 
       if (data?.document) {
         const migrated = migrateData(data.document);
-        saveLocalData(migrated, user);
-        return migrated;
+        // Documents saved before images moved to Storage still hold data:
+        // URIs; quietly upload those and persist the slimmed-down document
+        // so future autosaves stop rewriting a multi-MB jsonb blob.
+        const { data: healed, changed } = await migrateEmbeddedImagesToStorage(migrated);
+        saveLocalData(healed, user);
+        if (changed) {
+          saveCloudData(healed, user).catch((error) =>
+            console.warn("Author Hub could not persist the image-storage migration; will retry next load.", error),
+          );
+        }
+        return healed;
       }
 
       const initial = local ?? migrateData(await fetchFromShimoOrMock());
@@ -45,39 +56,31 @@ export async function loadAuthorHubData(user) {
 }
 
 const CLOUD_SAVE_DEBOUNCE_MS = 1000;
-let cloudSaveTimer = null;
-let pendingCloudSave = null;
+const cloudSaveDebouncer = createDebouncer(CLOUD_SAVE_DEBOUNCE_MS);
 
 export function saveAuthorHubData(data, user) {
   const migrated = migrateData(data);
+  // Local cache write stays synchronous/immediate (not debounced): it's the
+  // offline-safety net, so a crash or force-quit a moment after the last
+  // keystroke must not be able to lose it. Only the network upsert below is
+  // debounced.
   saveLocalData(migrated, user);
 
   if (hasSupabaseConfig && supabase && user?.id) {
-    scheduleCloudSave(migrated, user);
+    // Coalesce the network upsert separately from the immediate local write.
+    // Page-hide/logout paths call flushCloudSave().
+    cloudSaveDebouncer.schedule(() =>
+      saveCloudData(migrated, user).catch((error) => {
+        console.warn("Author Hub cloud save failed; local cache is preserved.", error);
+      }),
+    );
   }
-}
-
-function scheduleCloudSave(data, user) {
-  // Keep the local cache write (above) immediate so a refresh never loses data;
-  // only the network upsert is coalesced to avoid one Supabase write per keystroke.
-  pendingCloudSave = { data, user };
-  if (cloudSaveTimer) clearTimeout(cloudSaveTimer);
-  cloudSaveTimer = setTimeout(flushCloudSave, CLOUD_SAVE_DEBOUNCE_MS);
 }
 
 // Force any pending debounced cloud write to run immediately. Safe to call
 // anytime (logout, tab hide/close, unmount); resolves when the write settles.
 export function flushCloudSave() {
-  if (cloudSaveTimer) {
-    clearTimeout(cloudSaveTimer);
-    cloudSaveTimer = null;
-  }
-  if (!pendingCloudSave) return Promise.resolve();
-  const { data, user } = pendingCloudSave;
-  pendingCloudSave = null;
-  return saveCloudData(data, user).catch((error) => {
-    console.warn("Author Hub cloud save failed; local cache is preserved.", error);
-  });
+  return cloudSaveDebouncer.flush() ?? Promise.resolve();
 }
 
 function loadLocalData(user) {

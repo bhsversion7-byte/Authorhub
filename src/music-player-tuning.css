@@ -32,8 +32,11 @@
 }
 
 .floating-music.is-collapsed {
-  width: 62px;
-  min-width: 62px;
+  grid-template-columns: 38px 0 0 22px;
+  gap: 1px;
+  width: 73px;
+  min-width: 73px;
+  padding: 5px;
 }
 
 .floating-music.is-collapsed .floating-vinyl {
@@ -42,5 +45,32 @@
 
 .floating-music.is-collapsed .track-window,
 .floating-music.is-collapsed .player-controls {
-  display: none !important;
+  max-width: 0;
+  max-height: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateX(8px);
+}
+
+.floating-music .track-window,
+.floating-music .player-controls {
+  min-width: 0;
+  overflow: hidden;
+  transition:
+    opacity 180ms var(--ease),
+    transform 180ms var(--ease),
+    visibility 0s linear 0s,
+    max-width 220ms var(--ease),
+    max-height 220ms var(--ease);
+}
+
+.floating-music .track-window {
+  max-width: 132px;
+  max-height: 40px;
+}
+
+.floating-music .player-controls {
+  max-width: 94px;
+  max-height: 34px;
 }
