@@ -2,6 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import * as d3 from "d3";
 import { Check, Link2, Plus, RotateCcw, Save, Sparkles, Trash2, X, ZoomIn } from "lucide-react";
+import {
+  MAIN_PAIR_RELATION_COLOR,
+  getCharacterRelationTag,
+  isMainCharacter,
+  isMainPairRelationship,
+  normalizeRelationTag,
+} from "../lib/relationGraphRules.js";
 import FocusTextarea from "./FocusTextarea.jsx";
 import MediaCarousel from "./MediaCarousel.jsx";
 
@@ -39,7 +46,17 @@ function emptyCharacter(novelId) {
   };
 }
 
-export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter, onAddRelationship, onUpdateRelationship, onDeleteCharacter }) {
+export default function RelationGraph({
+  novel,
+  onAddCharacter,
+  onUpdateCharacter,
+  onAddRelationship,
+  onUpdateRelationship,
+  onDeleteCharacter,
+  readOnly = false,
+  showGraph = true,
+  showDetails = true,
+}) {
   const svgRef = useRef(null);
   const relationRef = useRef(null);
   const nodeSelectionRef = useRef(null);
@@ -195,7 +212,9 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
       .selectAll("path")
       .data(links)
       .join("path")
-      .attr("stroke", (relationship) => (relationship.isPreview ? "#7E9A9A" : novel.color))
+      .attr("stroke", (relationship) =>
+        relationship.isPreview ? "#7E9A9A" : isMainPairRelationship(relationship, nodes, getNodeId) ? MAIN_PAIR_RELATION_COLOR : novel.color,
+      )
       .attr("stroke-width", (relationship) => (relationship.isPreview ? 2.2 : isCoreRelationship(relationship, nodes) ? 1.7 : 1.25))
       .attr("stroke-dasharray", (relationship) => (relationship.isPreview ? "3 5" : "5 7"))
       .attr("stroke-opacity", (relationship) => (relationship.isPreview ? 0.82 : 0.48))
@@ -399,11 +418,16 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
       .transition()
       .duration(160)
       .attr("stroke-opacity", (relationship) => (hasFocus ? (focus.linkKeys.has(relationship.key) ? 0.84 : 0.08) : relationship.isPreview ? 0.82 : 0.48))
-      .attr("stroke-width", (relationship) => ((activeRelationshipKey || previewRelationshipKey) && focus.linkKeys.has(relationship.key) ? 2.7 : relationship.isPreview ? 2.2 : 1.35));
+      .attr("stroke-width", (relationship) => {
+        if ((activeRelationshipKey || previewRelationshipKey) && focus.linkKeys.has(relationship.key)) return 2.7;
+        if (relationship.isPreview) return 2.2;
+        return isCoreRelationship(relationship, nodesRef.current) ? 1.7 : 1.35;
+      });
     label.transition().duration(160).attr("opacity", (relationship) => (focus.linkKeys.has(relationship.key) ? 1 : 0));
   }, [focusId, hoverLinkKey, graphFocusId, activeRelationshipKey, previewRelationshipKey, connectFrom, connectTo, connectLabel]);
 
   function handleAddCharacter() {
+    if (readOnly) return;
     const character = emptyCharacter(novel.id);
     onAddCharacter(novel.id, character);
     setSelectedId(character.id);
@@ -427,12 +451,12 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
   }
 
   function handleSaveCharacter() {
-    if (!draft) return;
+    if (!draft || readOnly) return;
     onUpdateCharacter(novel.id, draft.id, draft);
   }
 
   function requestDeleteCharacter() {
-    if (!draft) return;
+    if (!draft || readOnly) return;
     setDeleteCharacterCandidate(draft);
   }
 
@@ -449,6 +473,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
   }
 
   function handleAddRelationship() {
+    if (readOnly) return;
     if (!connectFrom || !connectTo || connectFrom === connectTo) return;
     const relationship = { source: connectFrom, target: connectTo, label: connectLabel || "关系" };
     if (selectedRelationshipIndex !== null) {
@@ -479,6 +504,14 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
     character.fy = character.y;
     setSelectedId(character.id);
     setGraphFocusId(character.id);
+
+    if (readOnly) {
+      window.setTimeout(() => {
+        character.fx = null;
+        character.fy = null;
+      }, 900);
+      return;
+    }
 
     if (pendingNodeId && pendingNodeId !== character.id) {
       selectRelationshipBetween(pendingNodeId, character.id);
@@ -521,6 +554,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
   }
 
   function updateRelationshipDraft(patch) {
+    if (readOnly) return;
     const next = { source: connectFrom, target: connectTo, label: connectLabel, ...patch };
     setConnectFrom(next.source);
     setConnectTo(next.target);
@@ -562,13 +596,14 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
   }
 
   function chooseTag(tag) {
-    if (!draft) return;
+    if (!draft || readOnly) return;
     const nextDraft = { ...draft, tag };
     setDraft(nextDraft);
     onUpdateCharacter(novel.id, nextDraft.id, nextDraft);
   }
 
   function addTag() {
+    if (readOnly) return;
     const nextTag = tagText.trim();
     if (!nextTag) return;
     setCustomTags((current) => (current.includes(nextTag) ? current : [...current, nextTag].slice(0, 5)));
@@ -578,6 +613,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
 
   function removeTag(tag, event) {
     event.stopPropagation();
+    if (readOnly) return;
     if (!ROLE_TAGS.includes(tag)) {
       setCustomTags((current) => current.filter((item) => item !== tag));
     }
@@ -585,42 +621,56 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
   }
 
   function chooseNodeColor(color) {
-    if (!draft) return;
+    if (!draft || readOnly) return;
     const nextDraft = { ...draft, color };
     setDraft(nextDraft);
     onUpdateCharacter(novel.id, nextDraft.id, { color });
   }
 
   return (
-    <div ref={relationRef} className="relation-layout is-resizable" style={{ "--detail-pane": `${detailPane}%` }}>
-      <div className="graph-card relation-graph" data-tour="relation-graph">
-        <div className="graph-toolbar">
-          <div>
-            <p className="eyebrow">Relation graph</p>
-            <h3>动感人物关系星图</h3>
+    <div
+      ref={relationRef}
+      className={`relation-layout is-resizable ${!showGraph ? "has-no-graph" : ""} ${!showDetails ? "has-no-details" : ""}`}
+      style={{ "--detail-pane": `${detailPane}%` }}
+    >
+      {showGraph && (
+        <div className="graph-card relation-graph" data-tour="relation-graph">
+          <div className="graph-toolbar">
+            <div>
+              <p className="eyebrow">Relation graph</p>
+              <h3>动感人物关系星图</h3>
+            </div>
+            <div className="toolbar-actions">
+              {!readOnly && (
+                <button type="button" onClick={handleAddCharacter}>
+                  <Plus size={16} />
+                  新增人物
+                </button>
+              )}
+              <button type="button" onClick={focusSelectedNodeView}>
+                <ZoomIn size={16} />
+                聚焦
+              </button>
+              <button type="button" className="relation-reset-button" onClick={resetGraphView}>
+                <RotateCcw size={16} />
+                重置视图
+              </button>
+            </div>
           </div>
-          <div className="toolbar-actions">
-            <button type="button" onClick={handleAddCharacter}>
-              <Plus size={16} />
-              新增人物
-            </button>
-            <button type="button" onClick={focusSelectedNodeView}>
-              <ZoomIn size={16} />
-              聚焦
-            </button>
-            <button type="button" className="relation-reset-button" onClick={resetGraphView}>
-              <RotateCcw size={16} />
-              重置视图
-            </button>
+          <svg ref={svgRef} className="relation-svg" aria-label={`${novel.title} 人物关系图谱`} />
+          <div className="graph-hint">
+            {showDetails
+              ? "在右侧“编辑关系”处可随时输入或修改羁绊描述；拖动中间细线可调整星图和人物详情占比。"
+              : "拖动星球可查看人物关系；聚焦和重置用于整理星图视野。"}
           </div>
         </div>
-        <svg ref={svgRef} className="relation-svg" aria-label={`${novel.title} 人物关系图谱`} />
-        <div className="graph-hint">在右侧“编辑关系”处可随时输入或修改羁绊描述；拖动中间细线可调整星图和人物详情占比。</div>
-      </div>
+      )}
 
-      <div className="relation-split-handle" onMouseDown={() => setResizing(true)} role="separator" aria-orientation="vertical" aria-label="调整星图和人物详情宽度" />
+      {showGraph && showDetails && (
+        <div className="relation-split-handle" onMouseDown={() => setResizing(true)} role="separator" aria-orientation="vertical" aria-label="调整星图和人物详情宽度" />
+      )}
 
-      <aside className="inspector-card">
+      {showDetails && <aside className="inspector-card">
         {draft ? (
           <>
             <div className="inspector-head" data-tour="detail-panel-head">
@@ -632,48 +682,52 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
             </div>
             <div className="inspector-scroll">
               <div className="character-editor-top">
-                <MediaCarousel label="人物图片" images={draft.images ?? []} onChange={(images) => setDraft({ ...draft, images })} />
+                <MediaCarousel label="人物图片" images={draft.images ?? []} onChange={(images) => setDraft({ ...draft, images })} readOnly={readOnly} />
                 <div className="character-quick-fields character-attribute-grid">
                   <label>
                     姓名
-                    <input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} />
+                    <input value={draft.name} readOnly={readOnly} onChange={(event) => setDraft({ ...draft, name: event.target.value })} />
                   </label>
                   <label>
                     年龄
-                    <input type="number" value={draft.age} onChange={(event) => setDraft({ ...draft, age: Number(event.target.value) })} />
+                    <input type="number" value={draft.age} readOnly={readOnly} onChange={(event) => setDraft({ ...draft, age: Number(event.target.value) })} />
                   </label>
                   <label>
                     身份 / 属性
-                    <input value={draft.role} onChange={(event) => setDraft({ ...draft, role: event.target.value })} />
+                    <input value={draft.role} readOnly={readOnly} onChange={(event) => setDraft({ ...draft, role: event.target.value })} />
                   </label>
                   <div className="tag-composer">
                     <span>标签</span>
                     <div className="tag-chip-board">
                       {allTags.map((tag) => (
-                        <button type="button" key={tag} className={draft.tag === tag ? "is-selected" : ""} onClick={() => chooseTag(tag)}>
+                        <button type="button" key={tag} className={draft.tag === tag ? "is-selected" : ""} onClick={() => chooseTag(tag)} disabled={readOnly}>
                           {tag}
-                          <i className="tag-chip-remove" onClick={(event) => removeTag(tag, event)} aria-label={`移除标签 ${tag}`}>
-                            ×
-                          </i>
+                          {!readOnly && (
+                            <i className="tag-chip-remove" onClick={(event) => removeTag(tag, event)} aria-label={`移除标签 ${tag}`}>
+                              ×
+                            </i>
+                          )}
                         </button>
                       ))}
                     </div>
-                    <div className="tag-compose-row">
-                      <input
-                        value={tagText}
-                        onChange={(event) => setTagText(event.target.value)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter") {
-                            event.preventDefault();
-                            addTag();
-                          }
-                        }}
-                        placeholder="输入标签，回车生成"
-                      />
-                      <button type="button" onClick={addTag} disabled={!tagText.trim() || customTags.length >= 5}>
-                        <Plus size={14} />
-                      </button>
-                    </div>
+                    {!readOnly && (
+                      <div className="tag-compose-row">
+                        <input
+                          value={tagText}
+                          onChange={(event) => setTagText(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              event.preventDefault();
+                              addTag();
+                            }
+                          }}
+                          placeholder="输入标签，回车生成"
+                        />
+                        <button type="button" onClick={addTag} disabled={!tagText.trim() || customTags.length >= 5}>
+                          <Plus size={14} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -688,6 +742,7 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
                       className={draft.color === color ? "is-selected" : ""}
                       style={{ "--swatch": color }}
                       onClick={() => chooseNodeColor(color)}
+                      disabled={readOnly}
                       aria-label={`选择颜色 ${color}`}
                     />
                   ))}
@@ -695,20 +750,24 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
               </div>
 
               <div className="character-long-fields">
-                <FocusTextarea label="背景故事" value={draft.background} onChange={(background) => setDraft({ ...draft, background })} onSave={handleSaveCharacter} />
-                <FocusTextarea label="隐藏设定" value={draft.secret} onChange={(secret) => setDraft({ ...draft, secret })} onSave={handleSaveCharacter} />
+                <FocusTextarea label="背景故事" value={draft.background} onChange={(background) => setDraft({ ...draft, background })} onSave={handleSaveCharacter} readOnly={readOnly} />
+                {!readOnly && (
+                  <FocusTextarea label="隐藏设定" value={draft.secret} onChange={(secret) => setDraft({ ...draft, secret })} onSave={handleSaveCharacter} readOnly={readOnly} />
+                )}
               </div>
-              <div className="character-action-row">
-                <button type="button" className="primary-button" onClick={handleSaveCharacter}>
-                  <Save size={16} />
-                  保存人物
-                </button>
-                <button type="button" className="danger-lite-button" onClick={requestDeleteCharacter}>
-                  <Trash2 size={15} />
-                  删除人物
-                </button>
-              </div>
-              <div className="connect-box">
+              {!readOnly && (
+                <div className="character-action-row">
+                  <button type="button" className="primary-button" onClick={handleSaveCharacter}>
+                    <Save size={16} />
+                    保存人物
+                  </button>
+                  <button type="button" className="danger-lite-button" onClick={requestDeleteCharacter}>
+                    <Trash2 size={15} />
+                    删除人物
+                  </button>
+                </div>
+              )}
+              {!readOnly && <div className="connect-box">
                 <div className="panel-title">
                   <Link2 size={17} />
                   <h4>{selectedRelationshipIndex === null ? "建立关系" : "编辑关系"}</h4>
@@ -740,13 +799,13 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
                     清空关系选择
                   </button>
                 </div>
-              </div>
+              </div>}
             </div>
           </>
         ) : (
           <p>暂无人物。</p>
         )}
-      </aside>
+      </aside>}
       {deleteCharacterCandidate &&
         createPortal(
         <div className="modal-backdrop relation-confirm-backdrop" role="presentation" onMouseDown={() => setDeleteCharacterCandidate(null)}>
@@ -790,22 +849,15 @@ export default function RelationGraph({ novel, onAddCharacter, onUpdateCharacter
 }
 
 function getInitialCustomTags(characters) {
-  return Array.from(new Set((characters ?? []).map((character) => normalizeLegacyTag(character.tag ?? character.faction)).filter((tag) => tag && !ROLE_TAGS.includes(tag)))).slice(0, 5);
-}
-
-function normalizeLegacyTag(tag = "") {
-  if (tag === "主角攻") return "主角1";
-  if (tag === "主角受") return "主角2";
-  return tag || "主要配角";
+  return Array.from(new Set((characters ?? []).map((character) => normalizeRelationTag(character.tag ?? character.faction)).filter((tag) => tag && !ROLE_TAGS.includes(tag)))).slice(0, 5);
 }
 
 function getCharacterTag(character) {
-  return normalizeLegacyTag(character.tag ?? character.faction ?? "主要配角");
+  return getCharacterRelationTag(character);
 }
 
 function isMainTag(character) {
-  const tag = getCharacterTag(character);
-  return tag.includes("主角1") || tag.includes("主角2");
+  return isMainCharacter(character);
 }
 
 function getNodeId(node) {
