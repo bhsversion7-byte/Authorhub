@@ -257,6 +257,7 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
           </button>
         </div>
       )}
+      {!readOnly && <p className="media-size-hint">单张图片最大 5MB</p>}
       {mediaError && <p className="media-error">{mediaError}</p>}
 
       <div
