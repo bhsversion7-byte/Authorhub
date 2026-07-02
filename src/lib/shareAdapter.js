@@ -146,6 +146,18 @@ export async function revokeShareRole(sharedNovelId, role) {
   if (error) throw error;
 }
 
+// Removes the caller's own membership row so a shared novel actually stops
+// coming back from list_author_hub_shared_novels() on the next load -
+// "移除该共享小说" previously only updated local React state and reappeared
+// after any refresh, because nothing ever deleted the membership row.
+export async function leaveSharedNovel(sharedNovelId) {
+  assertSharingAvailable();
+  const { error } = await supabase.rpc("leave_author_hub_shared_novel", {
+    p_shared_novel_id: sharedNovelId,
+  });
+  if (error) throw error;
+}
+
 export async function getSharedNovelByToken(token) {
   assertSharingAvailable();
   const { data, error } = await supabase.rpc("get_author_hub_shared_novel_by_token", {

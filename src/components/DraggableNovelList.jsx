@@ -63,7 +63,14 @@ export default function DraggableNovelList({ novels, activeView, onSelect, onDel
   return (
     <div ref={listRef} className="draggable-novel-list">
       {novels.map((novel, index) => {
-        const itemColor = BOOK_ICON_COLORS[index % BOOK_ICON_COLORS.length];
+        // Must come from the novel's own persisted `.color` (same source
+        // the AO3 pill and timeline halo/orb/selected-outline already use
+        // via --novel-color/--node-color), not the list position - an
+        // index-based color reassigns every novel's bookmark tint whenever
+        // any novel is reordered, added, or deleted, so it never matched
+        // that novel's own AO3/timeline color and looked like it was
+        // changing at random.
+        const itemColor = novel.color ?? BOOK_ICON_COLORS[index % BOOK_ICON_COLORS.length];
         const isActive = activeView === novel.id;
 
         return (

@@ -9,7 +9,7 @@ This is the short source of truth for future agents working on AuthorHub. Keep i
 - Production domain: `https://authorhub.cn`
 - DNS authority: Alibaba Cloud DNS. The stable production target is Vercel. Do not switch DNS/CDN/WAF routing without explicit user approval.
 - Supabase and Vercel are connected. Do not create keys, send emails, change dashboard settings, commit, push, or deploy unless the user explicitly asks.
-- Current local sharing/collaboration changes are not automatically safe to commit as one batch. Stage only intentional files/hunks when the user later asks for commit/deploy.
+- Uncommitted work in an ephemeral git worktree can be silently deleted between turns (this has happened). Commit real fixes promptly instead of leaving them uncommitted across multiple turns; Supabase migrations applied via the MCP tool persist independently of git and survive a lost worktree, but application code does not.
 
 ## Product Identity
 
@@ -33,7 +33,7 @@ This is the short source of truth for future agents working on AuthorHub. Keep i
 - Novel header card: Morandi yellow `#F3E5AB`.
 - Outline: light grey rice-paper.
 - Setting: matte blue-stone grey.
-- Theme tags: soft lilac/purple.
+- Theme tags: soft lilac/purple card surface. Tag chip/pill text color is intentionally tinted per-novel (`color-mix(in srgb, var(--novel-color) 65%, var(--ink))` in `.tag-list span` / `.editable-tags button`) so it echoes that novel's own accent color, same family as the AO3 pill and timeline glow. This is confirmed intentional, long-standing (since 2026-06-14) - do not "fix" it into a single fixed ink color.
 - Relation graph: muted green-grey star-map with dotted grid.
 - Character detail: warm beige paper.
 - Timeline: light green in light mode, deep green companion in dark mode.
@@ -50,9 +50,12 @@ This is the short source of truth for future agents working on AuthorHub. Keep i
 - Phone timeline uses the compact previous/current/next switcher, not oversized timeline cards.
 - Relation graph: supports many characters, draggable nodes, focus/reset, relationship labels, graph/detail split, and detail editor.
 - Main-character relationship lines use `#C95F5A`. Tags `主角`, `主角1`, `主角2`, `主角34`, etc. count as main characters; `主角攻/主角受` remain compatible.
+- Sidebar novel bookmark color (`DraggableNovelList`'s `--item-color`) must come from that novel's own persisted `novel.color`, never from its position in the list. Deriving it from array index reassigns every novel's bookmark tint whenever any novel is reordered/added/deleted, which never matches that novel's own AO3-pill/timeline-glow color (both already keyed on the same `novel.color`) and reads as "colors changing at random."
+- Novel-meta chrome inputs (预计总字数/当前字数/类型/完结时间) are intentionally fixed at 12px regardless of the reading font-size setting. On mobile, any input under ~16px triggers the browser's native auto-zoom-on-focus; `index.html`'s viewport meta carries `maximum-scale=1.0` specifically to suppress that without changing the actual font-size value these fields use.
 - Floating music player: compact collapsed state, local `/music/*.mp3` sources, smooth expand/collapse, no heavy blur/shadow animation during transition, drag positioning preserved.
 - Collapsed music player must keep the arrow fully inside the clickable container.
 - Focus editors and modals must be readable in light/dark mode and must cleanly close on Escape/outside click.
+- Delete-novel confirm modal: both the private-novel and shared-novel branches use "Remove ..." framing (EN eyebrow `Remove novel` / `Remove shared novel`; CN title `是否从手稿列表中移除该...小说？`), so the two read as one consistent action family. The body copy still carries the real severity difference: the private branch explicitly says the wipe is permanent and unrecoverable ("移除后将永久清空...且无法恢复"), the shared branch explicitly says only your list entry is removed and the cloud workspace/collaborators are unaffected. Do not soften the private branch's body copy - only the eyebrow/title wording is unified.
 
 ## Data And Auth Rules
 
@@ -82,6 +85,8 @@ This is the short source of truth for future agents working on AuthorHub. Keep i
 - Regenerating a link should create the new active token and retire old same-role tokens without leaving a zero-link gap on mid-operation failure.
 - Explicit revoke uses RPC `revoke_author_hub_share_role(shared_novel_id, role)`.
 - Revoking viewer role deletes viewer links. Revoking editor role deletes editor links and removes non-owner editor memberships for that shared novel.
+- Removing a shared novel from your own manuscript list (the "确定移除" delete-confirm path, distinct from `撤回`/revoke above) must call `shareAdapter.leaveSharedNovel(sharedNovelId)` → RPC `leave_author_hub_shared_novel`, which deletes the caller's own `author_hub_share_members` row (and the orphaned `author_hub_shared_novels` row too if that was the last member). Only updating local React state here is the exact bug class that made a "removed" shared novel come back after refresh - always pair the optimistic local removal with the server call, and roll the local state back with an error toast if the RPC fails.
+- Novel-share popover visual design (`NovelShareControl`/`sharing-collab.css`) is confirmed good by the user (2026-07-02) - do not restyle it. Functional changes (new RPCs, new buttons wired to existing layout slots) are fine; the layout/visual language itself is locked.
 - Realtime collaboration is saved-version sync only, not cursor/keystroke co-editing.
 - Incoming realtime updates must not clobber a local edit with a pending or in-flight shared save.
 - Shared saves must flush on logout, tab hide, unload, and unmount.
@@ -100,6 +105,10 @@ This is the short source of truth for future agents working on AuthorHub. Keep i
   - `save_author_hub_shared_novel`
   - `get_author_hub_shared_novel_by_token`
   - `revoke_author_hub_share_role`
+  - `leave_author_hub_shared_novel`
+  - `delete_author_hub_account`
+- New RPCs get an implicit anon EXECUTE grant from a schema-level default privilege; `revoke all ... from public` alone does not remove it. Always follow up with an explicit `revoke execute ... from anon, authenticated, public` + `grant execute ... to authenticated` pass (see `20260702114702_author_hub_revoke_anon_rpc_grants.sql` and `20260702140336_author_hub_leave_shared_novel_anon_grant_fix.sql`), and re-run the security advisor after any new `apply_migration` call.
+- Local migration filenames must match the version the Supabase MCP `apply_migration` tool actually assigns (check `list_migrations` right after applying) - it ignores whatever timestamp prefix you put in the `name`/local filename, so a filename chosen ahead of time will not match the live version.
 - Dashboard-only remaining security setting: enable Supabase Auth leaked-password protection when the user is ready.
 
 ## Email And Security Ops
@@ -151,3 +160,4 @@ Browser QA targets:
   - Migration includes `20260702103302_author_hub_revoke_share_role.sql`.
 - Recent local verification passed: build, graph/share/markdown checks, audit, and diff check except harmless CRLF warnings.
 - Known tooling limitation: automated MCP browser tools could not perform a trusted Sortable drag. Manual browser drag remains the final check for timeline card sorting before commit/deploy.
+- 2026-07-02/03: fixed the shared-novel "remove from list" persistence gap (added `leave_author_hub_shared_novel`, wired into `confirmDeleteNovel`, verified live end-to-end against production - deleted a real shared row, confirmed via SQL it stayed gone after refresh), the sidebar bookmark index-based color bug, the delete-novel modal copy consistency, and the mobile input auto-zoom (`maximum-scale=1.0`). Account deletion, share-revoke UI, and migration filename/version sync were already fixed by a separate concurrent session (PRs #3-#11) before this pass started; verified that work is solid rather than duplicating it.
