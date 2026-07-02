@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Check, Copy, Link2, RefreshCw, Share2, Undo2, UsersRound, X } from "lucide-react";
 import { SHARE_ROLES } from "../lib/shareAdapter.js";
@@ -16,29 +16,55 @@ const SHARE_COPY = {
   },
 };
 
-export default function NovelShareControl({ novel, shareInfo, onCreateShareLink, onRevokeShareLink }) {
+export default function NovelShareControl({ novel, shareInfo, onCreateShareLink, onGetActiveShareLink, onRevokeShareLink }) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState(SHARE_ROLES.EDITOR);
-  const [link, setLink] = useState("");
+  const [linksByRole, setLinksByRole] = useState(() => shareInfo?.activeLinks ?? {});
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [selectedSections, setSelectedSections] = useState(DEFAULT_PUBLIC_SECTIONS);
   const [confirmRevoke, setConfirmRevoke] = useState(false);
   const buttonRef = useRef(null);
   const popoverRef = useRef(null);
+  const link = linksByRole[mode]?.url ?? "";
 
   // Paused while the revoke confirmation is open so a click inside that
   // modal (portaled to document.body, outside popoverRef's DOM) doesn't read
   // as an "outside click" and close the share popover out from under it.
   usePopoverDismiss(open && !confirmRevoke, { buttonRef, popoverRef, onClose: setOpen });
 
+  useEffect(() => {
+    setLinksByRole(shareInfo?.activeLinks ?? {});
+  }, [shareInfo?.id, shareInfo?.activeLinks?.editor?.url, shareInfo?.activeLinks?.viewer?.url]);
+
+  useEffect(() => {
+    if (!open || link || !shareInfo?.id || !onGetActiveShareLink) return undefined;
+    let cancelled = false;
+    onGetActiveShareLink(novel, mode, selectedSections)
+      .then((result) => {
+        if (cancelled || !result?.url) return;
+        setLinksByRole((current) => ({ ...current, [mode]: result }));
+        if (mode === SHARE_ROLES.VIEWER && result.publicSections?.length) setSelectedSections(result.publicSections);
+      })
+      .catch((error) => {
+        console.warn("AuthorHub active share link lookup failed.", error);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // Intentionally keyed to the visible share target, not selectedSections:
+    // changing viewer chips should not hide or refresh an already-active URL.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, mode, link, shareInfo?.id, novel.id]);
+
   async function generateLink(nextMode = mode, { forceNew = false, matchSections = true } = {}) {
+    if (linksByRole[nextMode]?.url) return;
     setMode(nextMode);
     setBusy(true);
     setStatus("");
     try {
       const result = await onCreateShareLink?.(novel, nextMode, selectedSections, { forceNew, matchSections });
-      setLink(result?.url ?? "");
+      if (result?.url) setLinksByRole((current) => ({ ...current, [nextMode]: result }));
       setStatus(result?.url ? "ready" : "");
       // Sync the picker to whatever link actually came back, not just the
       // locally-selected sections - a popover reopen/remount resets
@@ -56,7 +82,6 @@ export default function NovelShareControl({ novel, shareInfo, onCreateShareLink,
   function selectMode(nextMode) {
     if (nextMode === mode) return;
     setMode(nextMode);
-    setLink("");
     setStatus("");
     setConfirmRevoke(false);
   }
@@ -69,7 +94,6 @@ export default function NovelShareControl({ novel, shareInfo, onCreateShareLink,
       : [...selectedSections, sectionId];
     if (nextSections === selectedSections) return;
     setSelectedSections(nextSections);
-    setLink("");
     setStatus("");
   }
 
@@ -84,7 +108,10 @@ export default function NovelShareControl({ novel, shareInfo, onCreateShareLink,
     setBusy(true);
     try {
       await onRevokeShareLink?.(novel, mode);
-      setLink("");
+      setLinksByRole((current) => {
+        const { [mode]: _removed, ...rest } = current;
+        return rest;
+      });
       setStatus("");
     } catch (error) {
       console.warn("AuthorHub share link revoke failed.", error);
@@ -159,14 +186,14 @@ export default function NovelShareControl({ novel, shareInfo, onCreateShareLink,
             邀请链接
             <div>
               <Link2 size={14} />
-              <input value={link} readOnly placeholder={busy ? "正在生成链接..." : "选择权限后生成链接"} />
+              <input value={link} readOnly placeholder={busy ? "正在生成链接..." : "点击生成链接后会显示在这里"} />
             </div>
           </label>
 
           <div className="share-actions">
-            <button type="button" onClick={() => generateLink(mode, { forceNew: Boolean(link) })} disabled={busy}>
-              <RefreshCw size={14} />
-              {busy ? "生成中" : link ? "重新生成" : "生成链接"}
+            <button type="button" onClick={() => generateLink(mode)} disabled={busy || Boolean(link)}>
+              {link ? <Check size={14} /> : <RefreshCw size={14} />}
+              {busy ? "生成中" : link ? "已生成" : "生成链接"}
             </button>
             <button type="button" className="share-revoke-button" onClick={() => setConfirmRevoke(true)} disabled={!link || busy}>
               <Undo2 size={14} />
