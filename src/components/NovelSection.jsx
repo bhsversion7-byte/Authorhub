@@ -30,6 +30,7 @@ export default function NovelSection({
   onDeleteEvent,
   onReorderEvent,
   onCreateShareLink,
+  onGetActiveShareLink,
   onRevokeShareLink,
   shareInfo,
   readOnly = false,
@@ -103,7 +104,13 @@ export default function NovelSection({
           <div className="novel-hero-actions">
             <PublishLinkPill link={publishLink} onChange={updatePublishLink} readOnly={readOnly} />
             {!readOnly && (
-              <NovelShareControl novel={novel} shareInfo={shareInfo} onCreateShareLink={onCreateShareLink} onRevokeShareLink={onRevokeShareLink} />
+              <NovelShareControl
+                novel={novel}
+                shareInfo={shareInfo}
+                onCreateShareLink={onCreateShareLink}
+                onGetActiveShareLink={onGetActiveShareLink}
+                onRevokeShareLink={onRevokeShareLink}
+              />
             )}
           </div>
         </div>
