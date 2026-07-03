@@ -107,9 +107,14 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
     setMediaError(rejectedCount ? `已跳过 ${rejectedCount} 张超过 2MB 的图片。` : "");
 
     Promise.all(
-      allowedFiles.map(async (file) => {
+      allowedFiles.map(async (file, index) => {
+        // Index in the batch, not just Date.now(), because two same-named
+        // files selected together (common with camera-roll exports like
+        // IMG_0001.jpg) can resolve within the same millisecond - a
+        // timestamp-only id collided and produced duplicate React keys.
+        const id = `${Date.now()}-${index}-${file.name}`;
         const storedUrl = await uploadImageToStorage(file);
-        if (storedUrl) return { id: `${Date.now()}-${file.name}`, src: storedUrl, alt: file.name };
+        if (storedUrl) return { id, src: storedUrl, alt: file.name };
 
         // Offline / local-demo / upload failure: embed as before so the
         // upload never silently fails from the user's point of view.
@@ -117,7 +122,7 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
           const reader = new FileReader();
           reader.onload = () =>
             resolve({
-              id: `${Date.now()}-${file.name}`,
+              id,
               src: reader.result,
               alt: file.name,
             });

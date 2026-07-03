@@ -192,6 +192,12 @@ a {
   color: #fff8ef;
 }
 
+.turnstile-widget {
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
 .auth-card h1 {
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;

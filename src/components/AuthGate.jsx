@@ -5,6 +5,14 @@ import { hasSupabaseConfig, makeLocalUser, setLocalAuthUser, supabase } from "..
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CAPTCHA_FETCH_TIMEOUT = 3000;
 const CAPTCHA_RETRY_ATTEMPTS = 3;
+// Cloudflare Turnstile - an invisible bot-detection widget layered on top of
+// the numeric captcha above, not a replacement for it. Only activates once
+// the operator sets VITE_TURNSTILE_SITE_KEY (build-time) and, server-side,
+// TURNSTILE_SECRET_KEY (see api/verify-turnstile.js) - until both are
+// configured this entire feature is a no-op and registration behaves
+// exactly as before.
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+const TURNSTILE_SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js";
 
 export default function AuthGate({ onAuthed }) {
   const [mode, setMode] = useState("login");
@@ -19,6 +27,9 @@ export default function AuthGate({ onAuthed }) {
   const [captchaAnswer, setCaptchaAnswer] = useState("");
   const captchaRequestRef = useRef(0);
   const captchaAnswerRef = useRef("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const turnstileContainerRef = useRef(null);
+  const turnstileWidgetIdRef = useRef(null);
 
   const emailValid = EMAIL_PATTERN.test(email.trim());
   const passwordValid = password.length >= 6;
@@ -37,6 +48,44 @@ export default function AuthGate({ onAuthed }) {
 
   useEffect(() => {
     if (mode === "register") loadCaptcha();
+  }, [mode]);
+
+  useEffect(() => {
+    if (!TURNSTILE_SITE_KEY || mode !== "register") return undefined;
+    let cancelled = false;
+
+    function renderWidget() {
+      if (cancelled || !turnstileContainerRef.current || !window.turnstile) return;
+      turnstileWidgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
+        sitekey: TURNSTILE_SITE_KEY,
+        callback: (token) => setTurnstileToken(token),
+        "expired-callback": () => setTurnstileToken(""),
+        "error-callback": () => setTurnstileToken(""),
+      });
+    }
+
+    if (window.turnstile) {
+      renderWidget();
+    } else {
+      const existing = document.querySelector(`script[src="${TURNSTILE_SCRIPT_SRC}"]`);
+      const script = existing ?? document.createElement("script");
+      if (!existing) {
+        script.src = TURNSTILE_SCRIPT_SRC;
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      }
+      script.addEventListener("load", renderWidget, { once: true });
+    }
+
+    return () => {
+      cancelled = true;
+      setTurnstileToken("");
+      if (turnstileWidgetIdRef.current !== null && window.turnstile) {
+        window.turnstile.remove(turnstileWidgetIdRef.current);
+        turnstileWidgetIdRef.current = null;
+      }
+    };
   }, [mode]);
 
   async function fetchServerCaptcha() {
@@ -121,6 +170,29 @@ export default function AuthGate({ onAuthed }) {
     }
   }
 
+  async function verifyTurnstile() {
+    if (!TURNSTILE_SITE_KEY) return true;
+    if (!turnstileToken) {
+      setMessage("请先完成人机验证。");
+      return false;
+    }
+    try {
+      const response = await fetch("/api/verify-turnstile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: turnstileToken }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.ok) throw new Error("turnstile failed");
+      return true;
+    } catch {
+      setMessage("人机验证未通过，请重试。");
+      if (turnstileWidgetIdRef.current !== null && window.turnstile) window.turnstile.reset(turnstileWidgetIdRef.current);
+      setTurnstileToken("");
+      return false;
+    }
+  }
+
   async function submit(event) {
     event.preventDefault();
     setMessage("");
@@ -128,6 +200,7 @@ export default function AuthGate({ onAuthed }) {
     if (!passwordValid) return setMessage("密码至少需要 6 位。");
     if (mode === "register" && !accepted) return setMessage("请先阅读并接受服务条款与隐私政策。");
     if (mode === "register" && !(await verifyCaptcha())) return;
+    if (mode === "register" && !(await verifyTurnstile())) return;
 
     setBusy(true);
     try {
@@ -237,6 +310,7 @@ export default function AuthGate({ onAuthed }) {
                 {captcha?.image ? <img src={captcha.image} alt="数字验证码" /> : <span>刷新</span>}
               </button>
             </div>
+            {TURNSTILE_SITE_KEY && <div className="turnstile-widget" ref={turnstileContainerRef} />}
           </>
         )}
 
