@@ -53,6 +53,22 @@ export default function AuthGate({ onAuthed }) {
     if (mode === "register") loadCaptcha();
   }, [mode]);
 
+  // Start fetching the Turnstile script as soon as AuthGate mounts (not
+  // gated on reaching register mode) so it's already cached by the time the
+  // user opens the register tab - Cloudflare's own managed-challenge
+  // evaluation still takes a moment either way, but this removes the
+  // external-script-fetch latency from that wait, which is the part
+  // actually addressable here.
+  useEffect(() => {
+    if (!TURNSTILE_SITE_KEY) return;
+    if (window.turnstile || document.querySelector(`script[src="${TURNSTILE_SCRIPT_SRC}"]`)) return;
+    const script = document.createElement("script");
+    script.src = TURNSTILE_SCRIPT_SRC;
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+  }, []);
+
   useEffect(() => {
     if (!TURNSTILE_SITE_KEY || mode !== "register") return undefined;
     let cancelled = false;
@@ -70,15 +86,8 @@ export default function AuthGate({ onAuthed }) {
     if (window.turnstile) {
       renderWidget();
     } else {
-      const existing = document.querySelector(`script[src="${TURNSTILE_SCRIPT_SRC}"]`);
-      const script = existing ?? document.createElement("script");
-      if (!existing) {
-        script.src = TURNSTILE_SCRIPT_SRC;
-        script.async = true;
-        script.defer = true;
-        document.head.appendChild(script);
-      }
-      script.addEventListener("load", renderWidget, { once: true });
+      const script = document.querySelector(`script[src="${TURNSTILE_SCRIPT_SRC}"]`);
+      script?.addEventListener("load", renderWidget, { once: true });
     }
 
     return () => {

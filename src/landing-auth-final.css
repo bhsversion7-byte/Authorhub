@@ -8,15 +8,47 @@
     linear-gradient(135deg, #0f1317 0%, #12161a 48%, #171214 100%) !important;
 }
 
-[data-landing-mode="AUTH"] .landing-auth-panel {
-  position: fixed;
+[data-landing-mode="AUTH"] .landing-auth-panel,
+.landing-gateway.mode-auth[data-landing-mode="AUTH"] .landing-auth-panel {
+  /* position must win over material-system.css's
+     `.landing-gateway.mode-auth .landing-auth-panel { position: relative !important; }` -
+     a `relative` panel just grows to fit its content instead of being
+     pinned to the viewport, so it never gets its own scrollable box; the
+     ancestor `.landing-gateway` (bounded to viewport height, overflow:
+     hidden, needed to contain the cinematic 3D book) then silently clips
+     anything past its bottom edge instead. Fixed positioning escapes that
+     ancestor clipping entirely (no transform/filter/perspective on any
+     ancestor traps it), so this panel becomes its own independent,
+     viewport-pinned, scrollable region regardless of content height.
+     The second, more specific selector (matching both the attribute and
+     the .landing-gateway.mode-auth classes at once) is required to
+     out-specificity that other !important rule - a plain attribute
+     selector alone has lower specificity than three chained classes. */
+  position: fixed !important;
   inset: 0;
   z-index: 80;
   display: grid;
   place-items: center;
+  align-items: safe center;
   padding: clamp(18px, 5vw, 48px);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   background: transparent !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 248, 239, 0.28) transparent;
+}
+
+[data-landing-mode="AUTH"] .landing-auth-panel::-webkit-scrollbar {
+  width: 7px;
+}
+
+[data-landing-mode="AUTH"] .landing-auth-panel::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(255, 248, 239, 0.26);
+}
+
+[data-landing-mode="AUTH"] .landing-auth-panel::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 [data-landing-mode="AUTH"] .landing-stage {

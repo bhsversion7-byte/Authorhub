@@ -240,6 +240,7 @@ a {
 
 .legal-modal {
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   width: min(560px, 100%);
   max-height: min(640px, 84vh);
   gap: 14px;
@@ -279,8 +280,24 @@ a {
 .legal-modal-body {
   display: grid;
   gap: 16px;
+  min-height: 0;
   overflow-y: auto;
   padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(141, 122, 107, 0.35) transparent;
+}
+
+.legal-modal-body::-webkit-scrollbar {
+  width: 7px;
+}
+
+.legal-modal-body::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(141, 122, 107, 0.32);
+}
+
+.legal-modal-body::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .legal-modal-body h3 {
