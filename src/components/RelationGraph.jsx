@@ -213,6 +213,49 @@ export default function RelationGraph({
     const nonMainCharacters = (novel.characters ?? []).filter((character) => !isMainTag(character));
     const nonMainCount = Math.max(1, nonMainCharacters.length);
     const supportRingRadius = Math.max(150, Math.min(420, 60 + nonMainCount * 34));
+    // Obsidian's own graph view doesn't just count nodes - directly-linked
+    // notes cluster tight, unrelated ones drift to the edge, because link
+    // force naturally pulls connected nodes together. A single ring can't
+    // reproduce that (it treats a character with 3 relationships to the main
+    // pair the same as one with none), so layer the ring by actual graph
+    // distance from the nearest main character: directly connected = close
+    // ring, two hops away = the existing mid ring, three-plus hops or no
+    // path at all = a far ring. This is on top of (not instead of) the link/
+    // charge/collision forces below, which still do the fine-grained work.
+    const closeRingRadius = Math.max(110, Math.min(230, 50 + nonMainCount * 14));
+    const farRingRadius = Math.min(460, supportRingRadius + 90);
+    const mainIds = new Set((novel.characters ?? []).filter(isMainTag).map((character) => character.id));
+    const adjacency = new Map();
+    (novel.relationships ?? []).forEach((relationship) => {
+      const source = getNodeId(relationship.source);
+      const target = getNodeId(relationship.target);
+      if (!source || !target) return;
+      if (!adjacency.has(source)) adjacency.set(source, new Set());
+      if (!adjacency.has(target)) adjacency.set(target, new Set());
+      adjacency.get(source).add(target);
+      adjacency.get(target).add(source);
+    });
+    const distanceFromMain = new Map();
+    const bfsQueue = [];
+    mainIds.forEach((id) => {
+      distanceFromMain.set(id, 0);
+      bfsQueue.push(id);
+    });
+    while (bfsQueue.length) {
+      const current = bfsQueue.shift();
+      const currentDistance = distanceFromMain.get(current);
+      (adjacency.get(current) ?? []).forEach((neighbor) => {
+        if (distanceFromMain.has(neighbor)) return;
+        distanceFromMain.set(neighbor, currentDistance + 1);
+        bfsQueue.push(neighbor);
+      });
+    }
+    function ringRadiusFor(characterId) {
+      const distance = distanceFromMain.get(characterId);
+      if (distance === 1) return closeRingRadius;
+      if (distance === 2) return supportRingRadius;
+      return farRingRadius;
+    }
     let nonMainIndex = 0;
     const nodes = (novel.characters ?? []).map((character) => {
       const tag = getCharacterTag(character);
@@ -220,19 +263,27 @@ export default function RelationGraph({
       // new-character-added rebuilds without visually jumping). A character
       // with no remembered position yet - first render, or just after
       // 重置视图 cleared the map - starts at dead center if it's a main
-      // character, otherwise evenly spaced around the support ring (true
-      // angular spacing instead of an arbitrary Lissajous cos/sin pattern,
-      // so the starting layout is already organized before physics runs).
+      // character, otherwise evenly spaced around its ring (true angular
+      // spacing instead of an arbitrary Lissajous cos/sin pattern, so the
+      // starting layout is already organized before physics runs).
       const remembered = nodePositionsRef.current.get(character.id);
       const isMain = isMainTag(character);
+      const ringRadius = isMain ? 0 : ringRadiusFor(character.id);
       const angle = isMain ? 0 : (nonMainIndex++ / nonMainCount) * Math.PI * 2;
+      // Node size also follows Obsidian's convention that better-connected
+      // nodes read as more important - a character with several relationships
+      // grows a little larger than one with none, capped so the main
+      // character(s) (already the visual focus via the halo) stay the
+      // biggest plain circle on the star-map.
+      const degree = adjacency.get(character.id)?.size ?? 0;
       return {
         ...character,
         tag,
         labelWidth: Math.max(54, tag.length * 12 + 24),
-        radius: isMain ? 28 : 24,
-        x: remembered?.x ?? (isMain ? width / 2 : width / 2 + Math.cos(angle) * supportRingRadius),
-        y: remembered?.y ?? (isMain ? height / 2 : height / 2 + Math.sin(angle) * supportRingRadius),
+        radius: isMain ? 28 + Math.min(degree, 5) * 1.2 : 21 + Math.min(degree, 6) * 1.6,
+        ringRadius,
+        x: remembered?.x ?? (isMain ? width / 2 : width / 2 + Math.cos(angle) * ringRadius),
+        y: remembered?.y ?? (isMain ? height / 2 : height / 2 + Math.sin(angle) * ringRadius),
       };
     });
     linksRef.current = links;
@@ -300,10 +351,10 @@ export default function RelationGraph({
       .force("center", d3.forceCenter(width / 2, height / 2).strength(0.018))
       // Main character(s) settle on a near-zero-radius ring (practically dead
       // center) instead of the old 130px orbit; everyone else is pulled
-      // toward supportRingRadius, which grows with the supporting-character
-      // count (see above) instead of a fixed 270px every node had to
-      // compete for.
-      .force("radial", d3.forceRadial((character) => (isMainTag(character) ? 20 : supportRingRadius), width / 2, height / 2).strength((character) => (isMainTag(character) ? 0.12 : 0.05)))
+      // toward their own ringRadius - close/mid/far depending on graph
+      // distance from a main character (see above) - instead of one shared
+      // distance every node competed for regardless of how related they are.
+      .force("radial", d3.forceRadial((character) => (isMainTag(character) ? 20 : character.ringRadius), width / 2, height / 2).strength((character) => (isMainTag(character) ? 0.12 : 0.05)))
       .force("collision", d3.forceCollide().radius((character) => Math.max(character.radius + 82, character.labelWidth / 2 + 44)).strength(0.96))
       .force("x", d3.forceX(width / 2).strength((character) => (isMainTag(character) ? 0.05 : 0.01)))
       .force("y", d3.forceY(height / 2).strength((character) => (isMainTag(character) ? 0.05 : 0.01)));

@@ -304,5 +304,5 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
 
 function buildReferenceKeywords(event, novel) {
   if (!event) return novel.title;
-  return [event.date, event.title, novel.genre, ...(novel.themes ?? []).slice(0, 3)].filter(Boolean).join(" ");
+  return [event.date, event.title].filter(Boolean).join(" ");
 }
