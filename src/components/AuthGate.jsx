@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, X } from "lucide-react";
+import { PRIVACY_POLICY, TERMS_OF_SERVICE } from "../lib/legalDocs.js";
 import { hasSupabaseConfig, makeLocalUser, setLocalAuthUser, supabase } from "../lib/supabaseClient.js";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -30,6 +32,7 @@ export default function AuthGate({ onAuthed }) {
   const [turnstileToken, setTurnstileToken] = useState("");
   const turnstileContainerRef = useRef(null);
   const turnstileWidgetIdRef = useRef(null);
+  const [activeLegalDoc, setActiveLegalDoc] = useState(null);
 
   const emailValid = EMAIL_PATTERN.test(email.trim());
   const passwordValid = password.length >= 6;
@@ -323,7 +326,14 @@ export default function AuthGate({ onAuthed }) {
           ) : (
             <label className="auth-check">
               <input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} />
-              同意服务条款和隐私政策
+              同意
+              <button type="button" className="auth-legal-link" onClick={(event) => { event.preventDefault(); setActiveLegalDoc("terms"); }}>
+                服务条款
+              </button>
+              和
+              <button type="button" className="auth-legal-link" onClick={(event) => { event.preventDefault(); setActiveLegalDoc("privacy"); }}>
+                隐私政策
+              </button>
             </label>
           )}
           {mode === "login" && (
@@ -347,6 +357,34 @@ export default function AuthGate({ onAuthed }) {
           <p className="auth-dev-note">当前未配置 Supabase 环境变量，已启用本地演示门禁，方便预览 UI。</p>
         )}
       </form>
+      {activeLegalDoc &&
+        createPortal(
+          <div className="modal-backdrop" role="presentation" onMouseDown={() => setActiveLegalDoc(null)}>
+            <section
+              className="legal-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="legal-modal-title"
+              onMouseDown={(event) => event.stopPropagation()}
+            >
+              <div className="legal-modal-head">
+                <h2 id="legal-modal-title">{activeLegalDoc === "terms" ? "服务条款" : "隐私政策"}</h2>
+                <button type="button" onClick={() => setActiveLegalDoc(null)} aria-label="关闭">
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="legal-modal-body">
+                {(activeLegalDoc === "terms" ? TERMS_OF_SERVICE : PRIVACY_POLICY).map((section) => (
+                  <div key={section.title}>
+                    <h3>{section.title}</h3>
+                    <p>{section.body}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
