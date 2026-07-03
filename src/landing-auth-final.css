@@ -1,6 +1,23 @@
 [data-landing-mode="AUTH"] {
+  /* This element (the <main class="landing-gateway mode-auth"> wrapper) is
+     the thing actually bounded to the viewport height with overflow
+     clipping - a previous attempt fixed the resulting content-clipping bug
+     by forcing .landing-auth-panel to `position: fixed`, but that fought
+     material-system.css's own `position: relative !important` +
+     `width: min(92vw, 680px) !important` on the same element: fixed
+     positioning combined with `inset: 0` and an explicit width anchors the
+     box to the left edge instead of centering it (width wins over the
+     right:0 implied by inset), regressing horizontal centering for both
+     login and register. The actually-correct fix is much simpler: leave
+     .landing-auth-panel's position alone (material-system.css's relative +
+     place-items:center centering was always fine) and let THIS wrapper
+     scroll instead of clipping when its content is taller than the
+     viewport. */
   min-height: 100svh;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 248, 239, 0.28) transparent;
   background:
     radial-gradient(circle at 70% 46%, rgba(242, 153, 74, 0.19), transparent 23%),
     radial-gradient(circle at 78% 38%, rgba(123, 97, 255, 0.15), transparent 29%),
@@ -8,47 +25,22 @@
     linear-gradient(135deg, #0f1317 0%, #12161a 48%, #171214 100%) !important;
 }
 
-[data-landing-mode="AUTH"] .landing-auth-panel,
-.landing-gateway.mode-auth[data-landing-mode="AUTH"] .landing-auth-panel {
-  /* position must win over material-system.css's
-     `.landing-gateway.mode-auth .landing-auth-panel { position: relative !important; }` -
-     a `relative` panel just grows to fit its content instead of being
-     pinned to the viewport, so it never gets its own scrollable box; the
-     ancestor `.landing-gateway` (bounded to viewport height, overflow:
-     hidden, needed to contain the cinematic 3D book) then silently clips
-     anything past its bottom edge instead. Fixed positioning escapes that
-     ancestor clipping entirely (no transform/filter/perspective on any
-     ancestor traps it), so this panel becomes its own independent,
-     viewport-pinned, scrollable region regardless of content height.
-     The second, more specific selector (matching both the attribute and
-     the .landing-gateway.mode-auth classes at once) is required to
-     out-specificity that other !important rule - a plain attribute
-     selector alone has lower specificity than three chained classes. */
-  position: fixed !important;
-  inset: 0;
-  z-index: 80;
-  display: grid;
-  place-items: center;
-  align-items: safe center;
-  padding: clamp(18px, 5vw, 48px);
-  overflow-y: auto;
-  overflow-x: hidden;
-  background: transparent !important;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 248, 239, 0.28) transparent;
-}
-
-[data-landing-mode="AUTH"] .landing-auth-panel::-webkit-scrollbar {
+[data-landing-mode="AUTH"]::-webkit-scrollbar {
   width: 7px;
 }
 
-[data-landing-mode="AUTH"] .landing-auth-panel::-webkit-scrollbar-thumb {
+[data-landing-mode="AUTH"]::-webkit-scrollbar-thumb {
   border-radius: 999px;
   background: rgba(255, 248, 239, 0.26);
 }
 
-[data-landing-mode="AUTH"] .landing-auth-panel::-webkit-scrollbar-track {
+[data-landing-mode="AUTH"]::-webkit-scrollbar-track {
   background: transparent;
+}
+
+[data-landing-mode="AUTH"] .landing-auth-panel {
+  padding: clamp(18px, 5vw, 48px);
+  background: transparent !important;
 }
 
 [data-landing-mode="AUTH"] .landing-stage {

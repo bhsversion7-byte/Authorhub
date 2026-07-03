@@ -15,6 +15,17 @@ const CAPTCHA_RETRY_ATTEMPTS = 3;
 // exactly as before.
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 const TURNSTILE_SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+// challenges.cloudflare.com is a foreign CDN endpoint - for users on
+// restricted/unreliable network paths to it (this app's audience is
+// primarily inside mainland China), the script can hang indefinitely
+// instead of failing fast. Without a timeout, those users would see an
+// empty widget box forever and be permanently unable to register, since
+// verifyTurnstile() would wait on a token that can never arrive. Turnstile
+// is an additive layer on top of the numeric captcha, not the only gate -
+// so give it a bounded window, then silently stop requiring it for users
+// it can't reach.
+const TURNSTILE_READY_TIMEOUT_MS = 7000;
+const TURNSTILE_MAX_ERRORS = 2;
 
 export default function AuthGate({ onAuthed }) {
   const [mode, setMode] = useState("login");
@@ -32,6 +43,13 @@ export default function AuthGate({ onAuthed }) {
   const [turnstileToken, setTurnstileToken] = useState("");
   const turnstileContainerRef = useRef(null);
   const turnstileWidgetIdRef = useRef(null);
+  const turnstileErrorCountRef = useRef(0);
+  // 'idle' (key not configured, or not yet register mode) -> 'loading'
+  // (script/widget not ready yet) -> 'ready' (widget rendered, waiting on
+  // the user/managed challenge) -> 'unavailable' (script never loaded in
+  // time, or errored too many times - Turnstile is silently skipped for
+  // this session, the numeric captcha remains the enforced gate).
+  const [turnstileStatus, setTurnstileStatus] = useState(TURNSTILE_SITE_KEY ? "loading" : "idle");
   const [activeLegalDoc, setActiveLegalDoc] = useState(null);
 
   const emailValid = EMAIL_PATTERN.test(email.trim());
@@ -58,47 +76,83 @@ export default function AuthGate({ onAuthed }) {
   // user opens the register tab - Cloudflare's own managed-challenge
   // evaluation still takes a moment either way, but this removes the
   // external-script-fetch latency from that wait, which is the part
-  // actually addressable here.
+  // actually addressable here. If the script can't load at all within the
+  // timeout (unreachable CDN for this user), give up on Turnstile entirely
+  // rather than leaving a permanently-blank widget behind.
   useEffect(() => {
     if (!TURNSTILE_SITE_KEY) return;
-    if (window.turnstile || document.querySelector(`script[src="${TURNSTILE_SCRIPT_SRC}"]`)) return;
-    const script = document.createElement("script");
-    script.src = TURNSTILE_SCRIPT_SRC;
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
+    if (window.turnstile) {
+      setTurnstileStatus("ready");
+      return;
+    }
+    let settled = false;
+    const timeoutId = window.setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      setTurnstileStatus("unavailable");
+    }, TURNSTILE_READY_TIMEOUT_MS);
+
+    const existing = document.querySelector(`script[src="${TURNSTILE_SCRIPT_SRC}"]`);
+    const script = existing ?? document.createElement("script");
+    function onLoad() {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeoutId);
+      setTurnstileStatus("ready");
+    }
+    function onError() {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeoutId);
+      setTurnstileStatus("unavailable");
+    }
+    script.addEventListener("load", onLoad, { once: true });
+    script.addEventListener("error", onError, { once: true });
+    if (!existing) {
+      script.src = TURNSTILE_SCRIPT_SRC;
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+    return () => {
+      window.clearTimeout(timeoutId);
+      script.removeEventListener("load", onLoad);
+      script.removeEventListener("error", onError);
+    };
   }, []);
 
   useEffect(() => {
-    if (!TURNSTILE_SITE_KEY || mode !== "register") return undefined;
+    if (turnstileStatus !== "ready" || mode !== "register") return undefined;
     let cancelled = false;
 
-    function renderWidget() {
-      if (cancelled || !turnstileContainerRef.current || !window.turnstile) return;
-      turnstileWidgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
-        sitekey: TURNSTILE_SITE_KEY,
-        callback: (token) => setTurnstileToken(token),
-        "expired-callback": () => setTurnstileToken(""),
-        "error-callback": () => setTurnstileToken(""),
-      });
-    }
-
-    if (window.turnstile) {
-      renderWidget();
-    } else {
-      const script = document.querySelector(`script[src="${TURNSTILE_SCRIPT_SRC}"]`);
-      script?.addEventListener("load", renderWidget, { once: true });
-    }
+    turnstileWidgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
+      sitekey: TURNSTILE_SITE_KEY,
+      callback: (token) => setTurnstileToken(token),
+      "expired-callback": () => setTurnstileToken(""),
+      "error-callback": () => {
+        setTurnstileToken("");
+        turnstileErrorCountRef.current += 1;
+        // A transient network hiccup usually recovers on its own reset, but
+        // if it keeps failing this user genuinely can't reach Cloudflare's
+        // challenge service - stop trying rather than leave them stuck
+        // behind a widget that will never succeed.
+        if (turnstileErrorCountRef.current > TURNSTILE_MAX_ERRORS) {
+          if (!cancelled) setTurnstileStatus("unavailable");
+        } else if (turnstileWidgetIdRef.current !== null) {
+          window.turnstile.reset(turnstileWidgetIdRef.current);
+        }
+      },
+    });
 
     return () => {
       cancelled = true;
       setTurnstileToken("");
-      if (turnstileWidgetIdRef.current !== null && window.turnstile) {
+      if (turnstileWidgetIdRef.current !== null) {
         window.turnstile.remove(turnstileWidgetIdRef.current);
         turnstileWidgetIdRef.current = null;
       }
     };
-  }, [mode]);
+  }, [mode, turnstileStatus]);
 
   async function fetchServerCaptcha() {
     const controller = new AbortController();
@@ -183,7 +237,7 @@ export default function AuthGate({ onAuthed }) {
   }
 
   async function verifyTurnstile() {
-    if (!TURNSTILE_SITE_KEY) return true;
+    if (!TURNSTILE_SITE_KEY || turnstileStatus === "unavailable") return true;
     if (!turnstileToken) {
       setMessage("请先完成人机验证。");
       return false;
@@ -322,7 +376,9 @@ export default function AuthGate({ onAuthed }) {
                 {captcha?.image ? <img src={captcha.image} alt="数字验证码" /> : <span>刷新</span>}
               </button>
             </div>
-            {TURNSTILE_SITE_KEY && <div className="turnstile-widget" ref={turnstileContainerRef} />}
+            {(turnstileStatus === "loading" || turnstileStatus === "ready") && (
+              <div className="turnstile-widget" ref={turnstileContainerRef} />
+            )}
           </>
         )}
 
