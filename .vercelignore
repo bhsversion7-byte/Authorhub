@@ -1,6 +1,9 @@
 .env
 .env.*
 !.env.example
+*.local
+
+# Local private author data and exported drafts
 *.docx
 *.pdf
 *.png
@@ -18,5 +21,14 @@
 !public/texture-card-3.jpg
 !public/donation-wechat.png
 !public/donation-alipay.jpg
+!public/bookinside.jpg
+!docs/screenshots/*.png
+!docs/screenshots/*.jpg
+!docs/screenshots/*.gif
 author-hub-shimo-cache*
 localStorage*.json
+
+# Local tooling output
+logs/
+output/
+supabase/.temp/

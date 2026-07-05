@@ -7,7 +7,7 @@ export function normalizeRelationTag(tag = "") {
   return value || "主要配角";
 }
 
-export function isMainCharacterTag(tag = "") {
+function isMainCharacterTag(tag = "") {
   return /^主角(?:\d+)?$/.test(normalizeRelationTag(tag).trim());
 }
 

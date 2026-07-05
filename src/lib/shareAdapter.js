@@ -16,7 +16,7 @@ export function parseShareRoute(pathname = window.location.pathname) {
   };
 }
 
-export function buildShareUrl(token, role) {
+function buildShareUrl(token, role) {
   const route = role === SHARE_ROLES.EDITOR ? "join" : "share";
   return `${getShareOrigin()}/${route}/${encodeURIComponent(token)}`;
 }
@@ -30,7 +30,7 @@ function getShareOrigin() {
   return "https://www.authorhub.cn";
 }
 
-export function createShareToken() {
+function createShareToken() {
   if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID().replaceAll("-", "");
   const bytes = new Uint8Array(24);
   globalThis.crypto?.getRandomValues?.(bytes);
