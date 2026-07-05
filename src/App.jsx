@@ -564,6 +564,13 @@ export default function App() {
     }));
   }
 
+  function deleteRelationship(novelId, relationshipIndex) {
+    updateNovelRecord(novelId, (novel) => ({
+      ...novel,
+      relationships: (novel.relationships ?? []).filter((_, index) => index !== relationshipIndex),
+    }));
+  }
+
   function addNovel() {
     const index = (data.novels?.length ?? 0) + 1;
     const id = `novel-${Date.now()}`;
@@ -892,6 +899,7 @@ export default function App() {
               onUpdateCharacter={updateCharacter}
               onAddRelationship={addRelationship}
               onUpdateRelationship={updateRelationship}
+              onDeleteRelationship={deleteRelationship}
               onDeleteCharacter={deleteCharacter}
               onAddEvent={addEvent}
               onUpdateEvent={updateEvent}
@@ -1021,6 +1029,7 @@ function SharedNovelPublicPage({ state }) {
           onUpdateCharacter={noop}
           onAddRelationship={noop}
           onUpdateRelationship={noop}
+          onDeleteRelationship={noop}
           onDeleteCharacter={noop}
           onAddEvent={noop}
           onUpdateEvent={noop}

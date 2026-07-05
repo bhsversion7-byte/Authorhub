@@ -782,3 +782,56 @@ body[data-theme="dark"] .novel-section .graph-card.relation-graph > .graph-hint 
     grid-template-columns: minmax(0, 1fr) !important;
   }
 }
+
+/* 2026-07-05: keep the three in-editor destructive actions identical and
+   deliberately static. The user prefers this quiet solid rose treatment with
+   no hover morph for 删除人物 / 清空所选关系 / 删除时间点. */
+.character-action-row button.danger-lite-button,
+.character-action-row button.danger-lite-button:hover,
+.character-action-row button.danger-lite-button:focus-visible,
+.timeline-action-row button.danger-lite-button,
+.timeline-action-row button.danger-lite-button:hover,
+.timeline-action-row button.danger-lite-button:focus-visible,
+.relation-action-row button.relation-clear-button,
+.relation-action-row button.relation-clear-button:hover,
+.relation-action-row button.relation-clear-button:focus-visible,
+.relation-layout .inspector-card .connect-box .relation-action-row button.relation-clear-button,
+.relation-layout .inspector-card .connect-box .relation-action-row button.relation-clear-button:hover,
+.relation-layout .inspector-card .connect-box .relation-action-row button.relation-clear-button:focus-visible {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  min-height: 42px !important;
+  border: 1px solid rgba(255, 248, 239, 0.54) !important;
+  border-radius: 13px !important;
+  background: linear-gradient(135deg, #a45d52, #87463f) !important;
+  color: #fff8ef !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 239, 0.16),
+    0 8px 18px rgba(132, 70, 63, 0.14) !important;
+  transform: none !important;
+}
+
+.character-action-row button.danger-lite-button :where(svg, span),
+.timeline-action-row button.danger-lite-button :where(svg, span),
+.relation-action-row button.relation-clear-button :where(svg, span) {
+  color: inherit !important;
+  stroke: currentColor !important;
+  transform: none !important;
+}
+
+body[data-theme="dark"] .character-action-row button.danger-lite-button,
+body[data-theme="dark"] .character-action-row button.danger-lite-button:hover,
+body[data-theme="dark"] .character-action-row button.danger-lite-button:focus-visible,
+body[data-theme="dark"] .timeline-action-row button.danger-lite-button,
+body[data-theme="dark"] .timeline-action-row button.danger-lite-button:hover,
+body[data-theme="dark"] .timeline-action-row button.danger-lite-button:focus-visible,
+body[data-theme="dark"] .relation-action-row button.relation-clear-button,
+body[data-theme="dark"] .relation-action-row button.relation-clear-button:hover,
+body[data-theme="dark"] .relation-action-row button.relation-clear-button:focus-visible {
+  border-color: rgba(255, 248, 239, 0.46) !important;
+  background: linear-gradient(135deg, #a45d52, #87463f) !important;
+  color: #fff8ef !important;
+  transform: none !important;
+}

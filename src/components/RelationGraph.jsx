@@ -59,6 +59,7 @@ export default function RelationGraph({
   onUpdateCharacter,
   onAddRelationship,
   onUpdateRelationship,
+  onDeleteRelationship,
   onDeleteCharacter,
   readOnly = false,
   showGraph = true,
@@ -71,6 +72,7 @@ export default function RelationGraph({
   const labelSelectionRef = useRef(null);
   const linksRef = useRef([]);
   const zoomRef = useRef(null);
+  const zoomTransformRef = useRef(d3.zoomIdentity);
   const dimsRef = useRef({ width: 0, height: 0 });
   const nodesRef = useRef([]);
   // Survives the simulation being rebuilt (new character added, a node
@@ -288,9 +290,21 @@ export default function RelationGraph({
     });
     linksRef.current = links;
 
-    const zoom = d3.zoom().scaleExtent([0.45, 2.8]).on("zoom", (event) => graphLayer.attr("transform", event.transform));
+    const zoom = d3
+      .zoom()
+      .scaleExtent([0.45, 2.8])
+      .filter((event) => {
+        if (event.type === "wheel") return true;
+        if (event.button) return false;
+        return !event.target?.closest?.(".graph-node");
+      })
+      .on("zoom", (event) => {
+        zoomTransformRef.current = event.transform;
+        graphLayer.attr("transform", event.transform);
+      });
     zoomRef.current = zoom;
-    svg.call(zoom);
+    svg.call(zoom).on("dblclick.zoom", null);
+    svg.call(zoom.transform, zoomTransformRef.current);
 
     const link = graphLayer
       .append("g")
@@ -376,33 +390,38 @@ export default function RelationGraph({
       .call(
         d3
           .drag()
+          .container(graphLayer.node())
           .on("start", (event) => {
-            if (!event.active) simulation.alphaTarget(0.035).restart();
+            event.sourceEvent?.stopPropagation();
+            d3.select(event.sourceEvent?.target?.closest?.(".graph-node")).style("cursor", "grabbing");
+            if (!event.active) simulation.alphaTarget(0.02).restart();
             event.subject.fx = event.subject.x;
             event.subject.fy = event.subject.y;
           })
           .on("drag", (event) => {
+            event.sourceEvent?.stopPropagation();
             event.subject.fx = event.x;
             event.subject.fy = event.y;
+            nodePositionsRef.current.set(event.subject.id, { x: event.x, y: event.y });
           })
           .on("end", (event) => {
+            event.sourceEvent?.stopPropagation();
             if (!event.active) simulation.alphaTarget(0);
+            nodePositionsRef.current.set(event.subject.id, { x: event.subject.x, y: event.subject.y });
             event.subject.fx = null;
             event.subject.fy = null;
+            d3.select(event.sourceEvent?.target?.closest?.(".graph-node")).style("cursor", "grab");
           }),
       );
 
-    // Halo colors are fixed, not tinted by novel.color (same reasoning as
-    // the ordinary relationship lines) - the main-character halo uses a
-    // light-yellow outer ring (stroke) and light-red inner glow (fill),
-    // deliberately distinct from any planet color in the picker so the
-    // rings read clearly instead of blending into the node's own color.
-    // Size/opacity numbers are unchanged from before, only the hues moved.
+    // Halo colors are fixed, not tinted by novel.color. The main-character
+    // halo stays warm two-tone, but the red/yellow are close enough in value
+    // to read as one soft emphasis instead of two clashing rings.
     node
       .append("circle")
       .attr("r", (character) => character.radius + (isMainTag(character) ? 21 : 12))
-      .attr("fill", (character) => (isMainTag(character) ? "rgba(224,122,104,0.42)" : "#8BA09C"))
-      .attr("stroke", (character) => (isMainTag(character) ? "rgba(230,178,102,0.85)" : "none"))
+      .attr("fill", (character) => (isMainTag(character) ? "rgba(217,112,91,0.34)" : "#8BA09C"))
+      .attr("stroke", (character) => (isMainTag(character) ? "rgba(244,199,112,0.72)" : "none"))
       .attr("stroke-width", (character) => (isMainTag(character) ? 8 : 0))
       .attr("opacity", (character) => (isMainTag(character) ? 0.52 : 0.1))
       .attr("class", (character) => `planet-halo ${isMainTag(character) ? "is-celestial" : ""}`);
@@ -691,6 +710,13 @@ export default function RelationGraph({
     setConfirmClearRelationship(false);
   }
 
+  function clearSelectedRelationship() {
+    if (selectedRelationshipIndex !== null) {
+      onDeleteRelationship?.(novel.id, selectedRelationshipIndex);
+    }
+    clearRelationshipSelection();
+  }
+
   function clearGraphSelection() {
     setGraphFocusId("");
     setHoverId("");
@@ -898,7 +924,7 @@ export default function RelationGraph({
                   </button>
                   <button type="button" className="danger-lite-button relation-clear-button" onClick={() => setConfirmClearRelationship(true)}>
                     <X size={14} />
-                    清空关系选择
+                    清空所选关系
                   </button>
                 </div>
               </div>}
@@ -931,14 +957,18 @@ export default function RelationGraph({
         createPortal(
           <div className="modal-backdrop relation-confirm-backdrop" role="presentation" onMouseDown={() => setConfirmClearRelationship(false)}>
             <section className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="clear-relation-title" onMouseDown={(event) => event.stopPropagation()}>
-              <p className="eyebrow">Clear relation draft</p>
-              <h2 id="clear-relation-title">清空当前关系选择？</h2>
-              <p>这只会清空右侧正在编辑的起点、终点和羁绊描述，不会删除已经保存的关系线。</p>
+              <p className="eyebrow">Clear selected relation</p>
+              <h2 id="clear-relation-title">清空所选关系？</h2>
+              <p>
+                {selectedRelationshipIndex !== null
+                  ? "这会删除当前选中的关系线，并清空右侧正在编辑的起点、终点和羁绊描述。"
+                  : "当前没有选中已保存的关系线，只会清空右侧正在编辑的起点、终点和羁绊描述。"}
+              </p>
               <div className="confirm-actions">
                 <button type="button" className="ghost-button" onClick={() => setConfirmClearRelationship(false)}>
                   取消
                 </button>
-                <button type="button" className="danger-button" onClick={clearRelationshipSelection}>
+                <button type="button" className="danger-button" onClick={clearSelectedRelationship}>
                   确定清空
                 </button>
               </div>

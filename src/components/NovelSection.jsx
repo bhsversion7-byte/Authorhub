@@ -25,6 +25,7 @@ export default function NovelSection({
   onUpdateCharacter,
   onAddRelationship,
   onUpdateRelationship,
+  onDeleteRelationship,
   onDeleteCharacter,
   onAddEvent,
   onUpdateEvent,
@@ -211,6 +212,7 @@ export default function NovelSection({
           onUpdateCharacter={onUpdateCharacter}
           onAddRelationship={onAddRelationship}
           onUpdateRelationship={onUpdateRelationship}
+          onDeleteRelationship={onDeleteRelationship}
           onDeleteCharacter={onDeleteCharacter}
           readOnly={readOnly}
           showGraph={showGraph}
