@@ -46,3 +46,21 @@ Suggested first rules:
 - Keep Bot Protection in log/challenge mode first, then tighten after checking Firewall events.
 
 The current custom captcha is useful against simple registration spam only. It does not protect login attempts, high-volume scraping, or DDoS traffic. Cloudflare Turnstile can replace the custom captcha later without moving DNS to Cloudflare; it only needs a site key on the page and server-side token verification.
+
+## Supabase free-plan IO hygiene
+
+Current production dry-run shows `author_hub_documents` is dominated by TOASTed JSONB. Most users have small documents, but a small set of historical documents still contains inline `data:image/` payloads.
+
+Use the local read-only scanner before any media cleanup:
+
+`npm run media:migration:dry-run`
+
+The scanner needs local `.env.local` values for `VITE_SUPABASE_URL` (or `SUPABASE_URL`) and `SUPABASE_SERVICE_ROLE_KEY`. It performs zero writes and prints only counts, anonymized row prefixes, size estimates, and a suggested batch size. Do not run a write migration from this script.
+
+If cleanup is approved later, migrate conservatively:
+
+1. Export or snapshot the candidate document before touching it.
+2. Process only 1-3 large documents per batch on the free plan.
+3. Upload embedded images to `author-hub-media`, rewrite JSON to public Storage URLs, then verify the document loads and image URLs render.
+4. Wait between batches and re-check table size/advisors before continuing.
+5. Never run this during active user traffic spikes.

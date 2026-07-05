@@ -239,9 +239,8 @@ async function ensureProfile(user) {
       user_id: user.id,
       username: user.user_metadata?.username ?? user.email?.split("@")[0] ?? "writer",
       email: user.email ?? "",
-      has_completed_tour: false,
     },
-    { onConflict: "user_id" },
+    { onConflict: "user_id", ignoreDuplicates: true },
   );
   ensuredProfileIds.add(user.id);
 }
