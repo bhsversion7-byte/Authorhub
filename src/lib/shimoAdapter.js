@@ -121,6 +121,34 @@ export function isCloudSaveBlocked(userId) {
   return Boolean(userId) && cloudSaveBlockedUserIds.has(userId);
 }
 
+// The local cache holds the entire manuscript (every outline, setting,
+// timeline, and character - including hidden 隐藏设定) as plaintext JSON. On
+// a shared/public computer, leaving it behind after "安全登出" or "注销账号"
+// means the next person can read the whole thing from DevTools. Clearing it
+// is the actual fix for that exposure (client-side encryption would not help
+// - the key would have to live client-side too). Sweeps every historical
+// cache prefix (`-v1`..current) plus the anonymous/local key, so a version
+// bump never strands an old plaintext copy either.
+export function clearLocalAuthorHubData(user) {
+  try {
+    const ids = new Set([user?.id, "local"].filter(Boolean));
+    const legacyPrefixes = ["author-hub-shimo-cache", STORAGE_PREFIX];
+    for (const key of Object.keys(window.localStorage)) {
+      if (legacyPrefixes.some((prefix) => key.startsWith(prefix))) {
+        window.localStorage.removeItem(key);
+      }
+    }
+    // Belt-and-suspenders: also target the exact current keys in case the
+    // prefix scan above is ever narrowed.
+    for (const id of ids) {
+      window.localStorage.removeItem(`${STORAGE_PREFIX}:${id}`);
+    }
+    lastCloudSignatures.clear();
+  } catch (error) {
+    console.warn("Author Hub could not clear the local manuscript cache.", error);
+  }
+}
+
 // A cloud load failure blocks saves for the rest of the session (see
 // loadAuthorHubData) so a stale local fallback can't silently overwrite a
 // newer cloud document. But that block must not be permanent - every edit

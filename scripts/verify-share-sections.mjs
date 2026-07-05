@@ -6,6 +6,7 @@ import {
   DEFAULT_PUBLIC_SECTIONS,
   FULL_PUBLIC_SECTIONS,
   PRIVATE_CHARACTER_FIELDS_LIST,
+  PUBLIC_STRIPPED_NOVEL_FIELDS_LIST,
   filterNovelForSections,
   normalizePublicSections,
 } from "../src/lib/shareSections.js";
@@ -28,10 +29,33 @@ assert.deepEqual(
   "Private character field allowlist drifted between shareSections.js and the Supabase migration - update both together.",
 );
 
+// The novel-level public-strip list (urls/sourceLinks/word-counts/finish-date)
+// lives in the sanitize_author_hub_public_novel migration as a `- '<field>'`
+// chain and must stay identical to PUBLIC_STRIPPED_NOVEL_FIELDS_LIST.
+const STRIP_MIGRATION_PATH = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "supabase/migrations/20260705070628_author_hub_strip_author_links_from_public_share.sql",
+);
+const stripMigrationSource = readFileSync(STRIP_MIGRATION_PATH, "utf8");
+const stripChainMatch = stripMigrationSource.match(/((?:-\s*'[^']+'\s*)+)as novel/);
+assert.ok(stripChainMatch, `Could not find the public-strip '- field' chain in ${STRIP_MIGRATION_PATH}; update this check if that SQL was refactored.`);
+const sqlStrippedFields = [...stripChainMatch[1].matchAll(/-\s*'([^']+)'/g)].map((m) => m[1]);
+assert.deepEqual(
+  [...sqlStrippedFields].sort(),
+  [...PUBLIC_STRIPPED_NOVEL_FIELDS_LIST].sort(),
+  "Public novel-level strip list drifted between shareSections.js and the Supabase migration - update both together.",
+);
+
 const sampleNovel = {
   id: "novel-1",
   title: "Shared Draft",
   subtitle: "A public slice",
+  urls: { ao3: "https://archiveofourown.org/works/123" },
+  sourceLinks: [{ label: "AO3", url: "https://archiveofourown.org/works/123" }],
+  currentWords: 12345,
+  targetWords: 90000,
+  finishDate: "2026-12-31",
   outline: "Outline text",
   setting: "Setting text",
   themes: ["trust", "archive"],
@@ -67,6 +91,13 @@ assert.deepEqual(graphOnly.characters[0], { id: "c1", name: "A", role: "lead" })
 assert.deepEqual(graphOnly.relationships, sampleNovel.relationships);
 assert.deepEqual(graphOnly.timeline, []);
 assert.equal(graphOnly.outline, "");
+
+// Author-identifying platform links and progress metadata must be stripped
+// even when every section is shared.
+for (const field of PUBLIC_STRIPPED_NOVEL_FIELDS_LIST) {
+  assert.equal(coreOnly[field], undefined, `${field} must be stripped from public share payloads`);
+  assert.equal(filterNovelForSections(sampleNovel, FULL_PUBLIC_SECTIONS)[field], undefined, `${field} must be stripped even with all sections shared`);
+}
 
 const full = filterNovelForSections(sampleNovel, FULL_PUBLIC_SECTIONS);
 assert.equal(full.characters[0].secret, undefined);

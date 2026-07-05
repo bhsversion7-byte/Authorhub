@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { FileJson, FileText, KeyRound, LogOut, Mail, Moon, ShieldCheck, Sun, Trash2, UserX, WalletCards } from "lucide-react";
+import { hasSupabaseConfig, supabase } from "../lib/supabaseClient.js";
 
 const DONATION_QR = {
   wechat: "/donation-wechat.png",

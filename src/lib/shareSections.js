@@ -22,6 +22,19 @@ const VALID_SECTION_IDS = new Set(FULL_PUBLIC_SECTIONS);
 export const PRIVATE_CHARACTER_FIELDS_LIST = ["secret", "hidden", "privateNote"];
 const PRIVATE_CHARACTER_FIELDS = new Set(PRIVATE_CHARACTER_FIELDS_LIST);
 const GRAPH_CHARACTER_FIELDS = new Set(["id", "name", "role", "tag", "faction", "color"]);
+// Novel-level fields that must never reach an anonymous public viewer, even
+// for sections they were granted. `urls`/`sourceLinks` are the author's
+// external 首发平台 pages (AO3/晋江/起点...) - showing those on an
+// otherwise-anonymous outline share deanonymizes the author across
+// platforms. The word-count/finish-date fields are progress metadata the
+// author may not want attached to a public preview. Section gating alone
+// didn't cover these because the sanitizer merges the whole novel object and
+// only overrides the six section keys - these top-level keys rode through.
+// Kept in lockstep with the identical `- '<field>'` chain in the
+// sanitize_author_hub_public_novel migration (the real anon-RPC security
+// boundary); scripts/verify-share-sections asserts they stay identical.
+export const PUBLIC_STRIPPED_NOVEL_FIELDS_LIST = ["urls", "sourceLinks", "currentWords", "targetWords", "finishDate"];
+const PUBLIC_STRIPPED_NOVEL_FIELDS = new Set(PUBLIC_STRIPPED_NOVEL_FIELDS_LIST);
 
 export function normalizePublicSections(sections, options = {}) {
   const fallback = options.fallback ?? DEFAULT_PUBLIC_SECTIONS;
@@ -34,7 +47,10 @@ export function filterNovelForSections(novel, sections) {
   const selected = new Set(normalizePublicSections(sections, { fallback: FULL_PUBLIC_SECTIONS }));
   const includeGraph = selected.has("graph");
   const includeCharacters = selected.has("characters");
-  const publicNovel = removePrivateFields(novel ?? {});
+  const strippedNovel = removePrivateFields(novel ?? {});
+  const publicNovel = Object.fromEntries(
+    Object.entries(strippedNovel).filter(([key]) => !PUBLIC_STRIPPED_NOVEL_FIELDS.has(key)),
+  );
 
   return {
     ...publicNovel,

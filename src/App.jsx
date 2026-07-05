@@ -24,7 +24,7 @@ import {
   subscribeToSharedNovel,
 } from "./lib/shareAdapter.js";
 import { getLocalAuthUser, hasSupabaseConfig, setLocalAuthUser, supabase } from "./lib/supabaseClient.js";
-import { flushCloudSave, isCloudSaveBlocked, loadAuthorHubData, retryCloudSync, saveAuthorHubData } from "./lib/shimoAdapter.js";
+import { clearLocalAuthorHubData, flushCloudSave, isCloudSaveBlocked, loadAuthorHubData, retryCloudSync, saveAuthorHubData } from "./lib/shimoAdapter.js";
 
 const AuthGate = lazy(() => import("./components/AuthGate.jsx"));
 const AuthorDashboard = lazy(() => import("./components/AuthorDashboard.jsx"));
@@ -396,6 +396,9 @@ export default function App() {
       flushSharedSaves();
       await supabase.auth.signOut();
     }
+    // Clear the full-manuscript local cache so "安全登出" on a shared computer
+    // actually leaves nothing behind for the next person to read.
+    clearLocalAuthorHubData(authUser);
     setLocalAuthUser(null);
     setAuthUser(null);
     setData(null);
@@ -412,6 +415,10 @@ export default function App() {
       if (error) throw error;
       await supabase.auth.signOut({ scope: "local" }).catch(() => {});
     }
+    // The server-side RPC deletes the cloud copy; without this the "deleted"
+    // manuscript would survive in plaintext localStorage, contradicting the
+    // deletion promise (especially on a shared machine).
+    clearLocalAuthorHubData(authUser);
     setLocalAuthUser(null);
     setAuthUser(null);
     setData(null);

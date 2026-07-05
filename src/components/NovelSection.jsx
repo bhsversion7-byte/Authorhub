@@ -90,22 +90,33 @@ export default function NovelSection({
         <div className="novel-meta" aria-label="作品档案">
           <label className="novel-meta-field">
             <span>类型</span>
-            <input value={novel.genre} readOnly={readOnly} onChange={(event) => patchNovel({ genre: event.target.value })} />
+            <input value={novel.genre ?? ""} readOnly={readOnly} onChange={(event) => patchNovel({ genre: event.target.value })} />
           </label>
-          <label className="novel-meta-field">
-            <span>当前字数</span>
-            <input type="number" value={novel.currentWords} readOnly={readOnly} onChange={(event) => patchNovel({ currentWords: Number(event.target.value) })} />
-          </label>
-          <label className="novel-meta-field">
-            <span>预计总字数</span>
-            <input type="number" value={novel.targetWords} readOnly={readOnly} onChange={(event) => patchNovel({ targetWords: Number(event.target.value) })} />
-          </label>
-          <label className="novel-meta-field">
-            <span>完结时间</span>
-            <input type="date" value={novel.finishDate} readOnly={readOnly} onChange={(event) => patchNovel({ finishDate: event.target.value })} />
-          </label>
+          {/* On a public read-only share, word-count/finish-date metadata is
+              stripped from the payload (see PUBLIC_STRIPPED_NOVEL_FIELDS_LIST) -
+              render these fields only when there's actually a value, so a
+              shared page shows a clean subset instead of empty input boxes.
+              For the owner (not readOnly) they always render as before. */}
+          {(!readOnly || novel.currentWords != null) && (
+            <label className="novel-meta-field">
+              <span>当前字数</span>
+              <input type="number" value={novel.currentWords ?? ""} readOnly={readOnly} onChange={(event) => patchNovel({ currentWords: Number(event.target.value) })} />
+            </label>
+          )}
+          {(!readOnly || novel.targetWords != null) && (
+            <label className="novel-meta-field">
+              <span>预计总字数</span>
+              <input type="number" value={novel.targetWords ?? ""} readOnly={readOnly} onChange={(event) => patchNovel({ targetWords: Number(event.target.value) })} />
+            </label>
+          )}
+          {(!readOnly || novel.finishDate) && (
+            <label className="novel-meta-field">
+              <span>完结时间</span>
+              <input type="date" value={novel.finishDate ?? ""} readOnly={readOnly} onChange={(event) => patchNovel({ finishDate: event.target.value })} />
+            </label>
+          )}
           <div className="novel-hero-actions">
-            <PublishLinkPill link={publishLink} onChange={updatePublishLink} readOnly={readOnly} />
+            {(!readOnly || publishLink.url) && <PublishLinkPill link={publishLink} onChange={updatePublishLink} readOnly={readOnly} />}
             {!readOnly && (
               <NovelShareControl
                 novel={novel}

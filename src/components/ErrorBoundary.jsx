@@ -30,6 +30,27 @@ export default class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.error) {
+      // The anonymous public share page (/share/<token>) is shown to
+      // strangers who are not the owner - never surface a raw stack trace
+      // (chunk paths, and error messages that can quote the offending data)
+      // to them. The signed-in owner (any other route) still gets the full
+      // trace so they can copy-paste it for debugging.
+      let isPublicViewer = false;
+      try {
+        isPublicViewer = window.location.pathname.startsWith("/share/");
+      } catch {
+        isPublicViewer = false;
+      }
+
+      if (isPublicViewer) {
+        return (
+          <main className="error-screen">
+            <h1>分享链接暂时无法打开</h1>
+            <p>请确认链接是否完整，或请作者重新生成只读查看链接。</p>
+          </main>
+        );
+      }
+
       return (
         <main className="error-screen">
           <h1>Author Hub 启动失败</h1>
