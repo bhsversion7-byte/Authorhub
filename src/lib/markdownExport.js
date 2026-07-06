@@ -3,7 +3,11 @@ export function getRelationshipEndpointId(endpoint) {
 }
 
 function characterExportLabel(character) {
-  return character.role || character.tag || character.faction || "未填写";
+  return character?.role || character?.tag || character?.faction || "未填写";
+}
+
+function isRecord(value) {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
 export function buildMarkdownExport(data) {
@@ -33,7 +37,7 @@ export function buildMarkdownExport(data) {
     sections.push("### 主题", ...(novel.themes ?? []).map((theme) => `- ${theme}`), "");
     sections.push(
       "### 人物",
-      ...(novel.characters ?? []).map((character) => `- ${character.name}：${characterExportLabel(character)}`),
+      ...(novel.characters ?? []).filter(isRecord).map((character) => `- ${character.name ?? "未命名人物"}：${characterExportLabel(character)}`),
       "",
     );
     sections.push(
@@ -44,7 +48,7 @@ export function buildMarkdownExport(data) {
       ),
       "",
     );
-    sections.push("### 时间线", ...(novel.timeline ?? []).map((event) => `- ${event.date}｜${event.title}`), "");
+    sections.push("### 时间线", ...(novel.timeline ?? []).filter(isRecord).map((event) => `- ${event.date ?? ""}｜${event.title ?? "未命名时间点"}`), "");
   });
 
   return sections.join("\n");

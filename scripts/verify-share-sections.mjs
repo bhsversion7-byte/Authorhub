@@ -10,6 +10,7 @@ import {
   filterNovelForSections,
   normalizePublicSections,
 } from "../src/lib/shareSections.js";
+import { SHARE_ROLES, decorateSharedNovel } from "../src/lib/shareAdapter.js";
 
 // The private-field allowlist is duplicated by necessity (JS can't import
 // SQL): author_hub_strip_private_jsonb in the migration below is the real
@@ -60,6 +61,7 @@ const sampleNovel = {
   setting: "Setting text",
   themes: ["trust", "archive"],
   characters: [
+    null,
     {
       id: "c1",
       name: "A",
@@ -88,6 +90,7 @@ assert.deepEqual(coreOnly.timeline, []);
 
 const graphOnly = filterNovelForSections(sampleNovel, ["graph"]);
 assert.deepEqual(graphOnly.characters[0], { id: "c1", name: "A", role: "lead" });
+assert.equal(graphOnly.characters.length, 1, "null characters must be discarded from public share payloads");
 assert.deepEqual(graphOnly.relationships, sampleNovel.relationships);
 assert.deepEqual(graphOnly.timeline, []);
 assert.equal(graphOnly.outline, "");
@@ -106,5 +109,19 @@ assert.equal(full.characters[0].privateNote, undefined);
 assert.equal(full.timeline[0].privateNote, undefined);
 assert.equal(full.timeline[0].title, "First event");
 assert.deepEqual(full.metadata, { public: "ok" });
+
+const editorSharedNovel = decorateSharedNovel({
+  id: "shared-1",
+  role: SHARE_ROLES.EDITOR,
+  novel: {
+    id: "source-1",
+    title: "Shared Editor Draft",
+    characters: [null, { id: "c2", name: "B", role: "主角" }],
+    timeline: [null, { id: "e2", title: "Editor event" }],
+  },
+});
+
+assert.equal(editorSharedNovel.characters.length, 1, "editor shared novels should discard null character entries before rendering");
+assert.equal(editorSharedNovel.timeline.length, 1, "editor shared novels should discard null timeline entries before rendering");
 
 console.log("share section checks passed");

@@ -59,7 +59,9 @@ export function filterNovelForSections(novel, sections) {
     themes: selected.has("themes") ? publicNovel.themes ?? [] : [],
     characters:
       includeCharacters || includeGraph
-        ? (publicNovel.characters ?? []).map((character) => sanitizeCharacter(character, { graphOnly: includeGraph && !includeCharacters }))
+        ? (publicNovel.characters ?? [])
+            .map((character) => sanitizeCharacter(character, { graphOnly: includeGraph && !includeCharacters }))
+            .filter(Boolean)
         : [],
     relationships: includeGraph ? publicNovel.relationships ?? [] : [],
     timeline: selected.has("timeline") ? publicNovel.timeline ?? [] : [],
@@ -67,7 +69,8 @@ export function filterNovelForSections(novel, sections) {
 }
 
 function sanitizeCharacter(character, options = {}) {
-  const source = character ?? {};
+  if (!character || typeof character !== "object" || Array.isArray(character)) return null;
+  const source = character;
   if (options.graphOnly) {
     return Object.fromEntries(Object.entries(source).filter(([key, value]) => GRAPH_CHARACTER_FIELDS.has(key) && value !== undefined));
   }

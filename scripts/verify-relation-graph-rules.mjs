@@ -23,6 +23,8 @@ assert.equal(normalizeRelationTag(""), "主要配角");
 });
 
 assert.equal(getCharacterRelationTag({ faction: "主角34" }), "主角34");
+assert.equal(getCharacterRelationTag(null), "主要配角");
+assert.equal(isMainCharacter(null), false);
 
 const nodes = [
   { id: "a", tag: "主角" },
@@ -34,5 +36,6 @@ const getNodeId = (node) => (typeof node === "object" ? node.id : node);
 assert.equal(isMainPairRelationship({ source: "a", target: "b" }, nodes, getNodeId), true);
 assert.equal(isMainPairRelationship({ source: "a", target: "c" }, nodes, getNodeId), false);
 assert.equal(isMainPairRelationship({ source: "missing", target: "b" }, nodes, getNodeId), false);
+assert.equal(isMainPairRelationship(null, nodes, getNodeId), false);
 
 console.log("relation graph rule checks passed");

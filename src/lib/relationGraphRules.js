@@ -12,14 +12,17 @@ function isMainCharacterTag(tag = "") {
 }
 
 export function getCharacterRelationTag(character = {}) {
-  return normalizeRelationTag(character.tag ?? character.faction ?? "主要配角");
+  const source = character && typeof character === "object" ? character : {};
+  return normalizeRelationTag(source.tag ?? source.faction ?? "主要配角");
 }
 
 export function isMainCharacter(character = {}) {
+  if (!character || typeof character !== "object") return false;
   return isMainCharacterTag(getCharacterRelationTag(character));
 }
 
 export function isMainPairRelationship(relationship, nodes, getNodeId) {
+  if (!relationship || !Array.isArray(nodes) || typeof getNodeId !== "function") return false;
   const sourceId = getNodeId(relationship.source);
   const targetId = getNodeId(relationship.target);
   const source = nodes.find((node) => node.id === sourceId);

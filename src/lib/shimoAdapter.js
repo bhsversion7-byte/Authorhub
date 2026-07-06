@@ -279,17 +279,17 @@ async function fetchFromShimoOrMock() {
 
 export function migrateData(data) {
   const sourceNovels = Array.isArray(data.novels) ? data.novels : mockAuthorHubData.novels;
-  const novels = sourceNovels.map((novel) => ({
+  const novels = sourceNovels.filter(isRecord).map((novel) => ({
     ...novel,
     urls: { ao3: "", jjwxc: "", qidian: "", qimao: "", fanqie: "", changpei: "", ...(novel.urls ?? {}) },
-    characters: (novel.characters ?? []).map((character, index) => ({
+    characters: (novel.characters ?? []).filter(isRecord).map((character, index) => ({
       ...character,
       tag: character.tag ?? character.faction ?? inferCharacterTag(character, index),
       color: character.color ?? ["#8BA09C", "#DDA96A", "#A9A084", "#BFA57B", "#A7B8C8"][index % 5],
       images: character.images ?? [],
     })),
     relationships: novel.relationships ?? [],
-    timeline: (novel.timeline ?? []).map((event) => ({ ...event, images: event.images ?? [] })),
+    timeline: (novel.timeline ?? []).filter(isRecord).map((event) => ({ ...event, images: event.images ?? [] })),
   }));
 
   return {
@@ -300,6 +300,10 @@ export function migrateData(data) {
     appearance: { ...mockAuthorHubData.appearance, ...(data.appearance ?? {}) },
     novels,
   };
+}
+
+function isRecord(value) {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
 function inferCharacterTag(character, index) {

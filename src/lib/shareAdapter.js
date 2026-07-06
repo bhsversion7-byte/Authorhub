@@ -1,5 +1,6 @@
 import { hasSupabaseConfig, supabase } from "./supabaseClient.js";
 import { DEFAULT_PUBLIC_SECTIONS, FULL_PUBLIC_SECTIONS, filterNovelForSections, normalizePublicSections } from "./shareSections.js";
+import { migrateData } from "./shimoAdapter.js";
 
 export const SHARE_ROLES = {
   EDITOR: "editor",
@@ -231,9 +232,11 @@ export function decorateSharedNovel(row) {
   const sourceNovelId = row.sourceNovelId ?? row.source_novel_id ?? row.novel.id;
   const role = row.role ?? SHARE_ROLES.VIEWER;
   const publicSections = normalizePublicSections(row.publicSections ?? row.public_sections, { fallback: FULL_PUBLIC_SECTIONS });
+  const normalizedNovel = normalizeSharedNovelContent(row.novel);
+  if (!normalizedNovel) return null;
   // Owners/editors get the complete source (preference.md: "Editor links keep the complete source").
   // Section filtering + private-field stripping only applies to the public read-only viewer role.
-  const novelContent = role === SHARE_ROLES.VIEWER ? filterNovelForSections(row.novel, publicSections) : row.novel;
+  const novelContent = role === SHARE_ROLES.VIEWER ? filterNovelForSections(normalizedNovel, publicSections) : normalizedNovel;
   return {
     ...novelContent,
     id: `shared-${row.id}`,
@@ -248,6 +251,10 @@ export function decorateSharedNovel(row) {
       activeLinks: row.activeLinks ?? row.active_links ?? {},
     },
   };
+}
+
+function normalizeSharedNovelContent(novel) {
+  return migrateData({ novels: [novel] }).novels[0] ?? null;
 }
 
 function normalizeSharedNovelRow(row) {
