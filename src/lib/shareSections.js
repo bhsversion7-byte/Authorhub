@@ -33,7 +33,7 @@ const GRAPH_CHARACTER_FIELDS = new Set(["id", "name", "role", "tag", "faction", 
 // Kept in lockstep with the identical `- '<field>'` chain in the
 // sanitize_author_hub_public_novel migration (the real anon-RPC security
 // boundary); scripts/verify-share-sections asserts they stay identical.
-export const PUBLIC_STRIPPED_NOVEL_FIELDS_LIST = ["urls", "sourceLinks", "currentWords", "targetWords", "finishDate"];
+export const PUBLIC_STRIPPED_NOVEL_FIELDS_LIST = ["urls", "sourceLinks", "currentWords", "targetWords", "finishDate", "focusPages"];
 const PUBLIC_STRIPPED_NOVEL_FIELDS = new Set(PUBLIC_STRIPPED_NOVEL_FIELDS_LIST);
 
 export function normalizePublicSections(sections, options = {}) {

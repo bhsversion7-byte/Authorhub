@@ -85,7 +85,7 @@
 
 .novel-section .novel-title-input {
   color: var(--ink) !important;
-  font-family: Georgia, "Times New Roman", "Songti SC", "STSong", serif !important;
+  font-family: "Nimbus Roman", "Nimbus Roman No9 L", Georgia, "Times New Roman", "Songti SC", "STSong", serif !important;
   font-size: clamp(21px, 2.25vw, 30px) !important;
   font-weight: 750 !important;
   letter-spacing: -0.035em !important;

@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import * as d3 from "d3";
 import Sortable from "sortablejs";
 import { Check, Link2, Plus, RotateCcw, Save, Sparkles, Trash2, X, ZoomIn } from "lucide-react";
+import { patchFocusPageMap } from "../lib/focusPages.js";
 import {
   MAIN_PAIR_RELATION_COLOR,
   getCharacterRelationTag,
@@ -624,6 +625,11 @@ export default function RelationGraph({
     onUpdateCharacter(novel.id, draft.id, draft);
   }
 
+  function updateDraftFocusPages(key, pages) {
+    if (!draft || readOnly) return;
+    setDraft((current) => (current ? { ...current, focusPages: patchFocusPageMap(current.focusPages, key, pages) } : current));
+  }
+
   function requestDeleteCharacter() {
     if (!draft || readOnly) return;
     setDeleteCharacterCandidate(draft);
@@ -976,9 +982,25 @@ export default function RelationGraph({
               </div>
 
               <div className="character-long-fields">
-                <FocusTextarea label="背景故事" value={draft.background} onChange={(background) => setDraft({ ...draft, background })} onSave={handleSaveCharacter} readOnly={readOnly} />
+                <FocusTextarea
+                  label="背景故事"
+                  value={draft.background}
+                  pages={draft.focusPages?.background}
+                  onPagesChange={(pages) => updateDraftFocusPages("background", pages)}
+                  onChange={(background) => setDraft((current) => (current ? { ...current, background } : current))}
+                  onSave={handleSaveCharacter}
+                  readOnly={readOnly}
+                />
                 {!readOnly && (
-                  <FocusTextarea label="隐藏设定" value={draft.secret} onChange={(secret) => setDraft({ ...draft, secret })} onSave={handleSaveCharacter} readOnly={readOnly} />
+                  <FocusTextarea
+                    label="隐藏设定"
+                    value={draft.secret}
+                    pages={draft.focusPages?.secret}
+                    onPagesChange={(pages) => updateDraftFocusPages("secret", pages)}
+                    onChange={(secret) => setDraft((current) => (current ? { ...current, secret } : current))}
+                    onSave={handleSaveCharacter}
+                    readOnly={readOnly}
+                  />
                 )}
               </div>
               {!readOnly && (

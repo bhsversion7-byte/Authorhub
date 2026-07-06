@@ -210,7 +210,7 @@
 
   .content-shell {
     margin-left: 0 !important;
-    padding: 14px clamp(12px, 4vw, 22px) 34px !important;
+    padding: 14px clamp(12px, 4vw, 22px) calc(112px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   .brand {

@@ -1,5 +1,6 @@
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
+import { AnnouncementTicker } from "./components/AnnouncementCenter.jsx";
 import FloatingMusicPlayer from "./components/FloatingMusicPlayer.jsx";
 import Sidebar from "./components/Sidebar.jsx";
 import TourProvider from "./components/TourProvider.jsx";
@@ -704,7 +705,14 @@ export default function App() {
     });
     if (!notice) return;
     recentSharedSaveNoticeRef.current.set(sharedNovelId, Date.now());
-    showShareNotice(formatSharedSaveNotice(notice), 5000);
+    // Broadcast only - the saver already knows they just saved, so showing
+    // this toast locally quoted the saver's own name back at themselves
+    // ("bhsversion7已保存：...") on every single save, including edits made
+    // solo after the editor share link was revoked (revoke clears
+    // activeLinks/collaboratorCount but the shared-novel row itself stays,
+    // so every future save kept routing through this function forever).
+    // normalizeSharedSaveNotice already drops a sender's own echo on the
+    // *receiving* end - this local call bypassed that filter entirely.
     sharedDraftControllersRef.current.get(sharedNovelId)?.sendSaveNotice(notice);
   }
 
@@ -1185,6 +1193,7 @@ export default function App() {
         </Suspense>
       </main>
       <FloatingMusicPlayer />
+      {!shareNotice && !isPublicShareRoute && <AnnouncementTicker onOpen={() => selectView("user")} />}
       {cloudSyncBlocked && !isPublicShareRoute && (
         <div className="cloud-sync-banner" role="alert">
           <span>云端连接异常，你的更改目前只保存在本地，请检查网络。</span>

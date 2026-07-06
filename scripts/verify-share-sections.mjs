@@ -11,6 +11,7 @@ import {
   normalizePublicSections,
 } from "../src/lib/shareSections.js";
 import { SHARE_ROLES, decorateSharedNovel } from "../src/lib/shareAdapter.js";
+import { patchFocusPageMap } from "../src/lib/focusPages.js";
 
 // The private-field allowlist is duplicated by necessity (JS can't import
 // SQL): author_hub_strip_private_jsonb in the migration below is the real
@@ -36,7 +37,7 @@ assert.deepEqual(
 const STRIP_MIGRATION_PATH = join(
   dirname(fileURLToPath(import.meta.url)),
   "..",
-  "supabase/migrations/20260705070628_author_hub_strip_author_links_from_public_share.sql",
+  "supabase/migrations/20260707003000_author_hub_strip_focus_pages_from_public_share.sql",
 );
 const stripMigrationSource = readFileSync(STRIP_MIGRATION_PATH, "utf8");
 const stripChainMatch = stripMigrationSource.match(/((?:-\s*'[^']+'\s*)+)as novel/);
@@ -57,6 +58,7 @@ const sampleNovel = {
   currentWords: 12345,
   targetWords: 90000,
   finishDate: "2026-12-31",
+  focusPages: { outline: [{ title: "private page title", value: "Outline text" }], setting: [{ title: "private setting", value: "Setting text" }] },
   outline: "Outline text",
   setting: "Setting text",
   themes: ["trust", "archive"],
@@ -123,5 +125,12 @@ const editorSharedNovel = decorateSharedNovel({
 
 assert.equal(editorSharedNovel.characters.length, 1, "editor shared novels should discard null character entries before rendering");
 assert.equal(editorSharedNovel.timeline.length, 1, "editor shared novels should discard null timeline entries before rendering");
+
+assert.deepEqual(
+  patchFocusPageMap({ outline: [{ id: "page-main", title: "全文", value: "kept" }], setting: [{ id: "page-2", title: "设定", value: "x" }] }, "outline", []),
+  { setting: [{ id: "page-2", title: "设定", value: "x" }] },
+  "empty focus page arrays must delete the section key instead of keeping stale paging metadata",
+);
+assert.equal(patchFocusPageMap({ outline: [{ id: "page-main", title: "全文", value: "kept" }] }, "outline", []), undefined, "empty focus page maps must collapse to undefined");
 
 console.log("share section checks passed");

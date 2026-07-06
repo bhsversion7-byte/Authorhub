@@ -46,6 +46,35 @@
   font-family: var(--reading-font-family, inherit) !important;
 }
 
+.zen-editor .eyebrow,
+.zen-editor-head h3 {
+  font-family: var(--reading-font-family, inherit) !important;
+}
+
+.zen-page-tab > span > i {
+  display: inline-block !important;
+}
+
+.content-shell.font-sans .novel-section :where(h1, h2, h3, h4, p, span, strong, small, label, input, textarea, select, button, em, li, figcaption) {
+  font-family: "Nimbus Roman", "Nimbus Roman No9 L", "Times New Roman", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", serif !important;
+}
+
+.announcement-modal {
+  background: rgba(246, 241, 250, 0.98) !important;
+  background-image: none !important;
+}
+
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 /* --- Item 5: privacy blur (隐私模糊) must also cover the theme tags. */
 .privacy-blur .theme-tag-chip {
   filter: blur(7px);

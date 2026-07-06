@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, Copy, ExternalLink, Plus, Save, Trash2, X } from "lucide-react";
 import Sortable from "sortablejs";
 import { copyPromptAndOpen } from "../lib/aiHandoff.js";
+import { patchFocusPageMap } from "../lib/focusPages.js";
 import FocusTextarea from "./FocusTextarea.jsx";
 import MediaCarousel from "./MediaCarousel.jsx";
 
@@ -96,6 +97,11 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
   function saveEvent() {
     if (!draft || readOnly) return;
     onUpdateEvent(novel.id, draft.id, draft);
+  }
+
+  function updateDraftFocusPages(key, pages) {
+    if (!draft || readOnly) return;
+    setDraft((current) => (current ? { ...current, focusPages: patchFocusPageMap(current.focusPages, key, pages) } : current));
   }
 
   function requestDeleteEvent(event = draft) {
@@ -237,8 +243,24 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
                 <input value={draft.title} readOnly={readOnly} onChange={(event) => setDraft({ ...draft, title: event.target.value })} />
               </label>
             </div>
-            <FocusTextarea label="发生背景" value={draft.background} onChange={(background) => setDraft({ ...draft, background })} onSave={saveEvent} readOnly={readOnly} />
-            <FocusTextarea label="具体剧情" value={draft.plot} onChange={(plot) => setDraft({ ...draft, plot })} onSave={saveEvent} readOnly={readOnly} />
+            <FocusTextarea
+              label="发生背景"
+              value={draft.background}
+              pages={draft.focusPages?.background}
+              onPagesChange={(pages) => updateDraftFocusPages("background", pages)}
+              onChange={(background) => setDraft((current) => (current ? { ...current, background } : current))}
+              onSave={saveEvent}
+              readOnly={readOnly}
+            />
+            <FocusTextarea
+              label="具体剧情"
+              value={draft.plot}
+              pages={draft.focusPages?.plot}
+              onPagesChange={(pages) => updateDraftFocusPages("plot", pages)}
+              onChange={(plot) => setDraft((current) => (current ? { ...current, plot } : current))}
+              onSave={saveEvent}
+              readOnly={readOnly}
+            />
             <MediaCarousel label="时间线参考图片" images={draft.images ?? []} onChange={(images) => setDraft({ ...draft, images })} readOnly={readOnly} />
             <div className="ai-nudge">
               <p>

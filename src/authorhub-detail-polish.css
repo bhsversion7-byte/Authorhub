@@ -6,6 +6,10 @@
   --ah-graph-surface: rgba(210, 196, 176, 0.82);
   --ah-graph-surface-2: rgba(189, 177, 158, 0.58);
   --ah-graph-dot-soft: rgba(117, 94, 64, 0.16);
+  --ah-zen-squash: #f7ecd5;
+  --ah-zen-squash-light: #fff7dc;
+  --ah-zen-squash-tab: #f2dfad;
+  --ah-zen-squash-tab-active: #fff0bf;
 }
 
 html,
@@ -217,9 +221,7 @@ body::before,
   overflow: hidden !important;
   padding: clamp(18px, 3vw, 28px) !important;
   border-radius: 22px !important;
-  background:
-    radial-gradient(circle at 14% 2%, rgba(255, 255, 255, 0.5), transparent 35%),
-    linear-gradient(135deg, rgba(253, 251, 247, 0.98), rgba(235, 226, 211, 0.94)) !important;
+  background: var(--ah-zen-squash) !important;
   border: 1px solid rgba(139, 112, 79, 0.16) !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
@@ -288,7 +290,6 @@ body::before,
   white-space: nowrap !important;
 }
 
-.zen-tool-buttons,
 .zen-editor-stats {
   display: flex !important;
   flex-wrap: wrap !important;
@@ -297,7 +298,8 @@ body::before,
   justify-content: flex-end !important;
 }
 
-.zen-tool-buttons button {
+.zen-new-page-button,
+.zen-new-page-form button {
   min-height: 34px !important;
   padding: 7px 11px !important;
   border-radius: 999px !important;
@@ -305,45 +307,194 @@ body::before,
   color: rgba(54, 47, 40, 0.86) !important;
 }
 
-.zen-tool-buttons button:disabled {
+.zen-new-page-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  border: 1px solid rgba(147, 120, 86, 0.18) !important;
+  font-size: 12px !important;
+  font-weight: 850 !important;
+  white-space: nowrap !important;
+}
+
+.zen-page-edge-button:disabled {
   opacity: 0.42 !important;
 }
 
 .zen-outline {
+  position: relative !important;
   display: grid !important;
-  gap: 8px !important;
-  padding: 10px !important;
-  border: 1px solid rgba(147, 120, 86, 0.14) !important;
-  border-radius: 16px !important;
-  background: rgba(255, 252, 246, 0.52) !important;
+  gap: 7px !important;
+  padding: 9px 10px !important;
+  border: 1px solid rgba(177, 142, 82, 0.18) !important;
+  border-radius: 14px !important;
+  background: var(--ah-zen-squash-light) !important;
 }
 
-.zen-outline > span {
+.zen-page-strip {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  gap: 8px !important;
+  align-items: center !important;
+  min-width: 0 !important;
+}
+
+.zen-new-page-form {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 8px !important;
+}
+
+.zen-new-page-form input {
+  min-width: 0 !important;
+  padding: 8px 11px !important;
+  border: 1px solid rgba(147, 120, 86, 0.16) !important;
+  border-radius: 999px !important;
+  background: rgba(255, 253, 248, 0.72) !important;
+  box-shadow: none !important;
+}
+
+.zen-page-rail {
+  display: flex !important;
+  gap: 6px !important;
+  overflow-x: auto !important;
+  padding: 2px !important;
+  scrollbar-width: none !important;
+}
+
+.zen-page-rail::-webkit-scrollbar {
+  display: none !important;
+}
+
+.zen-page-edge-button {
+  display: inline-flex !important;
+  width: 24px !important;
+  height: 24px !important;
+  min-height: 24px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  border: 1px solid rgba(147, 120, 86, 0.1) !important;
+  border-radius: 999px !important;
+  background: rgba(255, 253, 248, 0.48) !important;
+  color: rgba(64, 55, 48, 0.56) !important;
+}
+
+.zen-page-edge-button svg {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+.zen-page-edge-button:not(:disabled):hover,
+.zen-page-edge-button:not(:disabled):focus-visible {
+  background: rgba(255, 253, 248, 0.82) !important;
+  color: rgba(44, 38, 33, 0.82) !important;
+}
+
+.zen-page-tab {
+  position: relative !important;
+  max-width: 132px !important;
+  min-height: 28px !important;
+  flex: 0 0 auto !important;
   display: inline-flex !important;
   align-items: center !important;
-  gap: 6px !important;
-  color: rgba(88, 74, 58, 0.7) !important;
+  gap: 5px !important;
+  overflow: visible !important;
+  padding: 5px 22px 5px 9px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(142, 111, 70, 0.2) !important;
+  background: var(--ah-zen-squash-tab) !important;
+  color: rgba(56, 45, 32, 0.82) !important;
   font-size: 12px !important;
-  font-weight: 900 !important;
-}
-
-.zen-outline > div {
-  display: flex !important;
-  gap: 7px !important;
-  overflow-x: auto !important;
-  padding-bottom: 2px !important;
-}
-
-.zen-outline button {
-  max-width: 180px !important;
-  flex: 0 0 auto !important;
-  overflow: hidden !important;
-  padding: 7px 11px !important;
-  border-radius: 999px !important;
-  background: rgba(255, 253, 248, 0.78) !important;
-  color: rgba(58, 50, 42, 0.82) !important;
+  font-weight: 820 !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
+  cursor: pointer !important;
+  user-select: none !important;
+}
+
+.zen-page-tab.is-active {
+  border-color: rgba(126, 95, 54, 0.34) !important;
+  background: var(--ah-zen-squash-tab-active) !important;
+  color: rgba(48, 41, 35, 0.88) !important;
+  box-shadow: none !important;
+}
+
+.zen-page-tab span {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.zen-page-tab span i {
+  display: inline-block !important;
+  color: rgba(114, 85, 49, 0.66) !important;
+  font-style: normal !important;
+  line-height: 1 !important;
+}
+
+.zen-page-remove {
+  position: absolute !important;
+  top: -5px !important;
+  right: -5px !important;
+  display: grid !important;
+  width: 15px !important;
+  height: 15px !important;
+  min-height: 15px !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: rgba(255, 253, 248, 0.82) !important;
+  color: rgba(158, 43, 38, 0.86) !important;
+  box-shadow: 0 3px 8px rgba(44, 36, 24, 0.1) !important;
+  opacity: 0 !important;
+  transform: scale(0.82) !important;
+  transition:
+    opacity 160ms var(--ease),
+    transform 160ms var(--ease),
+    background 160ms var(--ease) !important;
+}
+
+.zen-page-tab:hover .zen-page-remove,
+.zen-page-tab:focus-within .zen-page-remove {
+  opacity: 1 !important;
+  transform: scale(1) !important;
+}
+
+.zen-page-tab:has(.zen-page-remove:hover) {
+  animation: tagDeleteTremble 180ms linear infinite !important;
+}
+
+.zen-page-tab input {
+  width: min(104px, 24vw) !important;
+  min-width: 54px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: rgba(48, 41, 35, 0.9) !important;
+  font: inherit !important;
+  outline: 0 !important;
+}
+
+.zen-page-sort-chosen {
+  transform: translateY(-1px) !important;
+  box-shadow: none !important;
+}
+
+.zen-page-sort-ghost {
+  opacity: 0.42 !important;
+  background: rgba(230, 221, 207, 0.58) !important;
+}
+
+.zen-page-sort-drag {
+  cursor: grabbing !important;
 }
 
 .zen-exit-button {
@@ -362,8 +513,13 @@ body::before,
   max-height: 100% !important;
   overflow: auto !important;
   resize: none !important;
+  background: rgba(255, 250, 235, 0.86) !important;
   font-size: max(14px, var(--field-font-size, 13px)) !important;
   line-height: 1.85 !important;
+}
+
+.zen-delete-page-backdrop {
+  z-index: 2147482600 !important;
 }
 
 /* Loading screens use the same paper, text stays plain, spinner reads as movement. */
@@ -405,7 +561,6 @@ body[data-theme="dark"] .auth-wall::before {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 
-  .zen-tool-buttons,
   .zen-editor-stats {
     justify-content: flex-start !important;
   }

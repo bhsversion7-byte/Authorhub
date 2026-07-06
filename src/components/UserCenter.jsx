@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { FileJson, FileText, KeyRound, LogOut, Mail, Moon, ShieldCheck, Sun, Trash2, UserX, WalletCards } from "lucide-react";
 import { hasSupabaseConfig, supabase } from "../lib/supabaseClient.js";
+import AnnouncementCenter from "./AnnouncementCenter.jsx";
 
 const DONATION_QR = {
   wechat: "/donation-wechat.png",
@@ -161,6 +162,7 @@ export default function UserCenter({
             {!qrUnlocked && <span className="donation-unlock-copy">☕ 点击图片，解锁赞助通道</span>}
           </button>
         </article>
+        <AnnouncementCenter />
       </div>
 
       {passwordOpen &&

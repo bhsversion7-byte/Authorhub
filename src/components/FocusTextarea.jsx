@@ -1,30 +1,66 @@
-import React, { forwardRef, useEffect, useId, useImperativeHandle, useRef, useState } from "react";
+import React, { forwardRef, useEffect, useId, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowDown, ArrowUp, ListTree, Maximize2, Minimize2, Save, Search } from "lucide-react";
+import Sortable from "sortablejs";
+import { ChevronLeft, ChevronRight, Maximize2, Minimize2, Plus, Save, Search, X } from "lucide-react";
 
 const FocusTextarea = forwardRef(function FocusTextarea(
-  { label, value, onChange, onSave, rows = 5, placeholder, readOnly = false, hideLabel = false, remoteDrafts = [], onDraftChange, onDraftClear },
+  {
+    label,
+    value,
+    onChange,
+    onSave,
+    rows = 5,
+    placeholder,
+    readOnly = false,
+    hideLabel = false,
+    remoteDrafts = [],
+    onDraftChange,
+    onDraftClear,
+    pages,
+    onPagesChange,
+  },
   ref,
 ) {
   const [focused, setFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [cursorIndex, setCursorIndex] = useState(0);
   const [activeMatchIndex, setActiveMatchIndex] = useState(0);
+  const [activePageId, setActivePageId] = useState("");
+  const [newPageTitle, setNewPageTitle] = useState("");
+  const [addingPage, setAddingPage] = useState(false);
+  const [editingPageId, setEditingPageId] = useState("");
+  const [editingPageTitle, setEditingPageTitle] = useState("");
+  const [deletePageCandidate, setDeletePageCandidate] = useState(null);
   // The zen overlay is portaled to <body>, outside .content-shell where the
   // 阅读设置 CSS vars live, so it can't inherit them. Copy the current reading
   // font size + family onto the .zen-editor element when it opens so the
   // 放大 view matches the reading settings exactly (see reading-scale-fixes.css).
   const [zenReadingStyle, setZenReadingStyle] = useState({});
   const textareaRef = useRef(null);
+  const pageRailRef = useRef(null);
+  const reorderPagesRef = useRef(null);
   const composingRef = useRef(false);
   const searchJumpTimerRef = useRef(null);
   const titleId = useId();
   const textValue = String(value ?? "");
-  const stats = getTextStats(textValue, cursorIndex);
-  const headings = getTextHeadings(textValue);
-  const matches = getSearchMatches(textValue, searchQuery);
+  const hasPageNavigation = typeof onPagesChange === "function";
+  const normalizedPages = useMemo(() => normalizeFocusPages(pages, textValue, label), [pages, textValue, label]);
+  const persistedPages = useMemo(() => serializeFocusPages(normalizedPages), [normalizedPages]);
+  const hasCustomPages = hasPageNavigation && persistedPages.length > 0;
+  const showPageOutline = hasPageNavigation && (addingPage || hasCustomPages);
+  const activePage = normalizedPages.find((page) => page.id === activePageId) ?? normalizedPages[0];
+  const editorValue = focused && hasPageNavigation ? activePage?.value ?? "" : textValue;
+  const stats = getTextStats(editorValue, cursorIndex);
+  const matches = getSearchMatches(editorValue, searchQuery);
 
   useImperativeHandle(ref, () => ({ open: () => setFocused(true) }), []);
+
+  useEffect(() => {
+    if (!normalizedPages.length) return;
+    if (!activePageId || !normalizedPages.some((page) => page.id === activePageId)) {
+      setActivePageId(normalizedPages[0].id);
+    }
+  }, [activePageId, normalizedPages]);
 
   useEffect(() => {
     if (!focused) return;
@@ -35,9 +71,12 @@ const FocusTextarea = forwardRef(function FocusTextarea(
       const cs = getComputedStyle(shell);
       const fontSize = cs.getPropertyValue("--editor-font-size").trim();
       const fontFamily = cs.getPropertyValue("--reading-font-family").trim();
+      const defaultNovelFont = shell.classList.contains("font-sans")
+        ? '"Nimbus Roman", "Nimbus Roman No9 L", "Times New Roman", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", serif'
+        : fontFamily;
       setZenReadingStyle({
         ...(fontSize ? { "--editor-font-size": fontSize, "--field-font-size": fontSize } : {}),
-        ...(fontFamily ? { "--reading-font-family": fontFamily } : {}),
+        ...(defaultNovelFont ? { "--reading-font-family": defaultNovelFont } : {}),
       });
     }
 
@@ -45,6 +84,10 @@ const FocusTextarea = forwardRef(function FocusTextarea(
       if (event.key !== "Escape") return;
       event.preventDefault();
       event.stopPropagation();
+      if (deletePageCandidate) {
+        setDeletePageCandidate(null);
+        return;
+      }
       setFocused(false);
     }
 
@@ -56,7 +99,7 @@ const FocusTextarea = forwardRef(function FocusTextarea(
       document.body.style.overflow = previous;
       window.removeEventListener("keydown", onKeyDown, true);
     };
-  }, [focused]);
+  }, [focused, deletePageCandidate]);
 
   useEffect(() => {
     setActiveMatchIndex(0);
@@ -74,18 +117,63 @@ const FocusTextarea = forwardRef(function FocusTextarea(
       window.clearTimeout(searchJumpTimerRef.current);
       searchJumpTimerRef.current = null;
     };
-  }, [focused, searchQuery, textValue]);
+  }, [focused, searchQuery, editorValue]);
+
+  useEffect(() => {
+    if (!focused || !hasPageNavigation || readOnly || !pageRailRef.current) return undefined;
+    const sortable = Sortable.create(pageRailRef.current, {
+      animation: 180,
+      easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+      draggable: ".zen-page-tab",
+      chosenClass: "zen-page-sort-chosen",
+      dragClass: "zen-page-sort-drag",
+      ghostClass: "zen-page-sort-ghost",
+      onEnd: () => {
+        const order = Array.from(pageRailRef.current?.querySelectorAll(".zen-page-tab") ?? [])
+          .map((element) => element.getAttribute("data-page-id"))
+          .filter(Boolean);
+        reorderPagesRef.current?.(order);
+      },
+    });
+    return () => sortable.destroy();
+  }, [focused, hasPageNavigation, readOnly, normalizedPages.length]);
+
+  reorderPagesRef.current = (order) => {
+    const byId = new Map(normalizedPages.map((page) => [page.id, page]));
+    const ordered = order.map((id) => byId.get(id)).filter(Boolean);
+    const missing = normalizedPages.filter((page) => !order.includes(page.id));
+    commitPages([...ordered, ...missing], activePageId);
+  };
 
   function updateCursorFrom(event) {
     setCursorIndex(event.target.selectionStart ?? 0);
   }
 
-  function updateValue(event) {
+  function updateCompactValue(event) {
     if (readOnly) return;
-    onChange?.(event.target.value);
+    const nextValue = event.target.value;
+    onChange?.(nextValue);
+    if (hasCustomPages) {
+      onPagesChange?.([]);
+    }
     updateCursorFrom(event);
     if (!composingRef.current) {
-      onDraftChange?.(event.target.value, { cursorIndex: event.target.selectionStart ?? event.target.value.length });
+      onDraftChange?.(nextValue, { cursorIndex: event.target.selectionStart ?? nextValue.length });
+    }
+  }
+
+  function updateZenValue(event) {
+    if (readOnly) return;
+    const nextValue = event.target.value;
+    if (hasPageNavigation) {
+      const nextPages = normalizedPages.map((page) => (page.id === activePage?.id ? { ...page, value: nextValue } : page));
+      commitPages(nextPages, activePage?.id);
+    } else {
+      onChange?.(nextValue);
+    }
+    updateCursorFrom(event);
+    if (!composingRef.current) {
+      onDraftChange?.(nextValue, { cursorIndex: event.target.selectionStart ?? nextValue.length });
     }
   }
 
@@ -104,17 +192,9 @@ const FocusTextarea = forwardRef(function FocusTextarea(
     textarea.focus();
     textarea.setSelectionRange(index, index + length);
     setCursorIndex(index);
-    const line = textValue.slice(0, index).split("\n").length;
+    const line = editorValue.slice(0, index).split("\n").length;
     const lineHeight = Number.parseFloat(getComputedStyle(textarea).lineHeight) || 24;
     textarea.scrollTop = Math.max(0, (line - 5) * lineHeight);
-  }
-
-  function jumpToBoundary(position) {
-    jumpToIndex(position === "start" ? 0 : textValue.length);
-  }
-
-  function jumpToHeading(heading) {
-    jumpToIndex(heading.index);
   }
 
   function jumpToMatch(direction) {
@@ -123,6 +203,72 @@ const FocusTextarea = forwardRef(function FocusTextarea(
     setActiveMatchIndex(nextIndex);
     const match = matches[nextIndex];
     jumpToIndex(match.index, searchQuery.trim().length);
+  }
+
+  function commitPages(nextPages, preferredActiveId) {
+    const cleaned = normalizeFocusPages(nextPages, "", label);
+    const nextPersistedPages = serializeFocusPages(cleaned);
+    onPagesChange?.(nextPersistedPages);
+    onChange?.(combineFocusPages(cleaned));
+    setActivePageId(preferredActiveId || nextPersistedPages[0]?.id || cleaned[0]?.id || "");
+  }
+
+  function createPage() {
+    if (readOnly || !hasPageNavigation) return;
+    const customPageCount = normalizedPages.filter((page) => page.id !== "page-main").length;
+    const title = newPageTitle.trim() || `小标题 ${customPageCount + 1}`;
+    const id = createPageId();
+    const activeIndex = Math.max(0, normalizedPages.findIndex((page) => page.id === activePage?.id));
+    const nextPages = [...normalizedPages];
+    nextPages.splice(activeIndex + 1, 0, { id, title: title.slice(0, 36), value: "" });
+    commitPages(nextPages, id);
+    setNewPageTitle("");
+    setAddingPage(false);
+    window.setTimeout(() => textareaRef.current?.focus(), 50);
+  }
+
+  function requestDeletePage(event, page) {
+    event.stopPropagation();
+    if (readOnly || !hasPageNavigation) return;
+    setDeletePageCandidate(page);
+  }
+
+  function confirmDeletePage() {
+    if (!deletePageCandidate || readOnly || !hasPageNavigation) return;
+    const deleteIndex = normalizedPages.findIndex((page) => page.id === deletePageCandidate.id);
+    const nextPages = normalizedPages.filter((page) => page.id !== deletePageCandidate.id);
+    const nextActivePage = deletePageCandidate.id === activePage?.id ? nextPages[Math.min(Math.max(deleteIndex, 0), nextPages.length - 1)] : activePage;
+    commitPages(nextPages, nextActivePage?.id);
+    setDeletePageCandidate(null);
+  }
+
+  function beginRenamePage(page) {
+    if (readOnly || !hasPageNavigation) return;
+    setEditingPageId(page.id);
+    setEditingPageTitle(page.title);
+  }
+
+  function finishRenamePage(pageId) {
+    if (readOnly || !hasPageNavigation) return;
+    const title = editingPageTitle.trim();
+    if (title) {
+      commitPages(normalizedPages.map((page) => (page.id === pageId ? { ...page, title: title.slice(0, 36) } : page)), pageId);
+    }
+    setEditingPageId("");
+    setEditingPageTitle("");
+  }
+
+  function jumpPage(direction) {
+    if (!normalizedPages.length) return;
+    const index = Math.max(0, normalizedPages.findIndex((page) => page.id === activePage?.id));
+    const nextIndex = Math.min(normalizedPages.length - 1, Math.max(0, index + direction));
+    setActivePageId(normalizedPages[nextIndex].id);
+    setCursorIndex(0);
+    window.setTimeout(() => {
+      textareaRef.current?.focus();
+      textareaRef.current?.setSelectionRange(0, 0);
+      if (textareaRef.current) textareaRef.current.scrollTop = 0;
+    }, 50);
   }
 
   return (
@@ -140,7 +286,7 @@ const FocusTextarea = forwardRef(function FocusTextarea(
         rows={rows}
         placeholder={placeholder}
         readOnly={readOnly}
-        onChange={updateValue}
+        onChange={updateCompactValue}
         onSelect={updateCursorFrom}
         onKeyUp={updateCursorFrom}
         onClick={updateCursorFrom}
@@ -153,7 +299,7 @@ const FocusTextarea = forwardRef(function FocusTextarea(
         createPortal(
           <div className="zen-overlay" role="presentation" onMouseDown={() => setFocused(false)}>
             <div
-              className={`zen-editor${headings.length ? "" : " has-no-outline"}`}
+              className={`zen-editor${showPageOutline ? "" : " has-no-outline"}`}
               role="dialog"
               aria-modal="true"
               aria-labelledby={titleId}
@@ -201,47 +347,123 @@ const FocusTextarea = forwardRef(function FocusTextarea(
                   />
                   <span>{matches.length ? `${Math.min(activeMatchIndex + 1, matches.length)}/${matches.length}` : "0/0"}</span>
                 </label>
-                <div className="zen-tool-buttons">
-                  <button type="button" onClick={() => jumpToMatch(-1)} disabled={!matches.length} aria-label="上一个搜索结果">
-                    <ArrowUp size={14} />
+                {!readOnly && hasPageNavigation && (
+                  <button type="button" className="zen-new-page-button" onClick={() => setAddingPage((current) => !current)}>
+                    <Plus size={14} />
+                    新建小标题
                   </button>
-                  <button type="button" onClick={() => jumpToMatch(1)} disabled={!matches.length} aria-label="下一个搜索结果">
-                    <ArrowDown size={14} />
-                  </button>
-                  <button type="button" onClick={() => jumpToBoundary("start")} aria-label="回到开头">
-                    顶部
-                  </button>
-                  <button type="button" onClick={() => jumpToBoundary("end")} aria-label="跳到底部">
-                    底部
-                  </button>
-                </div>
+                )}
                 <div className="zen-editor-stats" aria-label="文本统计">
                   <span>{stats.characters} 字</span>
                   <span>{stats.lines} 行</span>
                   <span>第 {stats.currentLine} 行</span>
                 </div>
               </div>
-              {headings.length > 0 && (
+              {showPageOutline && (
                 <div className="zen-outline" aria-label={`${label} 小标题导航`}>
-                  <span>
-                    <ListTree size={14} />
-                    小标题导航
-                  </span>
-                  <div>
-                    {headings.map((heading) => (
-                      <button type="button" key={`${heading.index}-${heading.title}`} onClick={() => jumpToHeading(heading)}>
-                        {heading.title}
+                  {addingPage && !readOnly && (
+                    <form
+                      className="zen-new-page-form"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        createPage();
+                      }}
+                    >
+                      <input value={newPageTitle} onChange={(event) => setNewPageTitle(event.target.value)} placeholder="输入小标题标题" autoFocus />
+                      <button type="submit">添加</button>
+                    </form>
+                  )}
+                  {hasCustomPages && (
+                    <div className="zen-page-strip">
+                      <button
+                        type="button"
+                        className="zen-page-edge-button"
+                        onClick={() => jumpPage(-1)}
+                        disabled={normalizedPages.length < 2 || normalizedPages[0]?.id === activePage?.id}
+                        aria-label="上一页"
+                      >
+                        <ChevronLeft size={14} />
                       </button>
-                    ))}
-                  </div>
+                      <div className="zen-page-rail" ref={pageRailRef} aria-label="小标题页">
+                        {normalizedPages.map((page) => (
+                          <div
+                            key={page.id}
+                            role="button"
+                            tabIndex={0}
+                            data-page-id={page.id}
+                            className={`zen-page-tab${page.id === activePage?.id ? " is-active" : ""}`}
+                            onClick={(event) => {
+                              if (event.detail >= 2) {
+                                beginRenamePage(page);
+                                return;
+                              }
+                              setActivePageId(page.id);
+                            }}
+                            onDoubleClick={() => beginRenamePage(page)}
+                            onKeyDown={(event) => {
+                              if (event.key !== "Enter" && event.key !== " ") return;
+                              event.preventDefault();
+                              setActivePageId(page.id);
+                            }}
+                          >
+                            {editingPageId === page.id ? (
+                              <input
+                                value={editingPageTitle}
+                                onChange={(event) => setEditingPageTitle(event.target.value)}
+                                onClick={(event) => event.stopPropagation()}
+                                onDoubleClick={(event) => event.stopPropagation()}
+                                onBlur={() => finishRenamePage(page.id)}
+                                onKeyDown={(event) => {
+                                  if (event.key === "Enter") {
+                                    event.preventDefault();
+                                    finishRenamePage(page.id);
+                                  }
+                                  if (event.key === "Escape") {
+                                    event.preventDefault();
+                                    setEditingPageId("");
+                                    setEditingPageTitle("");
+                                  }
+                                }}
+                                autoFocus
+                              />
+                            ) : (
+                              <span>
+                                <i aria-hidden="true">·</i>
+                                {page.title}
+                              </span>
+                            )}
+                            {!readOnly && editingPageId !== page.id && (
+                              <button
+                                type="button"
+                                className="zen-page-remove"
+                                onClick={(event) => requestDeletePage(event, page)}
+                                aria-label={`删除小标题 ${page.title}`}
+                              >
+                                <X size={10} />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        className="zen-page-edge-button"
+                        onClick={() => jumpPage(1)}
+                        disabled={normalizedPages.length < 2 || normalizedPages[normalizedPages.length - 1]?.id === activePage?.id}
+                        aria-label="下一页"
+                      >
+                        <ChevronRight size={14} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
               <div className="zen-textarea-stack">
                 <textarea
                   ref={textareaRef}
-                  value={value}
+                  value={editorValue}
                   readOnly={readOnly}
-                  onChange={updateValue}
+                  onChange={updateZenValue}
                   onSelect={updateCursorFrom}
                   onKeyUp={updateCursorFrom}
                   onClick={updateCursorFrom}
@@ -252,6 +474,26 @@ const FocusTextarea = forwardRef(function FocusTextarea(
                 <DraftPreviewList drafts={remoteDrafts} compact />
               </div>
             </div>
+          </div>,
+          document.body,
+        )}
+      {focused &&
+        deletePageCandidate &&
+        createPortal(
+          <div className="modal-backdrop zen-delete-page-backdrop" role="presentation" onMouseDown={() => setDeletePageCandidate(null)}>
+            <section className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-focus-page-title" onMouseDown={(event) => event.stopPropagation()}>
+              <p className="eyebrow">删除小标题</p>
+              <h2 id="delete-focus-page-title">是否确定删除这个小标题？</h2>
+              <p>删除后，“{deletePageCandidate.title}”以及该小标题内的正文会从当前内容中移除，并同步到云端保存。</p>
+              <div className="confirm-actions">
+                <button type="button" className="ghost-button" onClick={() => setDeletePageCandidate(null)}>
+                  取消
+                </button>
+                <button type="button" className="danger-button" onClick={confirmDeletePage}>
+                  确定删除
+                </button>
+              </div>
+            </section>
           </div>,
           document.body,
         )}
@@ -302,17 +544,29 @@ function getSearchMatches(value, query) {
   return matches;
 }
 
-function getTextHeadings(value) {
-  const headings = [];
-  let offset = 0;
-  value.split("\n").forEach((line, lineIndex) => {
-    const trimmed = line.trim();
-    const markdownHeading = trimmed.match(/^#{1,4}\s+(.+)/);
-    const numberedHeading = trimmed.match(/^(\d+[\.\、]|[一二三四五六七八九十]+[、.])\s*(.+)/);
-    const compactHeading = trimmed.length >= 2 && trimmed.length <= 24 && !/[。！？；，,]/.test(trimmed);
-    const title = markdownHeading?.[1] ?? numberedHeading?.[2] ?? (compactHeading && lineIndex > 0 ? trimmed : "");
-    if (title) headings.push({ title: title.slice(0, 32), index: offset });
-    offset += line.length + 1;
-  });
-  return headings.slice(0, 24);
+function normalizeFocusPages(pages, fallbackValue, label) {
+  const validPages = Array.isArray(pages)
+    ? pages
+        .map((page, index) => ({
+          id: String(page?.id || `page-${index + 1}`),
+          title: String(page?.title || (index === 0 ? "全文" : `${label || "内容"} ${index + 1}`)).slice(0, 36),
+          value: String(page?.value ?? ""),
+        }))
+        .filter((page) => page.id)
+    : [];
+  return validPages.length ? validPages : [{ id: "page-main", title: "全文", value: String(fallbackValue ?? "") }];
+}
+
+function serializeFocusPages(pages) {
+  const cleaned = normalizeFocusPages(pages, "", "");
+  if (cleaned.length === 1 && cleaned[0].id === "page-main") return [];
+  return cleaned;
+}
+
+function combineFocusPages(pages) {
+  return normalizeFocusPages(pages, "", "").map((page) => page.value).join("\n\n").trimEnd();
+}
+
+function createPageId() {
+  return `page-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }

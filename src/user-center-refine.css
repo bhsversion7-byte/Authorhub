@@ -3,15 +3,10 @@
 */
 
 .user-center-section {
-  --uc-account-surface:
-    radial-gradient(circle at 10% 0%, rgba(255, 255, 255, 0.5), transparent 32%),
-    radial-gradient(circle at 88% 90%, rgba(96, 116, 101, 0.12), transparent 38%),
-    linear-gradient(135deg, #e4e8e1 0%, #d4ddd1 52%, #c7d1c5 100%);
-  --uc-donation-surface:
-    radial-gradient(circle at 20% 6%, rgba(255, 255, 255, 0.54), transparent 34%),
-    radial-gradient(circle at 86% 88%, rgba(92, 112, 120, 0.12), transparent 38%),
-    linear-gradient(135deg, #e5eaeb 0%, #d3dddf 54%, #c4d0d3 100%);
-  --uc-danger-surface: linear-gradient(135deg, #a36a61 0%, #8f5e57 100%);
+  --uc-account-surface: #e1e7df;
+  --uc-donation-surface: #e1e7e7;
+  --uc-announcement-surface: #e7e0ec;
+  --uc-danger-surface: #9a625b;
 }
 
 /* User-center cards are excluded from the paper-texture system.
@@ -57,6 +52,266 @@
   display: none !important;
 }
 
+.announcement-center-panel,
+.announcement-center-panel:hover {
+  grid-column: 1 / -1 !important;
+  display: grid !important;
+  align-content: start !important;
+  gap: 14px !important;
+  padding: 18px 20px 20px !important;
+  background: var(--uc-announcement-surface) !important;
+  border-color: rgba(126, 108, 150, 0.18) !important;
+  transition:
+    transform 190ms var(--ease),
+    border-color 190ms var(--ease),
+    box-shadow 190ms var(--ease) !important;
+}
+
+.announcement-center-panel:hover {
+  transform: translateY(-1px) !important;
+}
+
+.announcement-center-panel::before,
+.announcement-center-panel::after {
+  content: none !important;
+  display: none !important;
+}
+
+.announcement-center-panel .spacious-title {
+  align-items: flex-start !important;
+  margin: 0 !important;
+}
+
+.announcement-center-panel .spacious-title > svg {
+  flex: 0 0 auto !important;
+  margin-top: 3px !important;
+}
+
+.announcement-center-panel .spacious-title > div {
+  min-width: 0 !important;
+}
+
+.announcement-center-panel .spacious-title h2 {
+  line-height: 1.25 !important;
+}
+
+.announcement-center-panel .spacious-title span {
+  display: block !important;
+  margin-top: 3px !important;
+  overflow-wrap: anywhere !important;
+  line-height: 1.35 !important;
+}
+
+.announcement-list {
+  display: grid !important;
+  gap: 9px !important;
+  margin-top: 0 !important;
+}
+
+.announcement-item {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 12px !important;
+  align-items: center !important;
+  min-height: 54px !important;
+  padding: 11px 12px 11px 14px !important;
+  border: 1px solid rgba(126, 108, 150, 0.14) !important;
+  border-radius: 12px !important;
+  background: rgba(255, 253, 248, 0.62) !important;
+  color: rgba(56, 48, 62, 0.82) !important;
+  text-align: left !important;
+  box-shadow: none !important;
+  transition:
+    transform 180ms var(--ease),
+    border-color 180ms var(--ease),
+    background 180ms var(--ease) !important;
+}
+
+.announcement-item:hover,
+.announcement-item:focus-visible {
+  transform: translateY(-1px) !important;
+  border-color: rgba(126, 108, 150, 0.24) !important;
+  background: rgba(255, 253, 248, 0.74) !important;
+}
+
+.announcement-item:active {
+  transform: translateY(0) !important;
+}
+
+.announcement-copy {
+  display: grid !important;
+  min-width: 0 !important;
+  gap: 4px !important;
+}
+
+.announcement-item strong {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  color: rgba(50, 43, 55, 0.88) !important;
+  font-size: 14px !important;
+  font-weight: 850 !important;
+  line-height: 1.35 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.announcement-item time {
+  color: rgba(78, 68, 88, 0.56) !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+  white-space: nowrap !important;
+}
+
+.announcement-item > svg {
+  color: rgba(82, 65, 96, 0.46) !important;
+}
+
+.announcement-ticker {
+  position: fixed !important;
+  top: 14px !important;
+  left: 50% !important;
+  z-index: 119 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 6px !important;
+  align-items: center !important;
+  width: min(620px, calc(100vw - 32px)) !important;
+  min-height: 36px !important;
+  padding: 5px 6px 5px 12px !important;
+  transform: translateX(-50%) !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(126, 108, 150, 0.22) !important;
+  border-radius: 12px !important;
+  background: rgba(235, 229, 240, 0.96) !important;
+  color: rgba(58, 50, 68, 0.84) !important;
+  box-shadow: 0 10px 24px rgba(44, 38, 30, 0.1) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+.announcement-ticker-main {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  gap: 9px !important;
+  align-items: center !important;
+  min-width: 0 !important;
+  min-height: 28px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: inherit !important;
+  box-shadow: none !important;
+  text-align: left !important;
+}
+
+.announcement-ticker-main span {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  font-size: 13px !important;
+  font-weight: 820 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.announcement-ticker-close {
+  display: inline-flex !important;
+  width: 28px !important;
+  height: 28px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: rgba(255, 253, 248, 0.42) !important;
+  color: rgba(80, 65, 95, 0.62) !important;
+  box-shadow: none !important;
+}
+
+.announcement-ticker-close:hover,
+.announcement-ticker-close:focus-visible {
+  background: rgba(255, 253, 248, 0.72) !important;
+  color: rgba(64, 48, 80, 0.86) !important;
+}
+
+.announcement-modal-backdrop {
+  z-index: 175 !important;
+  padding: 24px !important;
+}
+
+.announcement-modal {
+  position: relative !important;
+  width: min(620px, 100%) !important;
+  max-height: min(78vh, 720px) !important;
+  overflow: auto !important;
+  scrollbar-width: none !important;
+  border-radius: 24px !important;
+  background: rgba(246, 241, 250, 0.98) !important;
+  border: 1px solid rgba(215, 204, 226, 0.82) !important;
+  box-shadow: 0 30px 82px rgba(44, 36, 24, 0.18) !important;
+}
+
+.announcement-modal::-webkit-scrollbar {
+  display: none !important;
+}
+
+.announcement-modal-close {
+  position: absolute !important;
+  top: 16px !important;
+  right: 16px !important;
+  display: inline-flex !important;
+  width: 38px !important;
+  height: 38px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: rgba(232, 224, 216, 0.76) !important;
+  color: rgba(78, 68, 60, 0.78) !important;
+}
+
+.announcement-modal time {
+  display: block !important;
+  margin-top: -4px !important;
+  color: rgba(80, 70, 86, 0.58) !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+
+.announcement-modal-body {
+  display: grid !important;
+  gap: 12px !important;
+  margin-top: 18px !important;
+}
+
+.announcement-modal-body p {
+  margin: 0 !important;
+  color: rgba(59, 50, 45, 0.82) !important;
+  font-size: 14px !important;
+  line-height: 1.85 !important;
+}
+
+.announcement-modal-body figure {
+  margin: 4px 0 0 !important;
+}
+
+.announcement-modal-body img {
+  display: block !important;
+  width: 100% !important;
+  max-height: 360px !important;
+  object-fit: contain !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(126, 108, 150, 0.14) !important;
+  background: rgba(255, 253, 248, 0.64) !important;
+}
+
+.announcement-modal-body figcaption {
+  margin-top: 6px !important;
+  color: rgba(80, 70, 86, 0.58) !important;
+  font-size: 12px !important;
+  text-align: center !important;
+}
+
 /* The username/email wrappers should not be mini paper cards.
    The square artifact came from background applied to the label wrapper, then the input sat on top. */
 .user-center-section .user-info-grid label {
@@ -87,11 +342,8 @@
   overflow: hidden !important;
   border: 1px solid rgba(143, 157, 153, 0.42) !important;
   border-radius: 12px !important;
-  background:
-    linear-gradient(135deg, rgba(244, 246, 243, 0.94), rgba(230, 236, 232, 0.86)) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.72),
-    0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  background: rgba(244, 246, 243, 0.94) !important;
+  box-shadow: none !important;
   color: var(--ink) !important;
   line-height: 1.42 !important;
   text-overflow: ellipsis !important;
@@ -99,11 +351,8 @@
 
 .user-center-section .user-info-grid input:focus {
   border-color: rgba(108, 139, 136, 0.5) !important;
-  background:
-    linear-gradient(135deg, rgba(249, 251, 248, 0.98), rgba(235, 241, 237, 0.92)) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.82),
-    0 0 0 3px rgba(108, 139, 136, 0.09) !important;
+  background: rgba(249, 251, 248, 0.98) !important;
+  box-shadow: 0 0 0 3px rgba(108, 139, 136, 0.09) !important;
 }
 
 /* Unregister button: keep the same color on hover, but preserve a small spring. */
@@ -129,9 +378,7 @@
 .user-unregister-modal {
   width: min(430px, 100%) !important;
   border-radius: 24px !important;
-  background:
-    radial-gradient(circle at 14% 4%, rgba(255, 255, 255, 0.58), transparent 34%),
-    linear-gradient(135deg, rgba(253, 251, 247, 0.96), rgba(239, 232, 220, 0.9)) !important;
+  background: rgba(249, 244, 235, 0.96) !important;
   border: 1px solid rgba(234, 223, 212, 0.84) !important;
   box-shadow: 0 30px 82px rgba(44, 36, 24, 0.16) !important;
 }
@@ -154,8 +401,7 @@
 }
 
 .user-unregister-modal .ghost-button {
-  background:
-    linear-gradient(135deg, rgba(255, 253, 248, 0.92), rgba(247, 241, 232, 0.86)) !important;
+  background: rgba(255, 253, 248, 0.92) !important;
   border: 1px solid rgba(218, 207, 190, 0.66) !important;
   color: var(--ink) !important;
 }
@@ -189,11 +435,37 @@
 }
 
 body[data-theme="dark"] .user-center-section {
-  --uc-account-surface: linear-gradient(135deg, #252c27 0%, #30362f 100%);
-  --uc-donation-surface: linear-gradient(135deg, #253031 0%, #30383a 100%);
+  --uc-account-surface: #252c27;
+  --uc-donation-surface: #253031;
+  --uc-announcement-surface: #302b36;
+}
+
+body[data-theme="dark"] .announcement-ticker,
+body[data-theme="dark"] .announcement-modal {
+  border-color: rgba(230, 210, 184, 0.22) !important;
+  background: rgba(47, 41, 52, 0.96) !important;
+  color: rgba(255, 248, 239, 0.9) !important;
 }
 
 @media (max-width: 680px) {
+  .announcement-ticker {
+    top: 132px !important;
+    left: 16px !important;
+    right: 16px !important;
+    width: auto !important;
+    transform: none !important;
+    z-index: 118 !important;
+  }
+
+  .announcement-ticker-main span {
+    font-size: 12px !important;
+  }
+
+  .announcement-center-panel,
+  .announcement-center-panel:hover {
+    padding: 16px !important;
+  }
+
   .user-unregister-modal .confirm-actions {
     grid-template-columns: 1fr !important;
   }

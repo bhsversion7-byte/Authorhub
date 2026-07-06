@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Database, ExternalLink, FileText, Maximize2, Network, Tags, X } from "lucide-react";
+import { patchFocusPageMap } from "../lib/focusPages.js";
 import { FULL_PUBLIC_SECTIONS } from "../lib/shareSections.js";
 import { usePopoverDismiss } from "../lib/usePopoverDismiss.js";
 import FocusTextarea from "./FocusTextarea.jsx";
@@ -67,6 +68,11 @@ export default function NovelSection({
   function patchNovel(patch) {
     if (readOnly) return;
     onNovelChange(novel.id, patch);
+  }
+
+  function patchFocusPages(key, pages) {
+    if (readOnly) return;
+    patchNovel({ focusPages: patchFocusPageMap(novel.focusPages, key, pages) });
   }
 
   function updatePublishLink(nextLink) {
@@ -157,6 +163,8 @@ export default function NovelSection({
                 label="大纲"
                 hideLabel
                 value={novel.outline}
+                pages={novel.focusPages?.outline}
+                onPagesChange={(pages) => patchFocusPages("outline", pages)}
                 readOnly={readOnly}
                 onChange={(value) => patchNovel({ outline: value })}
                 onSave={() => {}}
@@ -186,6 +194,8 @@ export default function NovelSection({
                 label="设定集"
                 hideLabel
                 value={novel.setting}
+                pages={novel.focusPages?.setting}
+                onPagesChange={(pages) => patchFocusPages("setting", pages)}
                 readOnly={readOnly}
                 onChange={(value) => patchNovel({ setting: value })}
                 onSave={() => {}}
