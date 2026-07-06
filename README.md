@@ -1,72 +1,114 @@
-# AuthorHub
+<div align="center">
 
-AuthorHub 是一个写作者的私人手稿星图。
+<img src="public/authorhub-logo.png" alt="AuthorHub" width="92" />
 
-它不是一个单纯的文本编辑器，也不是把所有信息堆在一起的后台面板。它更像一张安静的创作桌：小说、大纲、设定集、人物关系、时间线、主题标签、参考图片和分享链接都放在同一个工作区里，写作者可以在长期创作中慢慢整理、修改和回看自己的故事宇宙。
+# AuthorHub · 落墨
 
-[打开 AuthorHub](https://authorhub.cn)
+**A private manuscript atlas for novelists.**
+Not a text editor. Not a dashboard. A quiet writing desk where your whole story universe — outlines, settings, characters, timelines, references — lives in one place.
 
-## 截图
+[**✦ Open the live app → authorhub.cn**](https://authorhub.cn)
 
-![AuthorHub landing page](docs/screenshots/landing.jpg)
+**English** · [简体中文](./README.zh-CN.md)
 
-![AuthorHub workspace](docs/screenshots/workspace.png)
+<br/>
 
-## 为什么做它
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-Postgres%20·%20Auth%20·%20RLS%20·%20Storage-3FCF8E?logo=supabase&logoColor=white)
+![D3.js](https://img.shields.io/badge/D3.js-force%20graph-F9A03C?logo=d3dotjs&logoColor=white)
+![Three.js](https://img.shields.io/badge/Three.js-R3F-000000?logo=threedotjs&logoColor=white)
+![SortableJS](https://img.shields.io/badge/SortableJS-drag%20%26%20drop-1B9E4B)
+![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?logo=vercel&logoColor=white)
 
-很多小说不是只靠一份正文就能被管理好的。
+</div>
 
-写到中后期时，人物关系会变复杂，时间线会开始互相打架，设定会散落在聊天记录、备忘录、文档和脑子里。AuthorHub 想解决的是这种很真实的混乱：让写作者在不离开创作状态的情况下，把故事结构看清楚，也把私人草稿保护好。
+<p align="center">
+  <img src="docs/screenshots/landing.jpg" alt="AuthorHub landing page" width="820" />
+</p>
 
-它的界面尽量保持温和、纸质、低打扰。功能可以复杂，但使用时不应该像在操作一套冷冰冰的企业系统。
+---
 
-## 主要功能
+## ✦ Why AuthorHub
 
-- 多本小说统一管理，每本小说都有独立的大纲、设定、标签和发布信息。
-- 人物关系星图支持拖拽、聚焦、重置、关系标签和主角关系线高亮。
-- 人物详情可以记录图片、年龄、身份、秘密、私密备注和关系信息。
-- 多维交互时间线支持手动拖拽排序，适合按剧情节奏而不只是日期管理事件。
-- 主题标签、世界设定、参考图片和文本卡片集中在同一个工作区。
-- 分享链接支持共同编辑和只读查看；只读查看可以选择公开哪些模块。
-- 只读分享会在服务端裁剪内容，未选择的设定和私密字段不会暴露给访问者。
-- 支持 JSON / Markdown 导出，方便作者保留自己的资料备份。
-- 登录后使用云端保存，并保留本地缓存作为临时兜底。
+A novel is rarely kept alive by its manuscript alone.
 
-## 设计气质
+By the middle of a long book, character relationships tangle, timelines start fighting each other, and worldbuilding ends up scattered across chat logs, notes apps, and your own head. AuthorHub exists for exactly that mess: it lets you **see the structure of your story without leaving the flow of writing it** — and keeps your private drafts genuinely private while you do.
 
-AuthorHub 的视觉方向是安静、文学感、可长时间停留。
+The interface stays warm, papery, and low-distraction on purpose. The features can be rich; using them should never feel like operating a cold enterprise system.
 
-我们更喜欢纸张纹理、柔和的莫兰迪色、清楚的按钮状态和稳定的布局；不追求夸张动画，也不希望界面抢走故事本身的注意力。它应该像一张被认真使用过的写作桌，而不是一个为了展示技术而存在的页面。
+<p align="center">
+  <img src="docs/screenshots/workspace.png" alt="AuthorHub workspace" width="820" />
+</p>
 
-## 隐私与数据
+## ✨ Features
 
-AuthorHub 默认把草稿当成私密数据处理。
+| | |
+|---|---|
+| 📚 **Multi-novel workspace** | Every novel keeps its own outline, settings, tags, cover color, and publishing links. |
+| 🌌 **Character relation star-map** | A D3 force graph with draggable nodes, focus/reset, main-character centering, relationship labels, and a highlighted main-pair line. |
+| 🧑‍🎨 **Rich character cards** | Images, age, role, **multi-select tags**, background, and a private hidden-settings field only you can see. |
+| 🕰️ **Interactive timeline** | Drag events into narrative order — organized by story beats, not just dates. |
+| 🏷️ **Themes & references** | Theme tags, world settings, reference images, and text cards, all drag-to-reorder in one place. |
+| 🔗 **Sharing & collaboration** | Generate a co-edit link or a read-only link; readers only ever see the sections you choose to expose. |
+| 🛡️ **Server-side privacy filtering** | Read-only shares strip hidden/secret fields and author-identifying links *on the server* — not just hidden in the client. |
+| 📤 **Export your data** | One-click JSON and Markdown export so your archive always belongs to you. |
+| ☁️ **Cloud sync + local safety net** | Signed-in edits sync to Supabase, with an immediate local cache so a crash or flaky network never eats your work. |
+| 🎐 **Little delights** | A cinematic 3D book on the landing page, a floating jazz-café music player, drifting literary quotes, and reading-font controls. |
 
-- 用户工作区需要登录后访问。
-- 小说文档按用户隔离保存，并使用 Supabase RLS 做权限限制。
-- 分享链接使用 token 访问，不会公开用户的整个工作区。
-- 只读分享会移除 `secret`、`hidden`、`privateNote` 等私密字段。
-- 图片会尽量迁移到 Supabase Storage，避免大型图片长期塞在主文档 JSON 中。
-- 当前版本已经加入保护：如果云端文档加载失败，fallback/demo 数据不会继续覆盖云端文档。
+## 🎨 Design philosophy
 
-## 技术组成
+AuthorHub is meant to be **quiet, literary, and comfortable to sit inside for hours.**
 
-- React 19
-- Vite 8
-- Supabase Auth / Postgres / RLS / Storage
-- D3 relationship graph
-- Three.js / React Three Fiber landing interaction
-- SortableJS manual ordering
-- lucide-react icons
+We favor paper texture, soft Morandi tones, clear button states, and a stable layout — no showy animation, nothing that steals attention from the story itself. It should feel like a writing desk that's been used with care, not a page built to show off its tech.
 
-## 项目状态
+## 🔒 Privacy & data
 
-AuthorHub 仍在持续精修中。当前重点是让核心写作体验更稳定：分享权限、云端保存、移动端触摸、人物星图性能、时间线排序和导出备份都会继续被认真打磨。
+Drafts are treated as private by default.
 
-如果你正在使用它，也欢迎把真实写作过程中遇到的不顺手之处告诉我。小问题也很重要，因为这个工具本来就是为长时间、反复使用而做的。
+- The workspace requires sign-in; documents are isolated per user and guarded by **Supabase Row-Level Security**.
+- Share links are token-based and never expose your whole workspace.
+- Read-only shares remove `secret` / `hidden` / `privateNote` fields **and** author-identifying platform links, filtered server-side.
+- Images migrate to Supabase Storage so large files don't bloat the main document.
+- The local manuscript cache is cleared on **sign-out and account deletion**, so signing out on a shared computer leaves nothing behind.
+- A single cloud-load failure can never let stale fallback data overwrite your real cloud document.
 
-## 反馈
+## 🧱 Tech stack
 
-问题、建议、使用感受都可以发到：
+<div align="center">
 
-[bhsversion@163.com](mailto:bhsversion@163.com?subject=AuthorHub_Feedback)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?logo=supabase&logoColor=white)
+![D3.js](https://img.shields.io/badge/D3.js-F9A03C?logo=d3dotjs&logoColor=white)
+![Three.js](https://img.shields.io/badge/Three.js-000000?logo=threedotjs&logoColor=white)
+![SortableJS](https://img.shields.io/badge/SortableJS-1B9E4B)
+![Lucide](https://img.shields.io/badge/lucide--react-F56565?logo=lucide&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000000?logo=vercel&logoColor=white)
+
+</div>
+
+- **React 19 + Vite 8** — the app shell and build.
+- **Supabase** — Auth, Postgres, Row-Level Security, and Storage.
+- **D3.js** — the force-directed character relationship graph.
+- **Three.js / React Three Fiber** — the cinematic landing-page book.
+- **SortableJS** — drag-to-reorder for novels, timeline events, and tags.
+- **lucide-react** — the icon set.
+- **Cloudflare Turnstile** — an optional bot-detection layer on top of a self-hosted numeric captcha.
+
+## 🚧 Status
+
+AuthorHub is under active, careful refinement. The current focus is making the core writing experience rock-solid: share permissions, cloud save, mobile touch, star-map performance, timeline ordering, and export backups all keep getting polished.
+
+If you're using it, the friction you hit in real writing is the most valuable feedback there is — small annoyances matter, because this tool is built for long, repeated use.
+
+## 💬 Feedback
+
+Bugs, ideas, and impressions are all welcome:
+
+**[bhsversion@163.com](mailto:bhsversion@163.com?subject=AuthorHub_Feedback)**
+
+<div align="center">
+<br/>
+<sub>Made for writers who keep a whole world in their head — <a href="https://authorhub.cn">authorhub.cn</a></sub>
+</div>
