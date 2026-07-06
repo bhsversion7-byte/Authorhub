@@ -22,7 +22,14 @@ import {
   saveSharedNovel,
   stripSharedNovel,
   subscribeToSharedNovel,
+  subscribeToSharedNovelPresence,
 } from "./lib/shareAdapter.js";
+import {
+  isLocalSharedSaveEcho,
+  isObsoleteSharedRealtimeUpdate,
+  rememberLocalSharedSave,
+  shouldHandleSharedRealtimeUpdate,
+} from "./lib/sharedCollaboration.js";
 import { getLocalAuthUser, hasSupabaseConfig, setLocalAuthUser, supabase } from "./lib/supabaseClient.js";
 import { clearLocalAuthorHubData, flushCloudSave, isCloudSaveBlocked, loadAuthorHubData, retryCloudSync, saveAuthorHubData } from "./lib/shimoAdapter.js";
 
@@ -54,15 +61,24 @@ export default function App() {
   const [shareRoute] = useState(() => parseShareRoute());
   const [publicShare, setPublicShare] = useState({ status: "idle", row: null, error: "" });
   const [shareNotice, setShareNotice] = useState("");
+  const [sharedPresenceById, setSharedPresenceById] = useState({});
   const [cloudSyncBlocked, setCloudSyncBlocked] = useState(false);
   const skipNextCloudSaveRef = useRef(false);
   const joinedShareTokenRef = useRef("");
   const sharedSaveDebouncerRef = useRef(createKeyedDebouncer(900));
   const sharedSaveInFlightRef = useRef(new Set());
   const detachedSharedIdsRef = useRef(new Set());
+  const localSharedSaveVersionsRef = useRef(new Map());
+  const queuedSharedRealtimeRowsRef = useRef(new Map());
+  const shareNoticeTimerRef = useRef(null);
+  const activeViewRef = useRef(activeView);
 
   const isPublicShareRoute = shareRoute?.intent === SHARE_ROLES.VIEWER;
   const sidebarWidth = sidebarCollapsed ? "72px" : "clamp(184px, 15vw, 224px)";
+
+  useEffect(() => {
+    activeViewRef.current = activeView;
+  }, [activeView]);
 
   useEffect(() => {
     if (isPublicShareRoute) {
@@ -206,25 +222,66 @@ export default function App() {
   useEffect(() => {
     const cleanups = sharedNovels.map((row) =>
       subscribeToSharedNovel(row.id, (nextRow) => {
-        // A collaborator's save can broadcast in the middle of the 900ms
-        // window before our own edit to this same novel has saved yet. With
-        // no guard here, that incoming version would blindly replace
-        // `novel` and silently discard whatever we just typed. If a local
-        // save is still pending OR already in flight (the debounce entry is
-        // gone the instant the timer fires, before the network round trip
-        // even starts) for this novel, skip the incoming update - our own
-        // save's stale-version guard (scheduleSharedSave/
-        // save_author_hub_shared_novel) will surface a conflict notice
-        // instead once it resolves, and the next realtime event after that
-        // applies normally.
-        if (sharedSaveDebouncerRef.current.has(row.id) || sharedSaveInFlightRef.current.has(row.id)) return;
-        setSharedNovels((current) => upsertSharedNovelRow(current, { ...nextRow, role: row.role }));
-        setShareNotice("协作者刚刚保存了新版本，页面已同步。");
-        window.setTimeout(() => setShareNotice(""), 2200);
+        const incomingRow = { ...nextRow, role: row.role };
+        if (
+          isLocalSharedSaveEcho(localSharedSaveVersionsRef.current, incomingRow) ||
+          isObsoleteSharedRealtimeUpdate(localSharedSaveVersionsRef.current, incomingRow)
+        ) {
+          return;
+        }
+
+        const decision = shouldHandleSharedRealtimeUpdate({
+          role: row.role,
+          hasPendingLocalSave: sharedSaveDebouncerRef.current.has(row.id),
+          hasInFlightSave: sharedSaveInFlightRef.current.has(row.id),
+          isTextEntryActive: activeViewRef.current === `shared-${row.id}` && isTextEntryFocused(),
+        });
+
+        if (decision.action === "ignore") return;
+        if (decision.action === "defer") {
+          queuedSharedRealtimeRowsRef.current.set(row.id, incomingRow);
+          return;
+        }
+        applySharedRealtimeRow(incomingRow, decision.notice);
       }),
     );
     return () => cleanups.forEach((cleanup) => cleanup());
-  }, [sharedNovels.map((row) => row.id).join("|")]);
+  }, [sharedNovels.map((row) => `${row.id}:${row.role}`).join("|")]);
+
+  useEffect(() => {
+    if (!authUser?.id) {
+      setSharedPresenceById({});
+      return undefined;
+    }
+
+    const editableRows = sharedNovels.filter((row) => row.role !== SHARE_ROLES.VIEWER);
+    const editableIds = new Set(editableRows.map((row) => row.id));
+    setSharedPresenceById((current) =>
+      Object.fromEntries(Object.entries(current).filter(([sharedNovelId]) => editableIds.has(sharedNovelId))),
+    );
+
+    const cleanups = editableRows.map((row) =>
+      subscribeToSharedNovelPresence(row.id, authUser, (people) => {
+        setSharedPresenceById((current) => ({ ...current, [row.id]: people }));
+      }),
+    );
+    return () => cleanups.forEach((cleanup) => cleanup());
+  }, [authUser?.id, sharedNovels.map((row) => `${row.id}:${row.role}`).join("|")]);
+
+  useEffect(() => {
+    function releaseQueuedUpdates() {
+      window.setTimeout(() => {
+        if (!isTextEntryFocused()) applyQueuedSharedRealtimeRows();
+      }, 0);
+    }
+
+    window.addEventListener("focusout", releaseQueuedUpdates, true);
+    document.addEventListener("visibilitychange", releaseQueuedUpdates);
+    return () => {
+      window.removeEventListener("focusout", releaseQueuedUpdates, true);
+      document.removeEventListener("visibilitychange", releaseQueuedUpdates);
+    };
+  }, []);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -495,17 +552,74 @@ export default function App() {
           // request was in flight - don't let a late-arriving response
           // resurrect it into sharedNovels.
           if (detachedSharedIdsRef.current.has(sharedNovelId)) return;
+          rememberLocalSharedSave(localSharedSaveVersionsRef.current, row);
           setSharedNovels((current) => upsertSharedNovelRow(current, row));
         })
         .catch((error) => {
           console.warn("AuthorHub shared novel save failed.", error);
           const stale = /stale|conflict|newer/i.test(error.message || "");
-          setShareNotice(stale ? "协作者已保存更新版本，请先查看同步后的内容再继续编辑。" : "共享小说保存失败，本地内容仍保留，请稍后再试。");
+          if (stale) {
+            return saveSharedNovel(sharedNovelId, novel, null)
+              .then((row) => {
+                if (detachedSharedIdsRef.current.has(sharedNovelId)) return;
+                rememberLocalSharedSave(localSharedSaveVersionsRef.current, row);
+                setSharedNovels((current) => upsertSharedNovelRow(current, row));
+                showShareNotice("内容已同步", 5000);
+              })
+              .catch((retryError) => {
+                console.warn("AuthorHub shared novel stale-save retry failed.", retryError);
+                showShareNotice("共享小说保存失败，本地内容仍保留，请稍后再试。", 2600);
+              });
+          }
+          showShareNotice("共享小说保存失败，本地内容仍保留，请稍后再试。", 2600);
         })
         .finally(() => {
           sharedSaveInFlightRef.current.delete(sharedNovelId);
+          if (!isTextEntryFocused()) applyQueuedSharedRealtimeRows(sharedNovelId);
         });
     });
+  }
+
+  function applySharedRealtimeRow(row, notice) {
+    setSharedNovels((current) => upsertSharedNovelRow(current, row));
+    if (notice) showShareNotice(notice, 5000);
+  }
+
+  function applyQueuedSharedRealtimeRows(sharedNovelId) {
+    if (sharedSaveDebouncerRef.current.has(sharedNovelId) || sharedSaveInFlightRef.current.has(sharedNovelId)) return;
+    if (isTextEntryFocused()) return;
+
+    const rawQueuedRows = sharedNovelId
+      ? queuedSharedRealtimeRowsRef.current.has(sharedNovelId)
+        ? [queuedSharedRealtimeRowsRef.current.get(sharedNovelId)]
+        : []
+      : Array.from(queuedSharedRealtimeRowsRef.current.values());
+
+    if (sharedNovelId) {
+      queuedSharedRealtimeRowsRef.current.delete(sharedNovelId);
+    } else {
+      queuedSharedRealtimeRowsRef.current.clear();
+    }
+
+    const queuedRows = rawQueuedRows.filter(
+      (row) =>
+        row &&
+        !isLocalSharedSaveEcho(localSharedSaveVersionsRef.current, row) &&
+        !isObsoleteSharedRealtimeUpdate(localSharedSaveVersionsRef.current, row),
+    );
+    if (!queuedRows.length) return;
+
+    setSharedNovels((current) => queuedRows.reduce((next, row) => upsertSharedNovelRow(next, row), current));
+    showShareNotice("内容已同步", 5000);
+  }
+
+  function showShareNotice(message, durationMs = 5000) {
+    if (shareNoticeTimerRef.current) window.clearTimeout(shareNoticeTimerRef.current);
+    setShareNotice(message);
+    shareNoticeTimerRef.current = window.setTimeout(() => {
+      setShareNotice("");
+      shareNoticeTimerRef.current = null;
+    }, durationMs);
   }
 
   // Unlike the private cloud save, shared-novel saves had no unload/hide flush:
@@ -909,6 +1023,7 @@ export default function App() {
               onGetActiveShareLink={getNovelActiveShareLink}
               onRevokeShareLink={revokeNovelShareRole}
               shareInfo={activeNovel.sharedMeta}
+              activeCollaborators={activeNovel.sharedMeta?.id ? sharedPresenceById[activeNovel.sharedMeta.id] ?? [] : []}
               visibleSections={activeNovel.sharedMeta?.publicSections}
             />
           ) : activeView.startsWith("shared-") && !sharedNovelsReady ? null : activeView !== "author" && activeView !== "user" ? (
@@ -1131,6 +1246,10 @@ function storeAppearance(appearance) {
   } catch {
     // Appearance persistence is a local preference only.
   }
+}
+
+function isTextEntryFocused() {
+  return Boolean(document.activeElement?.closest?.(TEXT_ENTRY_SELECTOR));
 }
 
 function upsertSharedNovelRow(current, row) {

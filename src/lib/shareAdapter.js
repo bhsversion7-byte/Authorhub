@@ -219,6 +219,49 @@ export function subscribeToSharedNovel(sharedNovelId, onChange) {
   };
 }
 
+export function subscribeToSharedNovelPresence(sharedNovelId, user, onChange) {
+  if (!hasSupabaseConfig || !supabase || !sharedNovelId || !user?.id) return () => {};
+
+  const channel = supabase.channel(`author-hub-shared-presence:${sharedNovelId}`, {
+    config: { presence: { key: user.id } },
+  });
+  const currentUser = {
+    id: user.id,
+    email: user.email ?? "",
+    name: user.user_metadata?.username ?? user.user_metadata?.name ?? user.email?.split("@")[0] ?? "",
+    avatarUrl: user.user_metadata?.avatar_url ?? user.user_metadata?.picture ?? "",
+  };
+
+  function emitPresence() {
+    const peopleById = new Map();
+    Object.values(channel.presenceState()).forEach((entries) => {
+      entries.forEach((entry) => {
+        if (!entry?.id) return;
+        peopleById.set(entry.id, {
+          id: entry.id,
+          email: entry.email ?? "",
+          name: entry.name ?? "",
+          avatarUrl: entry.avatarUrl ?? "",
+        });
+      });
+    });
+    onChange?.(Array.from(peopleById.values()));
+  }
+
+  channel
+    .on("presence", { event: "sync" }, emitPresence)
+    .on("presence", { event: "join" }, emitPresence)
+    .on("presence", { event: "leave" }, emitPresence)
+    .subscribe((status) => {
+      if (status === "SUBSCRIBED") channel.track(currentUser);
+    });
+
+  return () => {
+    channel.untrack();
+    supabase.removeChannel(channel);
+  };
+}
+
 export function stripSharedNovel(novel) {
   const { sharedMeta, sourceNovelId, workspaceId, ...rest } = novel ?? {};
   return {

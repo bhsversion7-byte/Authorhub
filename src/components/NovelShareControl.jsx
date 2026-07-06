@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Check, Copy, Link2, RefreshCw, Share2, Undo2, UsersRound, X } from "lucide-react";
 import { SHARE_ROLES } from "../lib/shareAdapter.js";
+import { formatPresenceLabel, getPresenceInitial } from "../lib/sharedCollaboration.js";
 import { DEFAULT_PUBLIC_SECTIONS, SHAREABLE_SECTIONS } from "../lib/shareSections.js";
 import { usePopoverDismiss } from "../lib/usePopoverDismiss.js";
 
@@ -16,7 +17,7 @@ const SHARE_COPY = {
   },
 };
 
-export default function NovelShareControl({ novel, shareInfo, onCreateShareLink, onGetActiveShareLink, onRevokeShareLink }) {
+export default function NovelShareControl({ novel, shareInfo, activeCollaborators = [], onCreateShareLink, onGetActiveShareLink, onRevokeShareLink }) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState(SHARE_ROLES.EDITOR);
   const [linksByRole, setLinksByRole] = useState(() => shareInfo?.activeLinks ?? {});
@@ -180,6 +181,24 @@ export default function NovelShareControl({ novel, shareInfo, onCreateShareLink,
                 })}
               </div>
             </fieldset>
+          )}
+
+          {activeCollaborators.length > 0 && (
+            <div className="share-presence-strip" aria-label="当前在线协作者">
+              <span>正在协作</span>
+              <div>
+                {activeCollaborators.slice(0, 5).map((person) => {
+                  const label = formatPresenceLabel(person);
+                  return (
+                    <span className="share-presence-chip" key={person.id || label} title={label}>
+                      {person.avatarUrl ? <img src={person.avatarUrl} alt="" /> : <b>{getPresenceInitial(label)}</b>}
+                      <small>{label}</small>
+                    </span>
+                  );
+                })}
+                {activeCollaborators.length > 5 && <em>+{activeCollaborators.length - 5}</em>}
+              </div>
+            </div>
           )}
 
           <label className="share-link-field">

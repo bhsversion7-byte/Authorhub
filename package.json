@@ -9,6 +9,7 @@
     "build": "vite build",
     "verify:markdown": "node scripts/verify-markdown-export.mjs",
     "verify:share": "node scripts/verify-share-sections.mjs",
+    "verify:collab": "node scripts/verify-shared-collaboration-rules.mjs",
     "verify:graph": "node scripts/verify-relation-graph-rules.mjs",
     "verify:persistence": "node scripts/verify-persistence-rules.mjs",
     "email:update:dry-run": "node scripts/send-user-update-email.mjs --dry-run",
