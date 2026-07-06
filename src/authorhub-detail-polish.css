@@ -212,7 +212,7 @@ body::before,
   width: min(1080px, calc(100vw - 48px)) !important;
   max-height: min(78vh, 720px) !important;
   display: grid !important;
-  grid-template-rows: auto minmax(260px, 1fr) !important;
+  grid-template-rows: auto auto auto minmax(260px, 1fr) !important;
   gap: 14px !important;
   overflow: hidden !important;
   padding: clamp(18px, 3vw, 28px) !important;
@@ -224,6 +224,10 @@ body::before,
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     0 28px 86px rgba(44, 36, 24, 0.22) !important;
+}
+
+.zen-editor.has-no-outline {
+  grid-template-rows: auto auto minmax(260px, 1fr) !important;
 }
 
 .zen-editor-head {
@@ -244,6 +248,99 @@ body::before,
   min-height: 36px !important;
   padding: 8px 14px !important;
   border-radius: 999px !important;
+}
+
+.zen-editor-tools {
+  display: grid !important;
+  grid-template-columns: minmax(220px, 1fr) auto auto !important;
+  gap: 10px !important;
+  align-items: center !important;
+}
+
+.zen-search {
+  display: flex !important;
+  min-width: 0 !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 8px 10px !important;
+  border: 1px solid rgba(147, 120, 86, 0.18) !important;
+  border-radius: 999px !important;
+  background: rgba(255, 253, 248, 0.72) !important;
+}
+
+.zen-search input {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.zen-search span,
+.zen-editor-stats span {
+  color: rgba(86, 73, 58, 0.66) !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  white-space: nowrap !important;
+}
+
+.zen-tool-buttons,
+.zen-editor-stats {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+}
+
+.zen-tool-buttons button {
+  min-height: 34px !important;
+  padding: 7px 11px !important;
+  border-radius: 999px !important;
+  background: rgba(255, 253, 248, 0.74) !important;
+  color: rgba(54, 47, 40, 0.86) !important;
+}
+
+.zen-tool-buttons button:disabled {
+  opacity: 0.42 !important;
+}
+
+.zen-outline {
+  display: grid !important;
+  gap: 8px !important;
+  padding: 10px !important;
+  border: 1px solid rgba(147, 120, 86, 0.14) !important;
+  border-radius: 16px !important;
+  background: rgba(255, 252, 246, 0.52) !important;
+}
+
+.zen-outline > span {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  color: rgba(88, 74, 58, 0.7) !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+}
+
+.zen-outline > div {
+  display: flex !important;
+  gap: 7px !important;
+  overflow-x: auto !important;
+  padding-bottom: 2px !important;
+}
+
+.zen-outline button {
+  max-width: 180px !important;
+  flex: 0 0 auto !important;
+  overflow: hidden !important;
+  padding: 7px 11px !important;
+  border-radius: 999px !important;
+  background: rgba(255, 253, 248, 0.78) !important;
+  color: rgba(58, 50, 42, 0.82) !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }
 
 .zen-exit-button {
@@ -299,6 +396,15 @@ body[data-theme="dark"] .auth-wall::before {
   .zen-editor-head {
     align-items: flex-start !important;
     flex-direction: column !important;
+  }
+
+  .zen-editor-tools {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .zen-tool-buttons,
+  .zen-editor-stats {
+    justify-content: flex-start !important;
   }
 
   .novel-section .novel-hero {

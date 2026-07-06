@@ -21,12 +21,19 @@ import {
   revokeShareRole,
   saveSharedNovel,
   stripSharedNovel,
+  subscribeToSharedDraftPreviews,
   subscribeToSharedNovel,
   subscribeToSharedNovelPresence,
 } from "./lib/shareAdapter.js";
 import {
+  createSharedSaveNotice,
+  createSharedDraftPreview,
+  formatPresenceLabel,
+  formatSharedSaveNotice,
+  getSharedSaveSnippet,
   isLocalSharedSaveEcho,
   isObsoleteSharedRealtimeUpdate,
+  pruneExpiredSharedDrafts,
   rememberLocalSharedSave,
   shouldHandleSharedRealtimeUpdate,
 } from "./lib/sharedCollaboration.js";
@@ -62,6 +69,7 @@ export default function App() {
   const [publicShare, setPublicShare] = useState({ status: "idle", row: null, error: "" });
   const [shareNotice, setShareNotice] = useState("");
   const [sharedPresenceById, setSharedPresenceById] = useState({});
+  const [sharedDraftsById, setSharedDraftsById] = useState({});
   const [cloudSyncBlocked, setCloudSyncBlocked] = useState(false);
   const skipNextCloudSaveRef = useRef(false);
   const joinedShareTokenRef = useRef("");
@@ -70,6 +78,11 @@ export default function App() {
   const detachedSharedIdsRef = useRef(new Set());
   const localSharedSaveVersionsRef = useRef(new Map());
   const queuedSharedRealtimeRowsRef = useRef(new Map());
+  const sharedDraftControllersRef = useRef(new Map());
+  const sharedDraftTimersRef = useRef(new Map());
+  const pendingSharedDraftsRef = useRef(new Map());
+  const latestSharedDraftSnippetsRef = useRef(new Map());
+  const recentSharedSaveNoticeRef = useRef(new Map());
   const shareNoticeTimerRef = useRef(null);
   const activeViewRef = useRef(activeView);
 
@@ -242,7 +255,7 @@ export default function App() {
           queuedSharedRealtimeRowsRef.current.set(row.id, incomingRow);
           return;
         }
-        applySharedRealtimeRow(incomingRow, decision.notice);
+        applySharedRealtimeRow(incomingRow, getSharedRealtimeNotice(incomingRow, decision.notice));
       }),
     );
     return () => cleanups.forEach((cleanup) => cleanup());
@@ -267,6 +280,58 @@ export default function App() {
     );
     return () => cleanups.forEach((cleanup) => cleanup());
   }, [authUser?.id, sharedNovels.map((row) => `${row.id}:${row.role}`).join("|")]);
+
+  useEffect(() => {
+    if (!authUser?.id) {
+      setSharedDraftsById({});
+      sharedDraftControllersRef.current.clear();
+      return undefined;
+    }
+
+    const editableRows = sharedNovels.filter((row) => row.role !== SHARE_ROLES.VIEWER);
+    const editableIds = new Set(editableRows.map((row) => row.id));
+    setSharedDraftsById((current) => Object.fromEntries(Object.entries(current).filter(([sharedNovelId]) => editableIds.has(sharedNovelId))));
+
+    const cleanups = editableRows.map((row) => {
+      const controller = subscribeToSharedDraftPreviews(row.id, authUser, (event) => {
+        if (event?.type === "save-notice") {
+          recentSharedSaveNoticeRef.current.set(event.sharedNovelId, Date.now());
+          showShareNotice(formatSharedSaveNotice(event), 5000);
+          return;
+        }
+        setSharedDraftsById((current) => updateSharedDraftState(current, event));
+      });
+      sharedDraftControllersRef.current.set(row.id, controller);
+      return () => {
+        controller.unsubscribe();
+        sharedDraftControllersRef.current.delete(row.id);
+      };
+    });
+
+    return () => cleanups.forEach((cleanup) => cleanup());
+  }, [authUser?.id, sharedNovels.map((row) => `${row.id}:${row.role}`).join("|")]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setSharedDraftsById((current) => {
+        const next = {};
+        Object.entries(current).forEach(([sharedNovelId, draftsByField]) => {
+          const pruned = pruneExpiredSharedDrafts(draftsByField);
+          if (Object.keys(pruned).length) next[sharedNovelId] = pruned;
+        });
+        return next;
+      });
+    }, 2000);
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      sharedDraftTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
+      sharedDraftTimersRef.current.clear();
+      pendingSharedDraftsRef.current.clear();
+    };
+  }, []);
 
   useEffect(() => {
     function releaseQueuedUpdates() {
@@ -554,6 +619,7 @@ export default function App() {
           if (detachedSharedIdsRef.current.has(sharedNovelId)) return;
           rememberLocalSharedSave(localSharedSaveVersionsRef.current, row);
           setSharedNovels((current) => upsertSharedNovelRow(current, row));
+          announceSharedSave(sharedNovelId, novel);
         })
         .catch((error) => {
           console.warn("AuthorHub shared novel save failed.", error);
@@ -564,7 +630,7 @@ export default function App() {
                 if (detachedSharedIdsRef.current.has(sharedNovelId)) return;
                 rememberLocalSharedSave(localSharedSaveVersionsRef.current, row);
                 setSharedNovels((current) => upsertSharedNovelRow(current, row));
-                showShareNotice("内容已同步", 5000);
+                announceSharedSave(sharedNovelId, novel);
               })
               .catch((retryError) => {
                 console.warn("AuthorHub shared novel stale-save retry failed.", retryError);
@@ -610,7 +676,9 @@ export default function App() {
     if (!queuedRows.length) return;
 
     setSharedNovels((current) => queuedRows.reduce((next, row) => upsertSharedNovelRow(next, row), current));
-    showShareNotice("内容已同步", 5000);
+    const latestRow = queuedRows.at(-1);
+    const notice = getSharedRealtimeNotice(latestRow, "内容已同步");
+    if (notice) showShareNotice(notice, 5000);
   }
 
   function showShareNotice(message, durationMs = 5000) {
@@ -620,6 +688,72 @@ export default function App() {
       setShareNotice("");
       shareNoticeTimerRef.current = null;
     }, durationMs);
+  }
+
+  function announceSharedSave(sharedNovelId, novel) {
+    const latestDraft = latestSharedDraftSnippetsRef.current.get(sharedNovelId);
+    const snippet = getSharedSaveSnippet(latestDraft?.snippet) || getSharedSaveSnippet(novel?.outline) || getSharedSaveSnippet(novel?.setting);
+    const notice = createSharedSaveNotice({
+      sharedNovelId,
+      label: formatPresenceLabel({
+        name: authUser?.user_metadata?.username ?? authUser?.user_metadata?.name,
+        email: authUser?.email,
+      }),
+      snippet,
+      userId: authUser?.id,
+    });
+    if (!notice) return;
+    recentSharedSaveNoticeRef.current.set(sharedNovelId, Date.now());
+    showShareNotice(formatSharedSaveNotice(notice), 5000);
+    sharedDraftControllersRef.current.get(sharedNovelId)?.sendSaveNotice(notice);
+  }
+
+  function getSharedRealtimeNotice(row, fallbackNotice) {
+    if (!fallbackNotice || !row?.id) return "";
+    const recentAt = recentSharedSaveNoticeRef.current.get(row.id);
+    if (recentAt && Date.now() - recentAt < 6500) return "";
+    const snippet = getSharedSaveSnippet(row.novel?.outline) || getSharedSaveSnippet(row.novel?.setting);
+    return snippet ? formatSharedSaveNotice({ label: "协作者", snippet }) : fallbackNotice;
+  }
+
+  function broadcastSharedDraft(novelId, fieldPath, value, cursorIndex) {
+    const sharedNovelId = getSharedNovelIdFromWorkspaceId(novelId);
+    if (!sharedNovelId || !authUser?.id) return;
+    const sharedRow = sharedNovels.find((row) => row.id === sharedNovelId);
+    if (!sharedRow || sharedRow.role === SHARE_ROLES.VIEWER) return;
+
+    const preview = createSharedDraftPreview({
+      sharedNovelId,
+      fieldPath,
+      value,
+      cursorIndex,
+      user: authUser,
+    });
+    if (!preview) return;
+
+    const key = `${sharedNovelId}:${fieldPath}`;
+    latestSharedDraftSnippetsRef.current.set(sharedNovelId, { fieldPath, snippet: preview.tail });
+    pendingSharedDraftsRef.current.set(key, preview);
+    if (sharedDraftTimersRef.current.has(key)) return;
+
+    const timerId = window.setTimeout(() => {
+      sharedDraftTimersRef.current.delete(key);
+      const latestPreview = pendingSharedDraftsRef.current.get(key);
+      pendingSharedDraftsRef.current.delete(key);
+      sharedDraftControllersRef.current.get(sharedNovelId)?.sendDraft(latestPreview);
+    }, 800);
+    sharedDraftTimersRef.current.set(key, timerId);
+  }
+
+  function clearSharedDraft(novelId, fieldPath) {
+    const sharedNovelId = getSharedNovelIdFromWorkspaceId(novelId);
+    if (!sharedNovelId) return;
+    const key = `${sharedNovelId}:${fieldPath}`;
+    const timerId = sharedDraftTimersRef.current.get(key);
+    if (timerId) window.clearTimeout(timerId);
+    sharedDraftTimersRef.current.delete(key);
+    pendingSharedDraftsRef.current.delete(key);
+    sharedDraftControllersRef.current.get(sharedNovelId)?.clearDraft(fieldPath);
   }
 
   // Unlike the private cloud save, shared-novel saves had no unload/hide flush:
@@ -1024,6 +1158,9 @@ export default function App() {
               onRevokeShareLink={revokeNovelShareRole}
               shareInfo={activeNovel.sharedMeta}
               activeCollaborators={activeNovel.sharedMeta?.id ? sharedPresenceById[activeNovel.sharedMeta.id] ?? [] : []}
+              draftPreviews={activeNovel.sharedMeta?.id ? sharedDraftsById[activeNovel.sharedMeta.id] ?? {} : {}}
+              onDraftPreviewChange={broadcastSharedDraft}
+              onDraftPreviewClear={clearSharedDraft}
               visibleSections={activeNovel.sharedMeta?.publicSections}
             />
           ) : activeView.startsWith("shared-") && !sharedNovelsReady ? null : activeView !== "author" && activeView !== "user" ? (
@@ -1250,6 +1387,35 @@ function storeAppearance(appearance) {
 
 function isTextEntryFocused() {
   return Boolean(document.activeElement?.closest?.(TEXT_ENTRY_SELECTOR));
+}
+
+function getSharedNovelIdFromWorkspaceId(novelId) {
+  return typeof novelId === "string" && novelId.startsWith("shared-") ? novelId.slice("shared-".length) : "";
+}
+
+function updateSharedDraftState(current, event) {
+  if (!event?.sharedNovelId || !event?.fieldPath || !event?.userId) return current;
+  const currentNovelDrafts = current[event.sharedNovelId] ?? {};
+  const currentFieldDrafts = currentNovelDrafts[event.fieldPath] ?? [];
+  const nextFieldDrafts =
+    event.type === "draft-clear"
+      ? currentFieldDrafts.filter((draft) => draft.userId !== event.userId)
+      : [...currentFieldDrafts.filter((draft) => draft.userId !== event.userId), event];
+
+  const nextNovelDrafts = { ...currentNovelDrafts };
+  if (nextFieldDrafts.length) {
+    nextNovelDrafts[event.fieldPath] = nextFieldDrafts;
+  } else {
+    delete nextNovelDrafts[event.fieldPath];
+  }
+
+  const next = { ...current };
+  if (Object.keys(nextNovelDrafts).length) {
+    next[event.sharedNovelId] = nextNovelDrafts;
+  } else {
+    delete next[event.sharedNovelId];
+  }
+  return next;
 }
 
 function upsertSharedNovelRow(current, row) {

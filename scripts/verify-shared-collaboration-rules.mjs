@@ -1,8 +1,18 @@
 import assert from "node:assert/strict";
 import {
+  SHARED_DRAFT_TAIL_LIMIT,
+  SHARED_SAVE_SNIPPET_LIMIT,
+  createSharedDraftPreview,
+  createSharedSaveNotice,
+  formatSharedSaveNotice,
+  getSharedSaveSnippet,
   formatPresenceLabel,
   isLocalSharedSaveEcho,
   isObsoleteSharedRealtimeUpdate,
+  normalizeSharedDraftClear,
+  normalizeSharedDraftPreview,
+  normalizeSharedSaveNotice,
+  pruneExpiredSharedDrafts,
   rememberLocalSharedSave,
   shouldHandleSharedRealtimeUpdate,
 } from "../src/lib/sharedCollaboration.js";
@@ -79,5 +89,60 @@ assert.deepEqual(
 assert.equal(formatPresenceLabel({ name: "本狗老师" }), "本狗老师");
 assert.equal(formatPresenceLabel({ email: "friend@example.com" }), "friend");
 assert.equal(formatPresenceLabel({}), "协作者");
+
+const authorUser = {
+  id: "author-1",
+  email: "author@example.com",
+  user_metadata: { name: "作者A" },
+};
+const longDraft = "a".repeat(240);
+const preview = createSharedDraftPreview({
+  sharedNovelId: "shared-1",
+  fieldPath: "outline",
+  value: longDraft,
+  cursorIndex: longDraft.length,
+  user: authorUser,
+});
+assert.equal(preview.tail.length, SHARED_DRAFT_TAIL_LIMIT, "draft preview should send only a capped text tail, never the whole field");
+assert.equal(
+  createSharedDraftPreview({ sharedNovelId: "shared-1", fieldPath: "secret", value: "hidden", cursorIndex: 6, user: authorUser }),
+  null,
+  "draft preview should only support explicitly allowed long-text fields",
+);
+assert.equal(
+  normalizeSharedDraftPreview(preview, { currentUserId: "author-1" }),
+  null,
+  "a user's own broadcast echo must be ignored",
+);
+const remotePreview = normalizeSharedDraftPreview(preview, { currentUserId: "friend-1", now: 1000 });
+assert.equal(remotePreview.userId, "author-1");
+assert.equal(remotePreview.expiresAt, 13000, "remote draft previews should have a short TTL");
+assert.deepEqual(
+  normalizeSharedDraftClear({ type: "draft-clear", sharedNovelId: "shared-1", fieldPath: "outline", userId: "author-1" }, { currentUserId: "friend-1" }),
+  { type: "draft-clear", sharedNovelId: "shared-1", fieldPath: "outline", userId: "author-1" },
+);
+assert.deepEqual(
+  pruneExpiredSharedDrafts({ outline: [{ ...remotePreview, expiresAt: 999 }, { ...remotePreview, userId: "author-2", expiresAt: 2000 }] }, 1000),
+  { outline: [{ ...remotePreview, userId: "author-2", expiresAt: 2000 }] },
+  "expired draft previews should be removed without touching active previews",
+);
+assert.equal(getSharedSaveSnippet("  乖宝和石墨正在相爱  "), "乖宝和石墨".slice(0, SHARED_SAVE_SNIPPET_LIMIT));
+const saveNotice = createSharedSaveNotice({
+  sharedNovelId: "shared-1",
+  label: "作者A",
+  snippet: "乖宝和石墨正在相爱",
+  userId: "author-1",
+});
+assert.equal(saveNotice.snippet.length, SHARED_SAVE_SNIPPET_LIMIT, "save notice snippets should be capped at five characters");
+assert.equal(formatSharedSaveNotice(saveNotice), "作者A已保存：乖宝和石墨......");
+assert.equal(
+  normalizeSharedSaveNotice(saveNotice, { currentUserId: "author-1" }),
+  null,
+  "a user's own save notice broadcast echo must be ignored",
+);
+assert.deepEqual(
+  normalizeSharedSaveNotice(saveNotice, { currentUserId: "friend-1" }),
+  { type: "save-notice", sharedNovelId: "shared-1", userId: "author-1", label: "作者A", snippet: "乖宝和石墨" },
+);
 
 console.log("shared collaboration rule checks passed");

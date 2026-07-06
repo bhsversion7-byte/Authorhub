@@ -1,5 +1,10 @@
 export const SHARED_SYNC_NOTICE = "内容已同步";
+export const SHARED_DRAFT_FIELDS = ["outline", "setting"];
+export const SHARED_DRAFT_TAIL_LIMIT = 160;
+export const SHARED_DRAFT_TTL_MS = 12000;
+export const SHARED_SAVE_SNIPPET_LIMIT = 5;
 const VIEWER_ROLE = "viewer";
+const SHARED_DRAFT_FIELD_SET = new Set(SHARED_DRAFT_FIELDS);
 
 export function rememberLocalSharedSave(versionMap, row) {
   if (!versionMap || !row?.id || !row.updatedAt) return;
@@ -37,4 +42,121 @@ export function formatPresenceLabel(user = {}) {
 
 export function getPresenceInitial(label) {
   return String(label || "协").trim().slice(0, 1).toUpperCase();
+}
+
+export function createSharedDraftPreview({ sharedNovelId, fieldPath, value, cursorIndex, user }) {
+  if (!sharedNovelId || !SHARED_DRAFT_FIELD_SET.has(fieldPath) || !user?.id) return null;
+  const text = String(value ?? "");
+  const cursor = clampNumber(cursorIndex, 0, text.length);
+  const beforeCursor = text.slice(0, cursor);
+  const fallback = text.slice(cursor, cursor + SHARED_DRAFT_TAIL_LIMIT);
+  const tail = normalizeDraftTail(beforeCursor.slice(-SHARED_DRAFT_TAIL_LIMIT) || fallback);
+  if (!tail) return null;
+  return {
+    type: "draft-preview",
+    sharedNovelId,
+    fieldPath,
+    userId: user.id,
+    label: formatPresenceLabel({
+      name: user.user_metadata?.username ?? user.user_metadata?.name,
+      email: user.email,
+    }),
+    avatarUrl: user.user_metadata?.avatar_url ?? user.user_metadata?.picture ?? "",
+    tail,
+    cursor,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export function createSharedSaveNotice({ sharedNovelId, label, snippet, userId }) {
+  const cleanSnippet = getSharedSaveSnippet(snippet);
+  if (!sharedNovelId || !cleanSnippet || !userId) return null;
+  return {
+    type: "save-notice",
+    sharedNovelId,
+    userId,
+    label: String(label ?? "协作者").trim().slice(0, 32) || "协作者",
+    snippet: cleanSnippet,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export function normalizeSharedSaveNotice(payload, { currentUserId } = {}) {
+  if (!payload || payload.type !== "save-notice") return null;
+  const sharedNovelId = String(payload.sharedNovelId ?? "").trim();
+  const userId = String(payload.userId ?? "").trim();
+  const snippet = getSharedSaveSnippet(payload.snippet);
+  if (!sharedNovelId || !userId || userId === currentUserId || !snippet) return null;
+  return {
+    type: "save-notice",
+    sharedNovelId,
+    userId,
+    label: String(payload.label ?? "协作者").trim().slice(0, 32) || "协作者",
+    snippet,
+  };
+}
+
+export function getSharedSaveSnippet(value) {
+  return String(value ?? "")
+    .replace(/\s+/g, "")
+    .slice(0, SHARED_SAVE_SNIPPET_LIMIT);
+}
+
+export function formatSharedSaveNotice({ label, snippet }) {
+  const cleanSnippet = getSharedSaveSnippet(snippet);
+  return cleanSnippet ? `${label || "协作者"}已保存：${cleanSnippet}......` : SHARED_SYNC_NOTICE;
+}
+
+export function normalizeSharedDraftPreview(payload, { currentUserId, now = Date.now() } = {}) {
+  if (!payload || payload.type !== "draft-preview") return null;
+  const sharedNovelId = String(payload.sharedNovelId ?? "").trim();
+  const fieldPath = String(payload.fieldPath ?? "").trim();
+  const userId = String(payload.userId ?? "").trim();
+  if (!sharedNovelId || !SHARED_DRAFT_FIELD_SET.has(fieldPath) || !userId || userId === currentUserId) return null;
+
+  const tail = normalizeDraftTail(payload.tail).slice(0, SHARED_DRAFT_TAIL_LIMIT);
+  if (!tail) return null;
+
+  return {
+    type: "draft-preview",
+    sharedNovelId,
+    fieldPath,
+    userId,
+    label: String(payload.label ?? "协作者").trim().slice(0, 32) || "协作者",
+    avatarUrl: String(payload.avatarUrl ?? "").trim().slice(0, 512),
+    tail,
+    cursor: clampNumber(payload.cursor, 0, Number.MAX_SAFE_INTEGER),
+    updatedAt: String(payload.updatedAt ?? new Date(now).toISOString()),
+    expiresAt: now + SHARED_DRAFT_TTL_MS,
+  };
+}
+
+export function normalizeSharedDraftClear(payload, { currentUserId } = {}) {
+  if (!payload || payload.type !== "draft-clear") return null;
+  const sharedNovelId = String(payload.sharedNovelId ?? "").trim();
+  const fieldPath = String(payload.fieldPath ?? "").trim();
+  const userId = String(payload.userId ?? "").trim();
+  if (!sharedNovelId || !SHARED_DRAFT_FIELD_SET.has(fieldPath) || !userId || userId === currentUserId) return null;
+  return { type: "draft-clear", sharedNovelId, fieldPath, userId };
+}
+
+export function pruneExpiredSharedDrafts(draftsByField, now = Date.now()) {
+  const next = {};
+  Object.entries(draftsByField ?? {}).forEach(([fieldPath, drafts]) => {
+    const activeDrafts = (drafts ?? []).filter((draft) => draft?.expiresAt > now);
+    if (activeDrafts.length) next[fieldPath] = activeDrafts;
+  });
+  return next;
+}
+
+function normalizeDraftTail(value) {
+  return String(value ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function clampNumber(value, min, max) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return min;
+  return Math.max(min, Math.min(max, number));
 }

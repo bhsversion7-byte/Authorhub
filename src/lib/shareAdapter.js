@@ -1,5 +1,6 @@
 import { hasSupabaseConfig, supabase } from "./supabaseClient.js";
 import { DEFAULT_PUBLIC_SECTIONS, FULL_PUBLIC_SECTIONS, filterNovelForSections, normalizePublicSections } from "./shareSections.js";
+import { normalizeSharedDraftClear, normalizeSharedDraftPreview, normalizeSharedSaveNotice } from "./sharedCollaboration.js";
 import { migrateData } from "./shimoAdapter.js";
 
 export const SHARE_ROLES = {
@@ -259,6 +260,81 @@ export function subscribeToSharedNovelPresence(sharedNovelId, user, onChange) {
   return () => {
     channel.untrack();
     supabase.removeChannel(channel);
+  };
+}
+
+export function subscribeToSharedDraftPreviews(sharedNovelId, user, onPreview) {
+  if (!hasSupabaseConfig || !supabase || !sharedNovelId || !user?.id) {
+    return {
+      sendDraft: () => {},
+      clearDraft: () => {},
+      unsubscribe: () => {},
+    };
+  }
+
+  const channel = supabase.channel(`author-hub-shared-drafts:${sharedNovelId}`, {
+    config: { broadcast: { self: false } },
+  });
+  let subscribed = false;
+  const pendingMessages = [];
+
+  function send(event, payload) {
+    const message = { type: "broadcast", event, payload };
+    if (!subscribed) {
+      pendingMessages.push(message);
+      if (pendingMessages.length > 4) pendingMessages.shift();
+      return;
+    }
+    channel.send(message).catch((error) => {
+      console.warn("AuthorHub draft preview broadcast failed.", error);
+    });
+  }
+
+  channel
+    .on("broadcast", { event: "draft-preview" }, ({ payload }) => {
+      const preview = normalizeSharedDraftPreview(payload, { currentUserId: user.id });
+      if (preview) onPreview?.(preview);
+    })
+    .on("broadcast", { event: "draft-clear" }, ({ payload }) => {
+      const clearEvent = normalizeSharedDraftClear(payload, { currentUserId: user.id });
+      if (clearEvent) onPreview?.(clearEvent);
+    })
+    .on("broadcast", { event: "save-notice" }, ({ payload }) => {
+      const saveNotice = normalizeSharedSaveNotice(payload, { currentUserId: user.id });
+      if (saveNotice) onPreview?.(saveNotice);
+    })
+    .subscribe((status) => {
+      if (status !== "SUBSCRIBED") return;
+      subscribed = true;
+      pendingMessages.splice(0).forEach((message) => {
+        channel.send(message).catch((error) => {
+          console.warn("AuthorHub queued draft preview broadcast failed.", error);
+        });
+      });
+    });
+
+  return {
+    sendDraft(preview) {
+      if (!preview) return;
+      send("draft-preview", preview);
+    },
+    clearDraft(fieldPath) {
+      send("draft-clear", {
+        type: "draft-clear",
+        sharedNovelId,
+        fieldPath,
+        userId: user.id,
+        updatedAt: new Date().toISOString(),
+      });
+    },
+    sendSaveNotice(notice) {
+      if (!notice) return;
+      send("save-notice", notice);
+    },
+    unsubscribe() {
+      pendingMessages.length = 0;
+      supabase.removeChannel(channel);
+    },
   };
 }
 

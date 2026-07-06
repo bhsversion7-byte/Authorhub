@@ -43,7 +43,7 @@ function emptyCharacter(novelId) {
   return {
     id: `${novelId}-${Date.now()}`,
     name: "新人物",
-    age: 24,
+    age: "24",
     role: "待定角色",
     tag: "主要配角",
     color: "#DDA96A",
@@ -887,7 +887,7 @@ export default function RelationGraph({
                   </label>
                   <label>
                     年龄
-                    <input type="number" value={draft.age} readOnly={readOnly} onChange={(event) => setDraft({ ...draft, age: Number(event.target.value) })} />
+                    <input value={draft.age ?? ""} readOnly={readOnly} onChange={(event) => setDraft({ ...draft, age: event.target.value })} />
                   </label>
                   <label>
                     身份 / 属性

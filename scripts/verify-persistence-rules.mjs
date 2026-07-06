@@ -37,6 +37,7 @@ assert.equal(repairedWorkspace.novels[0].characters[0].tag, "主角1", "remainin
 assert.deepEqual(repairedWorkspace.novels[0].timeline[0].images, [], "remaining timeline entries should still receive image arrays");
 
 const shimoAdapterSource = readFileSync(new URL("../src/lib/shimoAdapter.js", import.meta.url), "utf8");
+const relationGraphSource = readFileSync(new URL("../src/components/RelationGraph.jsx", import.meta.url), "utf8");
 assert.ok(
   shimoAdapterSource.includes("ignoreDuplicates: true"),
   "ensureProfile should insert missing profiles without rewriting existing rows on every load",
@@ -44,6 +45,10 @@ assert.ok(
 assert.ok(
   !shimoAdapterSource.includes("has_completed_tour: false"),
   "ensureProfile must not reset tour completion metadata while creating/upserting profiles",
+);
+assert.ok(
+  !relationGraphSource.includes("age: Number(") && !relationGraphSource.includes('type="number" value={draft.age}'),
+  "character age should remain free-form text instead of being coerced to a number",
 );
 
 console.log("persistence rule checks passed");

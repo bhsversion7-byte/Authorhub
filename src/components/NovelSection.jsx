@@ -35,6 +35,10 @@ export default function NovelSection({
   onGetActiveShareLink,
   onRevokeShareLink,
   shareInfo,
+  activeCollaborators = [],
+  draftPreviews = {},
+  onDraftPreviewChange,
+  onDraftPreviewClear,
   readOnly = false,
   visibleSections,
 }) {
@@ -125,6 +129,7 @@ export default function NovelSection({
                 onCreateShareLink={onCreateShareLink}
                 onGetActiveShareLink={onGetActiveShareLink}
                 onRevokeShareLink={onRevokeShareLink}
+                activeCollaborators={activeCollaborators}
               />
             )}
           </div>
@@ -155,6 +160,9 @@ export default function NovelSection({
                 readOnly={readOnly}
                 onChange={(value) => patchNovel({ outline: value })}
                 onSave={() => {}}
+                remoteDrafts={draftPreviews.outline ?? []}
+                onDraftChange={(value, meta) => onDraftPreviewChange?.(novel.id, "outline", value, meta?.cursorIndex)}
+                onDraftClear={() => onDraftPreviewClear?.(novel.id, "outline")}
               />
             </article>
           )}
@@ -181,6 +189,9 @@ export default function NovelSection({
                 readOnly={readOnly}
                 onChange={(value) => patchNovel({ setting: value })}
                 onSave={() => {}}
+                remoteDrafts={draftPreviews.setting ?? []}
+                onDraftChange={(value, meta) => onDraftPreviewChange?.(novel.id, "setting", value, meta?.cursorIndex)}
+                onDraftClear={() => onDraftPreviewClear?.(novel.id, "setting")}
               />
             </article>
           )}
