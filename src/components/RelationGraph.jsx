@@ -7,7 +7,6 @@ import {
   getCharacterRelationTag,
   isMainCharacter,
   isMainPairRelationship,
-  normalizeRelationTag,
 } from "../lib/relationGraphRules.js";
 import FocusTextarea from "./FocusTextarea.jsx";
 import MediaCarousel from "./MediaCarousel.jsx";
@@ -55,6 +54,7 @@ function emptyCharacter(novelId) {
 
 export default function RelationGraph({
   novel,
+  onNovelChange,
   onAddCharacter,
   onUpdateCharacter,
   onAddRelationship,
@@ -93,13 +93,34 @@ export default function RelationGraph({
   const [selectedRelationshipIndex, setSelectedRelationshipIndex] = useState(null);
   const [pendingNodeId, setPendingNodeId] = useState("");
   const [tagText, setTagText] = useState("");
-  const [customTags, setCustomTags] = useState(() => getInitialCustomTags(novel.characters));
   const [detailPane, setDetailPane] = useState(36);
   const [resizing, setResizing] = useState(false);
   const [deleteCharacterCandidate, setDeleteCharacterCandidate] = useState(null);
   const [confirmClearRelationship, setConfirmClearRelationship] = useState(false);
 
-  const allTags = useMemo(() => [...ROLE_TAGS, ...customTags.filter((tag) => !ROLE_TAGS.includes(tag))], [customTags]);
+  // The tag palette is persisted per-novel (`novel.characterTags`) so users
+  // can curate it - delete a default tag they never use, add their own - and
+  // have it stick. Before any edit (`characterTags` absent) it defaults to
+  // the built-in role tags plus every tag existing characters already carry,
+  // so no custom tag from old single-tag data is lost. Capped so the board
+  // stays tidy.
+  const tagPalette = useMemo(() => {
+    if (Array.isArray(novel.characterTags)) return novel.characterTags;
+    const seeded = new Set(ROLE_TAGS);
+    (novel.characters ?? []).forEach((character) => getCharacterTags(character).forEach((tag) => seeded.add(tag)));
+    return [...seeded];
+  }, [novel.characterTags, novel.characters]);
+  const draftTags = useMemo(() => getCharacterTags(draft), [draft]);
+  // Show the palette plus any tag the current character has that isn't in the
+  // palette (e.g. a tag someone deleted from the palette elsewhere), so it's
+  // always visible and de-selectable rather than silently stuck on.
+  const boardTags = useMemo(() => {
+    const board = [...tagPalette];
+    draftTags.forEach((tag) => {
+      if (!board.includes(tag)) board.push(tag);
+    });
+    return board;
+  }, [tagPalette, draftTags]);
   const draftRelationshipKey =
     connectFrom && connectTo && connectFrom !== connectTo
       ? relationshipKey({ source: connectFrom, target: connectTo }, selectedRelationshipIndex ?? "__preview")
@@ -122,16 +143,6 @@ export default function RelationGraph({
   useEffect(() => {
     setDraft(selected ? { ...selected, tag: getCharacterTag(selected) } : null);
   }, [selected]);
-
-  useEffect(() => {
-    setCustomTags((current) => {
-      const next = [...current];
-      getInitialCustomTags(novel.characters).forEach((tag) => {
-        if (!next.includes(tag) && next.length < 5) next.push(tag);
-      });
-      return next;
-    });
-  }, [novel.characters]);
 
   useEffect(() => {
     if (!resizing) return;
@@ -723,29 +734,50 @@ export default function RelationGraph({
     clearRelationshipSelection();
   }
 
-  function chooseTag(tag) {
+  // Multi-select: a character can carry several tags. `tags` is the source of
+  // truth; `tag` is kept as the derived primary (a main-character tag wins,
+  // else the first) so the graph node label and main-character detection -
+  // which both read `character.tag` - keep working unchanged.
+  function assignCharacterTags(nextTags) {
     if (!draft || readOnly) return;
-    const nextDraft = { ...draft, tag };
+    const nextDraft = { ...draft, tags: nextTags, tag: derivePrimaryTag(nextTags) };
     setDraft(nextDraft);
     onUpdateCharacter(novel.id, nextDraft.id, nextDraft);
+  }
+
+  function toggleTag(tag) {
+    if (!draft || readOnly) return;
+    const current = getCharacterTags(draft);
+    assignCharacterTags(current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag]);
+  }
+
+  function persistTagPalette(nextPalette) {
+    if (readOnly || typeof onNovelChange !== "function") return;
+    onNovelChange(novel.id, { characterTags: nextPalette });
   }
 
   function addTag() {
     if (readOnly) return;
     const nextTag = tagText.trim();
     if (!nextTag) return;
-    setCustomTags((current) => (current.includes(nextTag) ? current : [...current, nextTag].slice(0, 5)));
-    chooseTag(nextTag);
+    if (!tagPalette.includes(nextTag) && tagPalette.length < 12) {
+      persistTagPalette([...tagPalette, nextTag]);
+    }
+    const current = getCharacterTags(draft);
+    if (!current.includes(nextTag)) assignCharacterTags([...current, nextTag]);
     setTagText("");
   }
 
-  function removeTag(tag, event) {
+  // The × on a chip deletes the tag from the novel's palette entirely (works
+  // for default role tags too now, not just custom ones - the palette is
+  // materialized and persisted on first edit) and de-selects it from the
+  // current character. Works whether or not the tag was selected.
+  function removeTagFromPalette(tag, event) {
     event.stopPropagation();
     if (readOnly) return;
-    if (!ROLE_TAGS.includes(tag)) {
-      setCustomTags((current) => current.filter((item) => item !== tag));
-    }
-    if (draft?.tag === tag) chooseTag("主要配角");
+    if (tagPalette.includes(tag)) persistTagPalette(tagPalette.filter((item) => item !== tag));
+    const current = getCharacterTags(draft);
+    if (current.includes(tag)) assignCharacterTags(current.filter((item) => item !== tag));
   }
 
   function chooseNodeColor(color) {
@@ -825,13 +857,26 @@ export default function RelationGraph({
                     <input value={draft.role} readOnly={readOnly} onChange={(event) => setDraft({ ...draft, role: event.target.value })} />
                   </label>
                   <div className="tag-composer">
-                    <span>标签</span>
+                    <span>标签（可多选）</span>
                     <div className="tag-chip-board">
-                      {allTags.map((tag) => (
-                        <button type="button" key={tag} className={draft.tag === tag ? "is-selected" : ""} onClick={() => chooseTag(tag)} disabled={readOnly}>
+                      {boardTags.map((tag) => (
+                        <button
+                          type="button"
+                          key={tag}
+                          className={draftTags.includes(tag) ? "is-selected" : ""}
+                          onClick={() => toggleTag(tag)}
+                          disabled={readOnly}
+                        >
                           {tag}
                           {!readOnly && (
-                            <i className="tag-chip-remove" onClick={(event) => removeTag(tag, event)} aria-label={`移除标签 ${tag}`}>
+                            <i
+                              className="tag-chip-remove"
+                              role="button"
+                              tabIndex={-1}
+                              onClick={(event) => removeTagFromPalette(tag, event)}
+                              onPointerDown={(event) => event.stopPropagation()}
+                              aria-label={`删除标签 ${tag}`}
+                            >
                               ×
                             </i>
                           )}
@@ -851,7 +896,7 @@ export default function RelationGraph({
                           }}
                           placeholder="输入标签，回车生成"
                         />
-                        <button type="button" onClick={addTag} disabled={!tagText.trim() || customTags.length >= 5}>
+                        <button type="button" onClick={addTag} disabled={!tagText.trim() || tagPalette.length >= 12}>
                           <Plus size={14} />
                         </button>
                       </div>
@@ -980,8 +1025,21 @@ export default function RelationGraph({
   );
 }
 
-function getInitialCustomTags(characters) {
-  return Array.from(new Set((characters ?? []).map((character) => normalizeRelationTag(character.tag ?? character.faction)).filter((tag) => tag && !ROLE_TAGS.includes(tag)))).slice(0, 5);
+// The full tag set for a character. New multi-select data stores `tags`;
+// older single-tag data (or a character that never had its tag touched)
+// falls back to its one derived tag, so every existing character keeps
+// exactly the tag it showed before.
+function getCharacterTags(character) {
+  if (Array.isArray(character?.tags)) return character.tags;
+  const single = getCharacterRelationTag(character);
+  return single ? [single] : [];
+}
+
+// The primary tag drives the graph node label and main-character detection
+// (both read `character.tag`). A main-character tag among the selection wins
+// so a character tagged e.g. both 主角1 and 亲友 still reads as a lead.
+function derivePrimaryTag(tags) {
+  return tags.find((tag) => isMainCharacter({ tag })) ?? tags[0] ?? "主要配角";
 }
 
 function getCharacterTag(character) {

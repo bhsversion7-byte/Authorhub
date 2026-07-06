@@ -208,6 +208,7 @@ export default function NovelSection({
       {showRelations && (
         <RelationGraph
           novel={novel}
+          onNovelChange={onNovelChange}
           onAddCharacter={onAddCharacter}
           onUpdateCharacter={onUpdateCharacter}
           onAddRelationship={onAddRelationship}
