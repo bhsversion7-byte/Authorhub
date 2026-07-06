@@ -807,14 +807,29 @@ export default function RelationGraph({
 
   // The × on a chip deletes the tag from the novel's palette entirely (works
   // for default role tags too now, not just custom ones - the palette is
-  // materialized and persisted on first edit) and de-selects it from the
-  // current character. Works whether or not the tag was selected.
+  // materialized and persisted on first edit) AND strips it from every
+  // character that carries it - including characters still on the implicit
+  // single-tag fallback (`tags` null, only `tag` set). Without the
+  // per-character strip, a deleted tag reappeared as an "extra" chip the
+  // moment you opened a character whose primary tag was the deleted one.
   function removeTagFromPalette(tag, event) {
     event.stopPropagation();
-    if (readOnly) return;
-    if (tagPalette.includes(tag)) persistTagPalette(tagPalette.filter((item) => item !== tag));
-    const current = getCharacterTags(draft);
-    if (current.includes(tag)) assignCharacterTags(current.filter((item) => item !== tag));
+    if (readOnly || typeof onNovelChange !== "function") return;
+    const nextPalette = tagPalette.filter((item) => item !== tag);
+    const nextCharacters = (novel.characters ?? []).map((character) => {
+      const tags = getCharacterTags(character);
+      if (!tags.includes(tag)) return character;
+      const remaining = tags.filter((item) => item !== tag);
+      return { ...character, tags: remaining, tag: derivePrimaryTag(remaining) };
+    });
+    onNovelChange(novel.id, { characterTags: nextPalette, characters: nextCharacters });
+    // Sync the open draft immediately so the board reflects the delete before
+    // the novel-characters update round-trips back through the select effect.
+    const draftTagsNow = getCharacterTags(draft);
+    if (draftTagsNow.includes(tag)) {
+      const remaining = draftTagsNow.filter((item) => item !== tag);
+      setDraft({ ...draft, tags: remaining, tag: derivePrimaryTag(remaining) });
+    }
   }
 
   function chooseNodeColor(color) {

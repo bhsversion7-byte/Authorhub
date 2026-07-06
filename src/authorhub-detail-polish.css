@@ -271,7 +271,10 @@ body::before,
 .zen-search input {
   min-width: 0 !important;
   flex: 1 1 auto !important;
-  padding: 0 !important;
+  /* Small left inset so the first glyph of the placeholder/text isn't clipped
+     against the search icon (padding:0 rendered the first character partly
+     hidden). */
+  padding: 0 2px 0 6px !important;
   border: 0 !important;
   background: transparent !important;
   box-shadow: none !important;

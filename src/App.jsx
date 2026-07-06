@@ -1059,6 +1059,11 @@ export default function App() {
         };
       }),
     );
+    // Revoking the editor link removes every collaborator's access, so the
+    // "正在协作" presence strip should clear right away (their lingering
+    // realtime connection shouldn't keep showing until they refresh); viewer
+    // revoke never had presence anyway, so clearing is a harmless no-op there.
+    setSharedPresenceById((current) => ({ ...current, [sharedId]: [] }));
     setShareNotice(role === SHARE_ROLES.EDITOR ? "共同编辑链接已撤回。" : "只读查看链接已撤回。");
     window.setTimeout(() => setShareNotice(""), 1800);
   }
@@ -1157,7 +1162,11 @@ export default function App() {
               onGetActiveShareLink={getNovelActiveShareLink}
               onRevokeShareLink={revokeNovelShareRole}
               shareInfo={activeNovel.sharedMeta}
-              activeCollaborators={activeNovel.sharedMeta?.id ? sharedPresenceById[activeNovel.sharedMeta.id] ?? [] : []}
+              activeCollaborators={
+                activeNovel.sharedMeta?.id
+                  ? (sharedPresenceById[activeNovel.sharedMeta.id] ?? []).filter((person) => person.id && person.id !== authUser?.id)
+                  : []
+              }
               draftPreviews={activeNovel.sharedMeta?.id ? sharedDraftsById[activeNovel.sharedMeta.id] ?? {} : {}}
               onDraftPreviewChange={broadcastSharedDraft}
               onDraftPreviewClear={clearSharedDraft}
