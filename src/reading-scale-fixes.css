@@ -1,0 +1,77 @@
+/* Reading-settings + tag-board polish (added per user request). Loaded LAST
+   in main.jsx so these deterministically win the layered cascade instead of
+   fighting !important rules by specificity guesswork. */
+
+/* --- Item 3: character-detail labels + tag chips follow the 阅读设置 font
+   size. These were hard-coded (tag chips 12px, the 标签 label span, the
+   人物图片 media label, the 背景故事/隐藏设定 focus-editor labels) so they
+   didn't respond to 字号 the way the reading content does. The field-name
+   labels (姓名/年龄/身份) already scale via material-system, but are included
+   for certainty. */
+.character-editor-top label,
+.character-editor-top .media-carousel-head > span,
+.character-editor-top .tag-composer > span,
+.character-long-fields .focus-textarea-label,
+.character-long-fields .focus-textarea-label > span {
+  font-size: var(--editor-font-size, 14px) !important;
+}
+
+.tag-chip-board button {
+  font-size: var(--editor-font-size, 14px) !important;
+}
+
+/* --- Item 2: shrink the "输入标签，回车生成" row so it sits close to the chip
+   frame instead of towering over the pills (~15% smaller). */
+.tag-compose-row {
+  grid-template-columns: minmax(0, 1fr) 36px;
+}
+
+.tag-compose-row input {
+  min-height: 34px !important;
+  padding: 6px 12px !important;
+}
+
+.tag-compose-row button {
+  min-height: 34px;
+}
+
+/* --- Item 4: the 放大 (zen) editor is portaled to <body>, outside
+   .content-shell, so it never inherited --editor-font-size /
+   --reading-font-family and stayed at a fixed size/font. FocusTextarea now
+   copies those vars onto the .zen-editor element; make the textarea actually
+   use them (overriding the fixed max(14px,...) rule) so 放大 matches the
+   阅读设置 exactly. */
+.zen-editor textarea {
+  font-size: var(--editor-font-size, 14px) !important;
+  font-family: var(--reading-font-family, inherit) !important;
+}
+
+/* --- Item 5: privacy blur (隐私模糊) must also cover the theme tags. */
+.privacy-blur .theme-tag-chip {
+  filter: blur(7px);
+  transition: filter 160ms var(--ease);
+}
+
+.privacy-blur .theme-tag-chip:hover {
+  filter: none;
+}
+
+/* --- Item 1: tag drag-reorder visual feel, matching the left sidebar novel
+   drag (subtle lift + shadow while dragging, dashed placeholder ghost). */
+.tag-sort-ghost {
+  opacity: 0.5 !important;
+  background: rgba(92, 118, 112, 0.1) !important;
+  border: 1px dashed rgba(92, 118, 112, 0.34) !important;
+  box-shadow: none !important;
+}
+
+.tag-sort-drag {
+  opacity: 0.98 !important;
+  background: rgba(255, 253, 248, 0.96) !important;
+  box-shadow: 0 14px 30px rgba(44, 36, 24, 0.18) !important;
+  transform: translateY(-1px) scale(1.02) !important;
+}
+
+.tag-sort-chosen {
+  cursor: grabbing;
+}

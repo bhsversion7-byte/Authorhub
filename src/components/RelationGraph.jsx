@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import * as d3 from "d3";
+import Sortable from "sortablejs";
 import { Check, Link2, Plus, RotateCcw, Save, Sparkles, Trash2, X, ZoomIn } from "lucide-react";
 import {
   MAIN_PAIR_RELATION_COLOR,
@@ -67,6 +68,10 @@ export default function RelationGraph({
 }) {
   const svgRef = useRef(null);
   const relationRef = useRef(null);
+  const tagBoardRef = useRef(null);
+  // Updated every render so the Sortable onEnd (created once per chip-count
+  // change) always persists against the current novel/handlers.
+  const reorderTagsRef = useRef(null);
   const nodeSelectionRef = useRef(null);
   const linkSelectionRef = useRef(null);
   const labelSelectionRef = useRef(null);
@@ -121,6 +126,38 @@ export default function RelationGraph({
     });
     return board;
   }, [tagPalette, draftTags]);
+
+  reorderTagsRef.current = (order) => {
+    if (readOnly || typeof onNovelChange !== "function") return;
+    onNovelChange(novel.id, { characterTags: order });
+  };
+
+  // Drag-to-reorder the tag chips, same feel as the sidebar novel drag. The ×
+  // is filtered so grabbing it deletes instead of dragging; a plain click
+  // (no movement) still toggles the tag. Reads the post-drop DOM order and
+  // persists it as the novel's tag palette.
+  useEffect(() => {
+    if (readOnly || !tagBoardRef.current) return undefined;
+    const sortable = Sortable.create(tagBoardRef.current, {
+      animation: 180,
+      easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+      draggable: "button",
+      filter: ".tag-chip-remove",
+      preventOnFilter: false,
+      delayOnTouchOnly: true,
+      delay: 120,
+      touchStartThreshold: 8,
+      chosenClass: "tag-sort-chosen",
+      dragClass: "tag-sort-drag",
+      ghostClass: "tag-sort-ghost",
+      onEnd(event) {
+        if (event.oldIndex === event.newIndex || event.newIndex == null) return;
+        const order = Array.from(tagBoardRef.current?.querySelectorAll("button[data-tag]") ?? []).map((button) => button.dataset.tag);
+        reorderTagsRef.current?.(order);
+      },
+    });
+    return () => sortable.destroy();
+  }, [readOnly, boardTags.length]);
   const draftRelationshipKey =
     connectFrom && connectTo && connectFrom !== connectTo
       ? relationshipKey({ source: connectFrom, target: connectTo }, selectedRelationshipIndex ?? "__preview")
@@ -858,11 +895,12 @@ export default function RelationGraph({
                   </label>
                   <div className="tag-composer">
                     <span>标签（可多选）</span>
-                    <div className="tag-chip-board">
+                    <div className="tag-chip-board" ref={tagBoardRef}>
                       {boardTags.map((tag) => (
                         <button
                           type="button"
                           key={tag}
+                          data-tag={tag}
                           className={draftTags.includes(tag) ? "is-selected" : ""}
                           onClick={() => toggleTag(tag)}
                           disabled={readOnly}

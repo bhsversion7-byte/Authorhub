@@ -7,6 +7,11 @@ const FocusTextarea = forwardRef(function FocusTextarea(
   ref,
 ) {
   const [focused, setFocused] = useState(false);
+  // The zen overlay is portaled to <body>, outside .content-shell where the
+  // 阅读设置 CSS vars live, so it can't inherit them. Copy the current reading
+  // font size + family onto the .zen-editor element when it opens so the
+  // 放大 view matches the reading settings exactly (see reading-scale-fixes.css).
+  const [zenReadingStyle, setZenReadingStyle] = useState({});
   const textareaRef = useRef(null);
   const titleId = useId();
 
@@ -15,6 +20,17 @@ const FocusTextarea = forwardRef(function FocusTextarea(
   useEffect(() => {
     if (!focused) return;
     const previous = document.body.style.overflow;
+
+    const shell = document.querySelector(".content-shell");
+    if (shell) {
+      const cs = getComputedStyle(shell);
+      const fontSize = cs.getPropertyValue("--editor-font-size").trim();
+      const fontFamily = cs.getPropertyValue("--reading-font-family").trim();
+      setZenReadingStyle({
+        ...(fontSize ? { "--editor-font-size": fontSize, "--field-font-size": fontSize } : {}),
+        ...(fontFamily ? { "--reading-font-family": fontFamily } : {}),
+      });
+    }
 
     function onKeyDown(event) {
       if (event.key !== "Escape") return;
@@ -55,7 +71,7 @@ const FocusTextarea = forwardRef(function FocusTextarea(
       {focused &&
         createPortal(
           <div className="zen-overlay" role="presentation" onMouseDown={() => setFocused(false)}>
-            <div className="zen-editor" role="dialog" aria-modal="true" aria-labelledby={titleId} onMouseDown={(event) => event.stopPropagation()}>
+            <div className="zen-editor" role="dialog" aria-modal="true" aria-labelledby={titleId} style={zenReadingStyle} onMouseDown={(event) => event.stopPropagation()}>
               <div className="zen-editor-head">
                 <div>
                   <p className="eyebrow">Focus editor</p>
