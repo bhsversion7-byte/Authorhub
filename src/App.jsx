@@ -553,8 +553,7 @@ export default function App() {
     if (!authUser) return Promise.resolve();
     return saveAuthorHubData(nextData, authUser, { immediate: true }).catch((error) => {
       console.warn("Author Hub immediate cloud save failed.", error);
-      setShareNotice("云端保存失败，本地内容仍保留，请稍后再试。");
-      window.setTimeout(() => setShareNotice(""), 2400);
+      showShareNotice("云端保存失败，本地内容仍保留，请稍后再试。", 2400);
       throw error;
     });
   }
@@ -957,8 +956,7 @@ export default function App() {
         saveDataImmediately(nextData).catch(() => {});
       }
       setActiveView(nextSharedNovels[0] ? `shared-${nextSharedNovels[0].id}` : remainingPrivateNovels[0]?.id ?? "author");
-      setShareNotice("已从当前视图移除共享小说；云端协作空间仍保留。");
-      window.setTimeout(() => setShareNotice(""), 2200);
+      showShareNotice("已从当前视图移除共享小说；云端协作空间仍保留。", 2200);
       setDeleteCandidate(null);
 
       // The above only updates local React state. Without this, the removed
@@ -969,8 +967,7 @@ export default function App() {
         console.warn("AuthorHub could not remove shared-novel membership on the server; restoring it locally.", error);
         detachedSharedIdsRef.current.delete(sharedId);
         if (removedRow) setSharedNovels((current) => upsertSharedNovelRow(current, removedRow));
-        setShareNotice("移除失败，请检查网络后重试。");
-        window.setTimeout(() => setShareNotice(""), 2600);
+        showShareNotice("移除失败，请检查网络后重试。", 2600);
       });
       return;
     }
@@ -1034,8 +1031,7 @@ export default function App() {
       : await getOrCreateShareLink(sharedRow.id, role, sections, { requireSectionMatch: matchSections });
     setSharedNovels((current) => upsertSharedNovelRow(current, withActiveShareLink(sharedRow, link)));
     if (shouldSwitchToSharedView) setActiveView(`shared-${sharedRow.id}`);
-    setShareNotice(role === SHARE_ROLES.EDITOR ? "共同编辑链接已生成。" : "只读查看链接已生成。");
-    window.setTimeout(() => setShareNotice(""), 1800);
+    showShareNotice(role === SHARE_ROLES.EDITOR ? "共同编辑链接已生成。" : "只读查看链接已生成。", 1800);
     return link;
   }
 
@@ -1072,8 +1068,7 @@ export default function App() {
     // realtime connection shouldn't keep showing until they refresh); viewer
     // revoke never had presence anyway, so clearing is a harmless no-op there.
     setSharedPresenceById((current) => ({ ...current, [sharedId]: [] }));
-    setShareNotice(role === SHARE_ROLES.EDITOR ? "共同编辑链接已撤回。" : "只读查看链接已撤回。");
-    window.setTimeout(() => setShareNotice(""), 1800);
+    showShareNotice(role === SHARE_ROLES.EDITOR ? "共同编辑链接已撤回。" : "只读查看链接已撤回。", 1800);
   }
 
   if (shareRoute?.intent === SHARE_ROLES.VIEWER) {

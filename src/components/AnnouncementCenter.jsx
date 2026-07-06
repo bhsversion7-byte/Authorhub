@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { Bell, ChevronRight, Megaphone, X } from "lucide-react";
 import { ANNOUNCEMENTS, LATEST_ANNOUNCEMENT } from "../data/announcements.js";
+import { useEscapeToClose } from "../lib/useEscapeToClose.js";
 
 export default function AnnouncementCenter() {
   const [openAnnouncement, setOpenAnnouncement] = useState(null);
@@ -18,10 +19,10 @@ export default function AnnouncementCenter() {
       <div className="announcement-list" aria-label="公告列表">
         {ANNOUNCEMENTS.map((announcement) => (
           <button type="button" key={announcement.id} className="announcement-item" onClick={() => setOpenAnnouncement(announcement)}>
-            <span className="announcement-copy">
-              <strong>{announcement.summary}</strong>
-              <time dateTime={announcement.date}>{announcement.date}</time>
-            </span>
+            <time dateTime={announcement.date} className="announcement-date">
+              {announcement.date}
+            </time>
+            <span className="announcement-copy">{announcement.summary}</span>
             <ChevronRight size={15} />
           </button>
         ))}
@@ -74,16 +75,7 @@ export function AnnouncementTicker({ onOpen }) {
 }
 
 function AnnouncementModal({ announcement, onClose }) {
-  useEffect(() => {
-    function onKeyDown(event) {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      event.stopPropagation();
-      onClose();
-    }
-    window.addEventListener("keydown", onKeyDown, true);
-    return () => window.removeEventListener("keydown", onKeyDown, true);
-  }, [onClose]);
+  useEscapeToClose(onClose);
 
   return (
     <div className="modal-backdrop announcement-modal-backdrop" role="presentation" onMouseDown={onClose}>

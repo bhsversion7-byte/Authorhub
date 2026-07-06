@@ -6,10 +6,16 @@
   --ah-graph-surface: rgba(210, 196, 176, 0.82);
   --ah-graph-surface-2: rgba(189, 177, 158, 0.58);
   --ah-graph-dot-soft: rgba(117, 94, 64, 0.16);
-  --ah-zen-squash: #f7ecd5;
-  --ah-zen-squash-light: #fff7dc;
-  --ah-zen-squash-tab: #f2dfad;
-  --ah-zen-squash-tab-active: #fff0bf;
+  /* Focus editor: flat near-white surface (rolled back from an earlier flat
+     squash-yellow pass the user disliked - no gradient tint either way).
+     The unselected/active 小标题 tab colors are a caramel/toffee "Maillard"
+     tone, deliberately shifted away from the header's pale butter-yellow
+     (#F3E5AB) and the beige --ah-novel-surface/--ah-graph-surface tans so it
+     doesn't blend into or clash with those other cards. */
+  --ah-zen-squash: #fdfbf6;
+  --ah-zen-squash-light: #fefdf9;
+  --ah-zen-squash-tab: #dcae76;
+  --ah-zen-squash-tab-active: #c8925a;
 }
 
 html,
@@ -513,9 +519,21 @@ body::before,
   max-height: 100% !important;
   overflow: auto !important;
   resize: none !important;
-  background: rgba(255, 250, 235, 0.86) !important;
+  background: rgba(255, 253, 248, 0.88) !important;
   font-size: max(14px, var(--field-font-size, 13px)) !important;
   line-height: 1.85 !important;
+  /* Long outline/setting text must stay mouse-wheel scrollable here without
+     ever showing a native scrollbar track - a global `*`/`*::-webkit-scrollbar`
+     hide rule in reading-scale-fixes.css already covers this, but it's
+     declared explicitly here too so this specific region can't regress if
+     that global rule is ever narrowed. */
+  scrollbar-width: none !important;
+}
+
+.zen-editor textarea::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .zen-delete-page-backdrop {

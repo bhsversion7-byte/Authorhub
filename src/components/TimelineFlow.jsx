@@ -101,7 +101,14 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
 
   function updateDraftFocusPages(key, pages) {
     if (!draft || readOnly) return;
-    setDraft((current) => (current ? { ...current, focusPages: patchFocusPageMap(current.focusPages, key, pages) } : current));
+    const nextFocusPages = patchFocusPageMap(draft.focusPages, key, pages);
+    setDraft((current) => (current ? { ...current, focusPages: nextFocusPages } : current));
+    // Same standing rule as RelationGraph's character focus pages: page
+    // add/rename/reorder/delete must reach Supabase immediately rather than
+    // waiting on a separate "保存时间点" click, and persisted against
+    // `selected` (last-saved event) so unsaved plain-text edits aren't
+    // force-committed as a side effect.
+    if (selected) onUpdateEvent(novel.id, selected.id, { ...selected, focusPages: nextFocusPages });
   }
 
   function requestDeleteEvent(event = draft) {

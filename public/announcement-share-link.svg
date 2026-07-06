@@ -1,0 +1,29 @@
+<svg viewBox="0 0 640 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="分享链接示意图">
+  <rect width="640" height="260" rx="20" fill="#faf6ec" />
+
+  <!-- owner card -->
+  <g transform="translate(60,60)">
+    <rect width="180" height="140" rx="16" fill="#ffffff" stroke="#e3d7c2" stroke-width="1.5" />
+    <circle cx="90" cy="42" r="22" fill="#e0bab8" />
+    <text x="90" y="48" font-size="16" fill="#6a4a4c" text-anchor="middle" font-weight="700">你</text>
+    <text x="90" y="86" font-size="12" fill="#5a4c3d" text-anchor="middle">生成分享链接</text>
+    <rect x="34" y="102" width="112" height="20" rx="10" fill="#f3e9d4" />
+    <text x="90" y="116" font-size="9" fill="#8a6a3d" text-anchor="middle" font-weight="700">共同编辑 / 只读查看</text>
+  </g>
+
+  <!-- link path -->
+  <path d="M242 130 C 300 60, 340 200, 398 130" stroke="#cf8c98" stroke-width="2.5" fill="none" stroke-dasharray="6 7" stroke-linecap="round" />
+  <g transform="translate(300,118)">
+    <rect width="40" height="24" rx="12" fill="#e0bab8" transform="rotate(-18)" />
+  </g>
+
+  <!-- collaborator card -->
+  <g transform="translate(400,60)">
+    <rect width="180" height="140" rx="16" fill="#ffffff" stroke="#e3d7c2" stroke-width="1.5" />
+    <circle cx="90" cy="42" r="22" fill="#cf8c98" />
+    <text x="90" y="48" font-size="16" fill="#fff8ef" text-anchor="middle" font-weight="700">友</text>
+    <text x="90" y="86" font-size="12" fill="#5a4c3d" text-anchor="middle">打开链接即可协作</text>
+    <rect x="34" y="102" width="112" height="12" rx="6" fill="#e7ddc9" />
+    <rect x="34" y="120" width="90" height="12" rx="6" fill="#e7ddc9" />
+  </g>
+</svg>

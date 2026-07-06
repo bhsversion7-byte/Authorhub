@@ -627,7 +627,15 @@ export default function RelationGraph({
 
   function updateDraftFocusPages(key, pages) {
     if (!draft || readOnly) return;
-    setDraft((current) => (current ? { ...current, focusPages: patchFocusPageMap(current.focusPages, key, pages) } : current));
+    const nextFocusPages = patchFocusPageMap(draft.focusPages, key, pages);
+    setDraft((current) => (current ? { ...current, focusPages: nextFocusPages } : current));
+    // Focus-editor page add/rename/reorder/delete must reach Supabase right
+    // away, not sit gated behind the separate "保存人物" button - the delete
+    // confirmation copy already promises this ("并同步到云端保存"), and it's
+    // a structural deletion (standing rule: deletions must always sync).
+    // Persisted against `selected` (the last-saved character), not the full
+    // `draft`, so an in-progress unsaved text edit isn't force-committed too.
+    if (selected) onUpdateCharacter(novel.id, selected.id, { ...selected, focusPages: nextFocusPages });
   }
 
   function requestDeleteCharacter() {

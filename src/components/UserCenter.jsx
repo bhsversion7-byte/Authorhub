@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { FileJson, FileText, KeyRound, LogOut, Mail, Moon, ShieldCheck, Sun, Trash2, UserX, WalletCards } from "lucide-react";
 import { hasSupabaseConfig, supabase } from "../lib/supabaseClient.js";
+import { useEscapeToClose } from "../lib/useEscapeToClose.js";
 import AnnouncementCenter from "./AnnouncementCenter.jsx";
 
 const DONATION_QR = {
@@ -190,17 +191,7 @@ function PasswordModal({ onClose }) {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    function onKeyDown(event) {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      event.stopPropagation();
-      onClose();
-    }
-
-    window.addEventListener("keydown", onKeyDown, true);
-    return () => window.removeEventListener("keydown", onKeyDown, true);
-  }, [onClose]);
+  useEscapeToClose(onClose);
 
   async function savePassword(event) {
     event.preventDefault();
@@ -253,17 +244,7 @@ function UnregisterModal({ onClose, onConfirm }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    function onKeyDown(event) {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      event.stopPropagation();
-      onClose();
-    }
-
-    window.addEventListener("keydown", onKeyDown, true);
-    return () => window.removeEventListener("keydown", onKeyDown, true);
-  }, [onClose]);
+  useEscapeToClose(onClose);
 
   async function confirm() {
     setBusy(true);
