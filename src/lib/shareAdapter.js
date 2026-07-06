@@ -346,8 +346,21 @@ export function stripSharedNovel(novel) {
   };
 }
 
+// App.jsx's `sharedWorkspaceNovels = useMemo(() => sharedNovels.map(decorateSharedNovel)..., [sharedNovels])`
+// re-runs this for every row whenever ANY row in `sharedNovels` changes
+// (e.g. typing in one shared novel replaces just that one row's object via
+// `setSharedNovels`, but the array reference itself changes, invalidating
+// the whole memo). Since this function is pure given `row`, and every OTHER
+// row keeps its exact previous object reference across that update, a
+// WeakMap cache keyed by `row` turns an O(all shared novels) re-decoration
+// into O(1) (just the row that actually changed) - found in the 2026-07-07
+// performance audit as a real per-keystroke cost while co-editing.
+const decoratedSharedNovelCache = new WeakMap();
+
 export function decorateSharedNovel(row) {
   if (!row?.novel || !row.id) return null;
+  const cached = decoratedSharedNovelCache.get(row);
+  if (cached) return cached;
   const sourceNovelId = row.sourceNovelId ?? row.source_novel_id ?? row.novel.id;
   const role = row.role ?? SHARE_ROLES.VIEWER;
   const publicSections = normalizePublicSections(row.publicSections ?? row.public_sections, { fallback: FULL_PUBLIC_SECTIONS });
@@ -356,7 +369,7 @@ export function decorateSharedNovel(row) {
   // Owners/editors get the complete source (preference.md: "Editor links keep the complete source").
   // Section filtering + private-field stripping only applies to the public read-only viewer role.
   const novelContent = role === SHARE_ROLES.VIEWER ? filterNovelForSections(normalizedNovel, publicSections) : normalizedNovel;
-  return {
+  const decorated = {
     ...novelContent,
     id: `shared-${row.id}`,
     sourceNovelId,
@@ -370,6 +383,8 @@ export function decorateSharedNovel(row) {
       activeLinks: row.activeLinks ?? row.active_links ?? {},
     },
   };
+  decoratedSharedNovelCache.set(row, decorated);
+  return decorated;
 }
 
 function normalizeSharedNovelContent(novel) {

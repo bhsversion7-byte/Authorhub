@@ -557,10 +557,14 @@ function normalizeFocusPages(pages, fallbackValue, label) {
   return validPages.length ? validPages : [{ id: "page-main", title: "全文", value: String(fallbackValue ?? "") }];
 }
 
+// Both call sites always pass an already-`normalizeFocusPages`-processed
+// array, so re-running the full normalize pass here (map + filter over
+// every page, on every keystroke) was pure redundant work with no effect on
+// the result - just check the "still just the default placeholder" case
+// directly, found in the 2026-07-07 performance audit.
 function serializeFocusPages(pages) {
-  const cleaned = normalizeFocusPages(pages, "", "");
-  if (cleaned.length === 1 && cleaned[0].id === "page-main") return [];
-  return cleaned;
+  if (pages.length === 1 && pages[0].id === "page-main") return [];
+  return pages;
 }
 
 function combineFocusPages(pages) {

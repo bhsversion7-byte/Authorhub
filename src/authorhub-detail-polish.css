@@ -6,14 +6,15 @@
   --ah-graph-surface: rgba(210, 196, 176, 0.82);
   --ah-graph-surface-2: rgba(189, 177, 158, 0.58);
   --ah-graph-dot-soft: rgba(117, 94, 64, 0.16);
-  /* Focus editor: flat near-white surface (rolled back from an earlier flat
-     squash-yellow pass the user disliked - no gradient tint either way).
-     The unselected/active 小标题 tab colors are a caramel/toffee "Maillard"
-     tone, deliberately shifted away from the header's pale butter-yellow
-     (#F3E5AB) and the beige --ah-novel-surface/--ah-graph-surface tans so it
-     doesn't blend into or clash with those other cards. */
-  --ah-zen-squash: #fdfbf6;
-  --ah-zen-squash-light: #fefdf9;
+  /* Focus editor: a soft, gentle warm cream-yellow (a near-white first pass
+     read as too sterile/bright; the earlier flat squash-yellow read as too
+     strong/mustard) - flat, no gradient either way. The unselected/active
+     小标题 tab colors are a caramel/toffee "Maillard" tone, deliberately
+     shifted away from the header's pale butter-yellow (#F3E5AB) and the
+     beige --ah-novel-surface/--ah-graph-surface tans so it doesn't blend
+     into or clash with those other cards. */
+  --ah-zen-squash: #faf4e6;
+  --ah-zen-squash-light: #fdf8ee;
   --ah-zen-squash-tab: #dcae76;
   --ah-zen-squash-tab-active: #c8925a;
 }
@@ -519,7 +520,7 @@ body::before,
   max-height: 100% !important;
   overflow: auto !important;
   resize: none !important;
-  background: rgba(255, 253, 248, 0.88) !important;
+  background: rgba(250, 244, 230, 0.9) !important;
   font-size: max(14px, var(--field-font-size, 13px)) !important;
   line-height: 1.85 !important;
   /* Long outline/setting text must stay mouse-wheel scrollable here without

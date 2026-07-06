@@ -493,7 +493,12 @@ body[data-theme="dark"] .cloud-sync-banner {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.78),
     0 14px 32px rgba(44, 38, 30, 0.14);
-  backdrop-filter: blur(12px);
+  /* No backdrop-filter here on purpose: this toast mounts/unmounts on every
+     collaborator save notice and every realtime sync applied during active
+     co-editing (far more often than a modal), forcing a blurred-layer
+     recomposite each time - a real, measurable cost found in the 2026-07-07
+     performance audit. The background is already ~92% opaque, so the blur
+     was doing almost nothing visually anyway. */
 }
 
 .shared-view-shell {

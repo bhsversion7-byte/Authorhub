@@ -139,11 +139,15 @@
 }
 
 /* Date reads first (left, larger) - the summary is now a single concise line
-   to its right, instead of the old stacked "big summary / small date" order. */
+   to its right, instead of the old stacked "big summary / small date" order.
+   Sizes are pinned relative to the panel's own "产品更新 / 维护提醒" subtitle
+   (.spacious-title span, 11px in styles.css) rather than picked freestanding:
+   the summary matches that 11px so it doesn't read oversized next to it, and
+   the date sits two sizes above that. */
 .announcement-date {
   min-width: 0 !important;
   color: rgba(50, 43, 55, 0.86) !important;
-  font-size: 15px !important;
+  font-size: 13px !important;
   font-weight: 860 !important;
   white-space: nowrap !important;
 }
@@ -152,7 +156,7 @@
   min-width: 0 !important;
   overflow: hidden !important;
   color: rgba(70, 61, 76, 0.78) !important;
-  font-size: 13px !important;
+  font-size: 11px !important;
   font-weight: 640 !important;
   line-height: 1.35 !important;
   text-overflow: ellipsis !important;
@@ -188,7 +192,7 @@
 
 .announcement-ticker-main {
   display: grid !important;
-  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  grid-template-columns: auto auto minmax(0, 1fr) auto !important;
   gap: 9px !important;
   align-items: center !important;
   min-width: 0 !important;
@@ -202,11 +206,18 @@
   text-align: left !important;
 }
 
+.announcement-ticker-date {
+  min-width: 0 !important;
+  font-size: 13px !important;
+  font-weight: 860 !important;
+  white-space: nowrap !important;
+}
+
 .announcement-ticker-main span {
   min-width: 0 !important;
   overflow: hidden !important;
-  font-size: 13px !important;
-  font-weight: 820 !important;
+  font-size: 11px !important;
+  font-weight: 640 !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
 }
@@ -444,6 +455,64 @@ body[data-theme="dark"] .announcement-modal {
   color: rgba(255, 248, 239, 0.9) !important;
 }
 
+/* .announcement-item/-date/-copy/-modal-body text all hard-code a dark-ink
+   color with no dark-mode counterpart, so they stayed dark-on-dark once the
+   surrounding panel/modal switched to its dark surface above - unreadable,
+   not just mismatched. */
+body[data-theme="dark"] .announcement-item {
+  border-color: rgba(230, 210, 184, 0.16) !important;
+  background: rgba(58, 51, 64, 0.7) !important;
+  color: rgba(255, 248, 239, 0.86) !important;
+}
+
+body[data-theme="dark"] .announcement-item:hover,
+body[data-theme="dark"] .announcement-item:focus-visible {
+  border-color: rgba(230, 210, 184, 0.26) !important;
+  background: rgba(66, 58, 73, 0.82) !important;
+}
+
+body[data-theme="dark"] .announcement-date {
+  color: rgba(255, 248, 239, 0.92) !important;
+}
+
+body[data-theme="dark"] .announcement-copy {
+  color: rgba(238, 228, 235, 0.72) !important;
+}
+
+body[data-theme="dark"] .announcement-item > svg {
+  color: rgba(238, 228, 235, 0.5) !important;
+}
+
+body[data-theme="dark"] .announcement-modal-close {
+  background: rgba(255, 248, 239, 0.12) !important;
+  color: rgba(255, 248, 239, 0.86) !important;
+}
+
+body[data-theme="dark"] .announcement-modal time,
+body[data-theme="dark"] .announcement-modal-body figcaption {
+  color: rgba(238, 228, 235, 0.62) !important;
+}
+
+body[data-theme="dark"] .announcement-modal-body p {
+  color: rgba(255, 248, 239, 0.86) !important;
+}
+
+body[data-theme="dark"] .announcement-modal-body img {
+  background: rgba(255, 248, 239, 0.08) !important;
+  border-color: rgba(230, 210, 184, 0.16) !important;
+}
+
+body[data-theme="dark"] .announcement-ticker-close {
+  background: rgba(255, 248, 239, 0.14) !important;
+  color: rgba(255, 248, 239, 0.8) !important;
+}
+
+body[data-theme="dark"] .announcement-ticker-close:hover,
+body[data-theme="dark"] .announcement-ticker-close:focus-visible {
+  background: rgba(255, 248, 239, 0.24) !important;
+  color: rgba(255, 248, 239, 0.95) !important;
+}
+
 @media (max-width: 680px) {
   .announcement-ticker {
     top: 132px !important;
@@ -455,7 +524,7 @@ body[data-theme="dark"] .announcement-modal {
   }
 
   .announcement-ticker-main span {
-    font-size: 12px !important;
+    font-size: 11px !important;
   }
 
   .announcement-center-panel,

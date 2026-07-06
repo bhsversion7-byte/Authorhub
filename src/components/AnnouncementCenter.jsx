@@ -52,6 +52,9 @@ export function AnnouncementTicker({ onOpen }) {
     <div className="announcement-ticker" role="status">
       <button type="button" className="announcement-ticker-main" onClick={onOpen} aria-label="打开公告中心">
         <Bell size={15} />
+        <time dateTime={LATEST_ANNOUNCEMENT.date} className="announcement-ticker-date">
+          {LATEST_ANNOUNCEMENT.date}
+        </time>
         <span>{LATEST_ANNOUNCEMENT.summary}</span>
         <ChevronRight size={15} />
       </button>

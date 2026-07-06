@@ -277,9 +277,22 @@ async function fetchFromShimoOrMock() {
   return mockAuthorHubData;
 }
 
-export function migrateData(data) {
-  const sourceNovels = Array.isArray(data.novels) ? data.novels : mockAuthorHubData.novels;
-  const novels = sourceNovels.filter(isRecord).map((novel) => ({
+// migrateData/migrateNovel are pure functions of their input, so caching by
+// object identity is safe: `App.jsx`'s `saveAuthorHubData` runs this on
+// EVERY keystroke (only the network write is debounced - the local cache
+// write is intentionally immediate, see the "Data And Auth Rules" note in
+// preference.md), but `setData`'s updaters only ever replace the ONE novel
+// object actually being edited - every other novel keeps its exact previous
+// object reference across renders. Without this cache, every keystroke in
+// any single novel re-rebuilt every character/event object across the ENTIRE
+// workspace (all novels), not just the one being typed in - the single
+// biggest per-keystroke cost found in a 2026-07-07 performance audit.
+const migratedNovelCache = new WeakMap();
+
+function migrateNovel(novel) {
+  const cached = migratedNovelCache.get(novel);
+  if (cached) return cached;
+  const migrated = {
     ...novel,
     urls: { ao3: "", jjwxc: "", qidian: "", qimao: "", fanqie: "", changpei: "", ...(novel.urls ?? {}) },
     characters: (novel.characters ?? []).filter(isRecord).map((character, index) => ({
@@ -290,7 +303,14 @@ export function migrateData(data) {
     })),
     relationships: novel.relationships ?? [],
     timeline: (novel.timeline ?? []).filter(isRecord).map((event) => ({ ...event, images: event.images ?? [] })),
-  }));
+  };
+  migratedNovelCache.set(novel, migrated);
+  return migrated;
+}
+
+export function migrateData(data) {
+  const sourceNovels = Array.isArray(data.novels) ? data.novels : mockAuthorHubData.novels;
+  const novels = sourceNovels.filter(isRecord).map(migrateNovel);
 
   return {
     ...mockAuthorHubData,
