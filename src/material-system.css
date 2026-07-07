@@ -341,14 +341,6 @@ body > .logo-lightbox-overlay {
   display: none !important;
 }
 
-.relation-svg {
-  background-color: var(--mat-graph) !important;
-  background-image: radial-gradient(var(--mat-graph-dot) 1.25px, transparent 1.25px) !important;
-  background-size: 24px 24px !important;
-  background-repeat: repeat !important;
-  background-position: 0 0 !important;
-}
-
 .graph-toolbar {
   background: transparent !important;
 }
@@ -734,10 +726,10 @@ body[data-theme="dark"] .landing-gateway.mode-auth {
   display: none !important;
 }
 
+/* background-color/image/size removed (2026-07-09 audit) - all dead,
+   overridden by later .relation-svg rules further down this file -
+   background-position is this block's only surviving property. */
 .relation-svg {
-  background-color: var(--mat-graph) !important;
-  background-image: radial-gradient(var(--mat-graph-dot) 1.25px, transparent 1.25px) !important;
-  background-size: 24px 24px !important;
   background-position: 0 0 !important;
 }
 
@@ -1024,10 +1016,6 @@ body[data-theme="light"],
   line-height: 1.2 !important;
 }
 
-.relation-svg {
-  height: calc(var(--relation-panel-height) - 148px) !important;
-}
-
 .media-carousel-block,
 .imessage-stack,
 .media-empty {
@@ -1289,10 +1277,6 @@ body,
 
 .novel-section .novel-hero::before {
   opacity: 0.16 !important;
-}
-
-.relation-svg {
-  height: calc(var(--relation-panel-height) - 124px) !important;
 }
 
 .imessage-card > button[aria-label="查看大图"],

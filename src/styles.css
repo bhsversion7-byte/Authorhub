@@ -1519,12 +1519,13 @@ body[data-theme="dark"] .toggle-pill.is-active {
   padding: 0 12px;
 }
 
+/* height removed (2026-07-09 audit) - dead, overridden by a later
+   material-system.css rule. */
 .relation-svg {
   position: relative;
   z-index: 1;
   display: block;
   width: 100%;
-  height: calc(var(--relation-panel-height) - 82px);
 }
 
 .graph-links path {
