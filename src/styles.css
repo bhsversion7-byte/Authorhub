@@ -644,15 +644,10 @@ a {
   font-family: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
 }
 
+/* position/inset/z-index/display/place-items/padding/background/
+   backdrop-filter removed (2026-07-09 audit) - all dead, overridden by
+   later rules - animation is this block's only surviving property. */
 .modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-  background: rgba(44, 42, 41, 0.16);
-  backdrop-filter: blur(18px);
   animation: riseIn 180ms var(--ease) both;
 }
 
@@ -764,14 +759,15 @@ a {
   gap: 18px;
 }
 
+/* border/border-radius/background/box-shadow removed (2026-07-09 audit) -
+   confirmed dead for all four selectors (live-checked .panel/.timeline-panel
+   directly, since they aren't cross-file-repeated for the audit tool to
+   check automatically) - overridden by later, more specific rules -
+   backdrop-filter is this block's only surviving property. */
 .panel,
 .graph-card,
 .inspector-card,
 .timeline-panel {
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  border-radius: var(--radius);
-  background: var(--card-soft);
-  box-shadow: var(--shadow);
   backdrop-filter: blur(20px);
 }
 
@@ -1556,6 +1552,8 @@ body[data-theme="dark"] .toggle-pill.is-active {
   filter: drop-shadow(0 5px 14px rgba(44, 42, 41, 0.05));
 }
 
+/* overflow/padding/background removed (2026-07-09 audit) - dead,
+   overridden by later rules elsewhere. */
 .inspector-card {
   position: sticky;
   top: 18px;
@@ -1564,11 +1562,6 @@ body[data-theme="dark"] .toggle-pill.is-active {
   gap: 12px;
   height: var(--relation-panel-height);
   max-height: var(--relation-panel-height);
-  overflow: hidden;
-  padding: 18px;
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(245, 242, 235, 0.68)),
-    color-mix(in srgb, var(--novel-color) 2%, #f5f2eb);
 }
 
 .inspector-scroll {
@@ -2721,13 +2714,11 @@ body[data-theme="dark"] .toggle-pill.is-active {
   --relation-panel-height: clamp(620px, calc(100vh - 44px), 760px);
 }
 
-.graph-card,
-.inspector-card {
+/* .inspector-card removed from this selector (2026-07-09 audit) - its
+   min-width is dead here, overridden by a later !important rule
+   elsewhere; .graph-card's is still live and unaffected. */
+.graph-card {
   min-width: 0;
-}
-
-.inspector-card {
-  padding: 16px;
 }
 
 .inspector-scroll {

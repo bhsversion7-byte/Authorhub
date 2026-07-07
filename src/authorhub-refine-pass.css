@@ -31,19 +31,6 @@ body,
   background: transparent !important;
 }
 
-body::before,
-.loading-screen::before,
-.auth-wall::before {
-  content: "" !important;
-  position: fixed !important;
-  inset: 0 !important;
-  z-index: -1 !important;
-  pointer-events: none !important;
-  background:
-    radial-gradient(circle at 74% 12%, rgba(196, 176, 142, 0.12), transparent 34%),
-    rgba(245, 241, 232, 0.1) url("/texture-3-bg.jpg") center center / cover no-repeat !important;
-}
-
 /* min-height removed (2026-07-09 audit) - dead, overridden by a later
    material-system.css rule (same 100vh value, so no visual change). */
 .loading-screen {
@@ -51,13 +38,6 @@ body::before,
   isolation: isolate !important;
   background: transparent !important;
   color: var(--ah-ink) !important;
-}
-
-.loading-screen p {
-  padding: 10px 16px !important;
-  border-radius: 999px !important;
-  background: rgba(255, 253, 248, 0.72) !important;
-  box-shadow: 0 12px 34px rgba(44, 36, 24, 0.06) !important;
 }
 
 
@@ -271,6 +251,9 @@ body::before,
 }
 
 /* Viewport-owned confirm dialogs. */
+/* background/backdrop-filter/-webkit-backdrop-filter removed (2026-07-09
+   audit) - dead for all four selectors here (verified each individually),
+   overridden by a later authorhub-state-corrections.css rule. */
 .modal-backdrop,
 .timeline-confirm-backdrop,
 .relation-confirm-backdrop,
@@ -281,9 +264,6 @@ body::before,
   display: grid !important;
   place-items: center !important;
   padding: 24px !important;
-  background: rgba(45, 38, 30, 0.12) !important;
-  backdrop-filter: blur(10px) saturate(0.92) !important;
-  -webkit-backdrop-filter: blur(10px) saturate(0.92) !important;
 }
 
 .confirm-modal {

@@ -195,21 +195,12 @@ body > .logo-lightbox-overlay {
     var(--ah-bg-paper) !important;
 }
 
-.loading-screen::before {
-  background:
-    url("/texture-3-wide.jpg") center center / cover no-repeat !important;
-  opacity: 0.36 !important;
-  mix-blend-mode: multiply !important;
-  filter: contrast(1.18) brightness(0.98) !important;
-}
 
+/* display/padding/border/background/box-shadow removed (2026-07-09 audit)
+   - all dead, overridden by a later rule further down this file -
+   border-radius is this block's only surviving property. */
 .loading-screen p {
-  display: block !important;
-  padding: 0 !important;
-  border: 0 !important;
   border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
 }
 
 

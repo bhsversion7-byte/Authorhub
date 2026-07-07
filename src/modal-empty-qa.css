@@ -2,10 +2,6 @@ body[data-authorhub-modal-open="true"] {
   overflow: hidden;
 }
 
-.modal-backdrop {
-  z-index: 150;
-}
-
 .confirm-modal {
   outline: none;
 }
