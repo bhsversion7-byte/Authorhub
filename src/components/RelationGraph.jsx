@@ -316,7 +316,9 @@ export default function RelationGraph({
     areaSelectRectRef.current = areaSelectRect;
 
     hitArea.on("mousedown.areaSelect", (event) => {
-      if (!event.shiftKey || event.button !== 0) return;
+      // Shift (Windows/Linux) or Cmd/metaKey (Mac) - either modifier starts
+      // the area-lock selection box.
+      if ((!event.shiftKey && !event.metaKey) || event.button !== 0) return;
       event.preventDefault();
       event.stopPropagation();
       const [startX, startY] = d3.pointer(event, graphLayer.node());
@@ -485,10 +487,11 @@ export default function RelationGraph({
       .filter((event) => {
         if (event.type === "wheel") return true;
         if (event.button) return false;
-        // Shift+drag on empty canvas draws an area-lock selection box
-        // instead of panning - plain drag (no Shift) is completely
-        // untouched, still pans exactly as before.
-        if (event.shiftKey) return false;
+        // Shift+drag (Windows/Linux) or Cmd+drag (Mac, metaKey) on empty
+        // canvas draws an area-lock selection box instead of panning -
+        // plain drag (neither modifier) is completely untouched, still
+        // pans exactly as before.
+        if (event.shiftKey || event.metaKey) return false;
         return !event.target?.closest?.(".graph-node");
       })
       .on("zoom", (event) => {
