@@ -129,10 +129,6 @@ body::before,
   margin-top: 6px !important;
 }
 
-.novel-section .novel-meta {
-  transform: translateX(-9%) !important;
-}
-
 /* Graph card: Maillard paper, dot grid uses the exact same color family. */
 .graph-card {
   background:

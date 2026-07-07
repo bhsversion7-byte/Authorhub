@@ -265,10 +265,6 @@ body > .logo-lightbox-overlay {
   transform: translateY(0.95em) !important;
 }
 
-.novel-section .novel-meta {
-  transform: translate(-5%, 0.06em) scale(0.98) !important;
-}
-
 .novel-section .novel-hero .eyebrow {
   color: #8b6937 !important;
 }
@@ -601,13 +597,11 @@ body[data-theme="dark"] .landing-gateway.mode-auth {
     linear-gradient(180deg, rgba(229, 219, 202, 0.94), rgba(220, 211, 195, 0.92)) !important;
 }
 
+/* grid-template-columns/max-width/gap/align-items/transform removed
+   (2026-07-09 audit) - all dead, overridden by a later rule further down
+   this file - grid-template-rows is this block's only survivor. */
 .novel-section .novel-meta {
-  grid-template-columns: minmax(150px, 182px) minmax(96px, 112px) 58px !important;
   grid-template-rows: repeat(2, minmax(34px, auto)) !important;
-  max-width: 368px !important;
-  gap: 3px 8px !important;
-  align-items: center !important;
-  transform: translate(1%, 0.05em) scale(0.98) !important;
 }
 
 /* width/min-width/padding/border/border-radius/background/box-shadow/color
@@ -985,13 +979,14 @@ body[data-theme="light"],
     0 0 0 3px rgba(215, 185, 142, 0.06) !important;
 }
 
+/* width removed (2026-07-09 audit) - dead, overridden by a later
+   sharing-collab.css rule. */
 .novel-section .novel-meta {
   display: grid !important;
   grid-template-columns: minmax(188px, 1.12fr) minmax(126px, 0.88fr) 66px !important;
   grid-template-areas:
     "target current publish"
     "genre finish publish" !important;
-  width: min(520px, 100%) !important;
   max-width: none !important;
   gap: 8px 12px !important;
   justify-self: end !important;

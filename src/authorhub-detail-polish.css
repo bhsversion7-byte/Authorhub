@@ -77,10 +77,6 @@ body::before,
   background: rgba(255, 253, 247, 0.4) !important;
 }
 
-.novel-section .novel-meta {
-  transform: translateY(0.1em) scale(0.98) !important;
-}
-
 /* Relation graph: dot layer returns to the inner canvas, not the entire card. */
 .graph-card.relation-graph,
 .graph-card.relation-graph:hover {

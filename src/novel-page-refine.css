@@ -38,21 +38,13 @@
   z-index: 1 !important;
 }
 
-/* Two-over-three editorial composition:
-   row 1: 预计总字数 / 当前字数
-   row 2: 类型 / 完结时间 / AO3
-   Keep the original staggered feel, but reduce the air between items. */
+/* display/grid-template-columns/grid-template-areas/max-width/column-gap/
+   align-items removed (2026-07-09 audit) - all dead, overridden by later
+   material-system.css/sharing-collab.css rules - position/row-gap/
+   justify-content/padding-left are this block's surviving properties. */
 .novel-section .novel-meta {
   position: static !important;
-  display: grid !important;
-  grid-template-columns: 230px 112px 64px !important;
-  grid-template-areas:
-    "target current ."
-    "genre finish publish" !important;
-  max-width: 430px !important;
-  column-gap: 8px !important;
   row-gap: 8px !important;
-  align-items: center !important;
   justify-content: end !important;
   padding-left: 0 !important;
 }
