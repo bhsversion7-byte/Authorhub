@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .claude/
+.impeccable/
 output/
 .vercel/
 .netlify/

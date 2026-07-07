@@ -625,17 +625,21 @@ export default function App() {
           console.warn("AuthorHub shared novel save failed.", error);
           const stale = /stale|conflict|newer/i.test(error.message || "");
           if (stale) {
-            return saveSharedNovel(sharedNovelId, novel, null)
-              .then((row) => {
-                if (detachedSharedIdsRef.current.has(sharedNovelId)) return;
-                rememberLocalSharedSave(localSharedSaveVersionsRef.current, row);
-                setSharedNovels((current) => upsertSharedNovelRow(current, row));
-                announceSharedSave(sharedNovelId, novel);
-              })
-              .catch((retryError) => {
-                console.warn("AuthorHub shared novel stale-save retry failed.", retryError);
-                showShareNotice("共享小说保存失败，本地内容仍保留，请稍后再试。", 2600);
-              });
+            // A collaborator saved a newer version while this save was
+            // in flight - this used to retry with expectedUpdatedAt: null,
+            // which tells the RPC to skip its optimistic-concurrency check
+            // entirely and unconditionally overwrite with this client's own
+            // (now-stale) full snapshot, silently destroying whatever the
+            // other collaborator just saved with no error shown to either
+            // side. That's exactly the data-loss scenario the version check
+            // exists to prevent, and it directly defeated the realtime
+            // "defer while typing" guard elsewhere in this file (found in a
+            // 2026-07-07 review). Never auto-overwrite on a real conflict -
+            // surface it instead, and let the .finally() below pull in the
+            // collaborator's actual latest content via the already-queued
+            // realtime row (if one has arrived yet).
+            showShareNotice("协作者刚保存了更新的内容，你的这次修改未保存，请查看最新内容后重新编辑。", 4200);
+            return;
           }
           showShareNotice("共享小说保存失败，本地内容仍保留，请稍后再试。", 2600);
         })

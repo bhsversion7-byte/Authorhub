@@ -361,30 +361,41 @@ export function decorateSharedNovel(row) {
   if (!row?.novel || !row.id) return null;
   const cached = decoratedSharedNovelCache.get(row);
   if (cached) return cached;
-  const sourceNovelId = row.sourceNovelId ?? row.source_novel_id ?? row.novel.id;
-  const role = row.role ?? SHARE_ROLES.VIEWER;
-  const publicSections = normalizePublicSections(row.publicSections ?? row.public_sections, { fallback: FULL_PUBLIC_SECTIONS });
-  const normalizedNovel = normalizeSharedNovelContent(row.novel);
-  if (!normalizedNovel) return null;
-  // Owners/editors get the complete source (preference.md: "Editor links keep the complete source").
-  // Section filtering + private-field stripping only applies to the public read-only viewer role.
-  const novelContent = role === SHARE_ROLES.VIEWER ? filterNovelForSections(normalizedNovel, publicSections) : normalizedNovel;
-  const decorated = {
-    ...novelContent,
-    id: `shared-${row.id}`,
-    sourceNovelId,
-    workspaceId: `shared-${row.id}`,
-    sharedMeta: {
-      id: row.id,
-      role,
-      collaboratorCount: row.collaboratorCount ?? row.collaborator_count ?? 1,
-      updatedAt: row.updatedAt ?? row.updated_at ?? null,
-      publicSections,
-      activeLinks: row.activeLinks ?? row.active_links ?? {},
-    },
-  };
-  decoratedSharedNovelCache.set(row, decorated);
-  return decorated;
+  try {
+    const sourceNovelId = row.sourceNovelId ?? row.source_novel_id ?? row.novel.id;
+    const role = row.role ?? SHARE_ROLES.VIEWER;
+    const publicSections = normalizePublicSections(row.publicSections ?? row.public_sections, { fallback: FULL_PUBLIC_SECTIONS });
+    const normalizedNovel = normalizeSharedNovelContent(row.novel);
+    if (!normalizedNovel) return null;
+    // Owners/editors get the complete source (preference.md: "Editor links keep the complete source").
+    // Section filtering + private-field stripping only applies to the public read-only viewer role.
+    const novelContent = role === SHARE_ROLES.VIEWER ? filterNovelForSections(normalizedNovel, publicSections) : normalizedNovel;
+    const decorated = {
+      ...novelContent,
+      id: `shared-${row.id}`,
+      sourceNovelId,
+      workspaceId: `shared-${row.id}`,
+      sharedMeta: {
+        id: row.id,
+        role,
+        collaboratorCount: row.collaboratorCount ?? row.collaborator_count ?? 1,
+        updatedAt: row.updatedAt ?? row.updated_at ?? null,
+        publicSections,
+        activeLinks: row.activeLinks ?? row.active_links ?? {},
+      },
+    };
+    decoratedSharedNovelCache.set(row, decorated);
+    return decorated;
+  } catch (error) {
+    // This runs inside a `.map()` inside App.jsx's `sharedWorkspaceNovels`
+    // useMemo (render time, not an event handler) - an uncaught throw here
+    // for even ONE malformed/legacy shared-novel row (e.g. from before a
+    // schema migration) would crash the whole authenticated workspace down
+    // to the top-level ErrorBoundary, hiding every OTHER private and shared
+    // novel too. Skip just this row instead (2026-07-07 stability review).
+    console.warn("AuthorHub could not decorate a shared novel row; skipping it.", row?.id, error);
+    return null;
+  }
 }
 
 function normalizeSharedNovelContent(novel) {

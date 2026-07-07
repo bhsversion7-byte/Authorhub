@@ -50,7 +50,8 @@ The interface stays warm, papery, and low-distraction on purpose. The features c
 | 🧑‍🎨 **Rich character cards** | Images, age, role, **multi-select tags**, background, and a private hidden-settings field only you can see. |
 | 🕰️ **Interactive timeline** | Drag events into narrative order — organized by story beats, not just dates. |
 | 🏷️ **Themes & references** | Theme tags, world settings, reference images, and text cards, all drag-to-reorder in one place. |
-| 🔗 **Sharing & collaboration** | Generate a co-edit link or a read-only link; readers only ever see the sections you choose to expose. |
+| 🖋️ **Focus editor** | Expand outline/settings into an immersive full-page view, with optional page-by-page navigation for long documents, in-editor search, and a live word count. |
+| 🔗 **Sharing & collaboration** | Generate a co-edit or read-only link, revoke it at any time, and see who's actively co-editing with you — readers only ever see the sections you choose to expose. |
 | 🛡️ **Server-side privacy filtering** | Read-only shares strip hidden/secret fields and author-identifying links *on the server* — not just hidden in the client. |
 | 📤 **Export your data** | One-click JSON and Markdown export so your archive always belongs to you. |
 | ☁️ **Cloud sync + local safety net** | Signed-in edits sync to Supabase, with an immediate local cache so a crash or flaky network never eats your work. |

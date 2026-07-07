@@ -292,20 +292,32 @@ const migratedNovelCache = new WeakMap();
 function migrateNovel(novel) {
   const cached = migratedNovelCache.get(novel);
   if (cached) return cached;
-  const migrated = {
-    ...novel,
-    urls: { ao3: "", jjwxc: "", qidian: "", qimao: "", fanqie: "", changpei: "", ...(novel.urls ?? {}) },
-    characters: (novel.characters ?? []).filter(isRecord).map((character, index) => ({
-      ...character,
-      tag: character.tag ?? character.faction ?? inferCharacterTag(character, index),
-      color: character.color ?? ["#8BA09C", "#DDA96A", "#A9A084", "#BFA57B", "#A7B8C8"][index % 5],
-      images: character.images ?? [],
-    })),
-    relationships: novel.relationships ?? [],
-    timeline: (novel.timeline ?? []).filter(isRecord).map((event) => ({ ...event, images: event.images ?? [] })),
-  };
-  migratedNovelCache.set(novel, migrated);
-  return migrated;
+  try {
+    const migrated = {
+      ...novel,
+      urls: { ao3: "", jjwxc: "", qidian: "", qimao: "", fanqie: "", changpei: "", ...(novel.urls ?? {}) },
+      characters: (novel.characters ?? []).filter(isRecord).map((character, index) => ({
+        ...character,
+        tag: character.tag ?? character.faction ?? inferCharacterTag(character, index),
+        color: character.color ?? ["#8BA09C", "#DDA96A", "#A9A084", "#BFA57B", "#A7B8C8"][index % 5],
+        images: character.images ?? [],
+      })),
+      relationships: novel.relationships ?? [],
+      timeline: (novel.timeline ?? []).filter(isRecord).map((event) => ({ ...event, images: event.images ?? [] })),
+    };
+    migratedNovelCache.set(novel, migrated);
+    return migrated;
+  } catch (error) {
+    // This runs on every keystroke (saveAuthorHubData) and inside a render
+    // path (decorateSharedNovel -> normalizeSharedNovelContent) for EVERY
+    // novel in the workspace - one malformed novel throwing here would take
+    // down the whole app via the top-level ErrorBoundary, not just that
+    // novel. Fall back to the un-migrated novel rather than crashing
+    // (2026-07-07 stability review); it may be missing a default field or
+    // two, but the rest of the workspace keeps working.
+    console.warn("AuthorHub could not migrate a novel; using it unmigrated.", novel?.id, error);
+    return novel;
+  }
 }
 
 export function migrateData(data) {
