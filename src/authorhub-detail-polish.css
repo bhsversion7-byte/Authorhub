@@ -201,8 +201,9 @@ body::before,
 }
 
 .zen-editor {
-  width: min(1080px, calc(100vw - 48px)) !important;
-  max-height: min(78vh, 720px) !important;
+  /* ~12% larger than the previous min(1080px, calc(100vw - 48px)) / min(78vh, 720px). */
+  width: min(1200px, calc(100vw - 40px)) !important;
+  max-height: min(88vh, 800px) !important;
   display: grid !important;
   grid-template-rows: auto auto auto minmax(260px, 1fr) !important;
   gap: 14px !important;
@@ -218,6 +219,31 @@ body::before,
 
 .zen-editor.has-no-outline {
   grid-template-rows: auto auto minmax(260px, 1fr) !important;
+}
+
+/* Scrolling into the textarea (FocusTextarea.jsx's handleZenScroll) hides the
+   search bar and page-tab row so the textarea gets that space back - both
+   rows are "auto"-sized grid tracks, so shrinking their content to 0 also
+   shrinks the row itself, letting the last 1fr row expand to fill it. */
+.zen-editor-tools,
+.zen-outline {
+  overflow: hidden !important;
+  transition:
+    max-height 220ms var(--ease),
+    opacity 160ms var(--ease),
+    margin 220ms var(--ease),
+    padding 220ms var(--ease),
+    border-width 220ms var(--ease) !important;
+}
+
+.zen-editor.is-scroll-compact .zen-editor-tools,
+.zen-editor.is-scroll-compact .zen-outline {
+  max-height: 0 !important;
+  opacity: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-width: 0 !important;
+  pointer-events: none !important;
 }
 
 .zen-editor-head {
@@ -501,7 +527,11 @@ body::before,
   max-height: 100% !important;
   overflow: auto !important;
   resize: none !important;
-  background: rgba(250, 244, 230, 0.9) !important;
+  /* Deliberately lighter than the editor's own --ah-zen-squash (#faf4e6)
+     background - a visible "spotlight" for the writing area, not just the
+     same tone at lower opacity (2026-07-09, the previous rgba(250,244,230,.9)
+     was close enough to the chrome color to barely read as highlighted). */
+  background: rgba(255, 253, 248, 0.96) !important;
   font-size: max(14px, var(--field-font-size, 13px)) !important;
   line-height: 1.85 !important;
   /* Long outline/setting text must stay mouse-wheel scrollable here without
@@ -549,7 +579,7 @@ body[data-theme="dark"] .auth-wall::before {
 @media (max-width: 860px) {
   .zen-editor {
     width: min(100%, calc(100vw - 28px)) !important;
-    max-height: 82vh !important;
+    max-height: 90vh !important;
   }
 
   .zen-editor-head {

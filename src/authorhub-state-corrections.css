@@ -452,7 +452,9 @@ body[data-theme="dark"] .zen-editor textarea {
 }
 
 body[data-theme="dark"] .zen-editor textarea {
-  background: rgba(255, 248, 232, 0.13) !important;
+  /* Lighter than the surrounding dark .zen-editor chrome, same "spotlight"
+     intent as the light-mode textarea background above (2026-07-09). */
+  background: rgba(255, 248, 232, 0.24) !important;
   border-color: rgba(230, 210, 184, 0.22) !important;
 }
 

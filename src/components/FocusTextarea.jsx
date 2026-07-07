@@ -36,6 +36,11 @@ const FocusTextarea = forwardRef(function FocusTextarea(
   // font size + family onto the .zen-editor element when it opens so the
   // 放大 view matches the reading settings exactly (see reading-scale-fixes.css).
   const [zenReadingStyle, setZenReadingStyle] = useState({});
+  // Scrolling down into the text hides the search bar / page-tab row so the
+  // textarea gets the freed-up space - restored once scrolled back near the
+  // top. Thresholds are offset (24 to collapse, 4 to restore) so it doesn't
+  // flicker right at the boundary.
+  const [zenScrollCompact, setZenScrollCompact] = useState(false);
   const textareaRef = useRef(null);
   const pageRailRef = useRef(null);
   const reorderPagesRef = useRef(null);
@@ -54,6 +59,10 @@ const FocusTextarea = forwardRef(function FocusTextarea(
   const matches = getSearchMatches(editorValue, searchQuery);
 
   useImperativeHandle(ref, () => ({ open: () => setFocused(true) }), []);
+
+  useEffect(() => {
+    if (!focused) setZenScrollCompact(false);
+  }, [focused]);
 
   useEffect(() => {
     if (!normalizedPages.length) return;
@@ -186,6 +195,15 @@ const FocusTextarea = forwardRef(function FocusTextarea(
     if (!readOnly) onDraftChange?.(event.target.value, { cursorIndex: event.target.selectionStart ?? event.target.value.length });
   }
 
+  function handleZenScroll(event) {
+    const top = event.target.scrollTop;
+    if (top > 24) {
+      setZenScrollCompact(true);
+    } else if (top <= 4) {
+      setZenScrollCompact(false);
+    }
+  }
+
   function jumpToIndex(index, length = 0) {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -264,6 +282,7 @@ const FocusTextarea = forwardRef(function FocusTextarea(
     const nextIndex = Math.min(normalizedPages.length - 1, Math.max(0, index + direction));
     setActivePageId(normalizedPages[nextIndex].id);
     setCursorIndex(0);
+    setZenScrollCompact(false);
     window.setTimeout(() => {
       textareaRef.current?.focus();
       textareaRef.current?.setSelectionRange(0, 0);
@@ -299,7 +318,7 @@ const FocusTextarea = forwardRef(function FocusTextarea(
         createPortal(
           <div className="zen-overlay" role="presentation" onMouseDown={() => setFocused(false)}>
             <div
-              className={`zen-editor${showPageOutline ? "" : " has-no-outline"}`}
+              className={`zen-editor${showPageOutline ? "" : " has-no-outline"}${zenScrollCompact ? " is-scroll-compact" : ""}`}
               role="dialog"
               aria-modal="true"
               aria-labelledby={titleId}
@@ -470,6 +489,7 @@ const FocusTextarea = forwardRef(function FocusTextarea(
                   onBlur={() => onDraftClear?.()}
                   onCompositionStart={handleCompositionStart}
                   onCompositionEnd={handleCompositionEnd}
+                  onScroll={handleZenScroll}
                 />
                 <DraftPreviewList drafts={remoteDrafts} compact />
               </div>
