@@ -136,6 +136,20 @@
       transform-origin: top left;
     }
   }
+
+  /* Browsers without the non-standard `zoom` property (Firefox) need the
+     same scale applied via transform instead - the 2200px+ tier above sets
+     --desktop-fit-scale but never actually applied it outside of `zoom`,
+     so Firefox rendered that tier at 1x with no compensating width, unlike
+     the 1181-1700px tier just above which already had this fallback. */
+  @media (min-width: 2200px) {
+    .app-shell {
+      width: calc(100% / var(--desktop-fit-scale));
+      min-height: calc(100vh / var(--desktop-fit-scale));
+      transform: scale(var(--desktop-fit-scale));
+      transform-origin: top left;
+    }
+  }
 }
 
 @media (min-width: 1701px) and (max-width: 2199px) {
