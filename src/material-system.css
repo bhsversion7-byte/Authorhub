@@ -244,15 +244,13 @@ body > .logo-lightbox-overlay {
   z-index: 1 !important;
 }
 
-/* Novel Section: antique brass route label, compact and warm. */
+/* Novel Section: antique brass route label, compact and warm.
+   background/border-color removed (2026-07-09 audit) - both are fully
+   overridden by a later .novel-hero rule further down this file. */
 .novel-section .novel-hero,
 .novel-section .novel-hero:hover {
   min-height: clamp(114px, 11.2vw, 142px) !important;
   padding-block: clamp(15px, 1.8vw, 22px) !important;
-  background:
-    linear-gradient(135deg, rgba(238, 225, 198, 0.92), rgba(215, 193, 151, 0.72)),
-    linear-gradient(90deg, rgba(176, 138, 76, 0.12), rgba(255, 255, 255, 0.08)) !important;
-  border-color: rgba(139, 105, 55, 0.24) !important;
 }
 
 .novel-section .novel-hero::before {
@@ -1294,12 +1292,6 @@ body,
   content: none !important;
 }
 
-.novel-section .novel-hero,
-.novel-section .novel-hero:hover {
-  background-color: #ead69e !important;
-  background-image: none !important;
-}
-
 .novel-section .novel-hero::before {
   opacity: 0.16 !important;
 }
@@ -1361,12 +1353,6 @@ body,
   max-width: 100% !important;
   margin-left: 0 !important;
   margin-right: 0 !important;
-}
-
-.novel-section .novel-hero,
-.novel-section .novel-hero:hover {
-  background-color: #faef96 !important;
-  background-image: none !important;
 }
 
 .novel-section .novel-meta > label,

@@ -2,10 +2,11 @@
    Scope: remove idle input-box artifacts, keep editable focus affordance, and make publish link popover visible.
 */
 
+/* align-items removed (2026-07-09 audit) - dead, overridden by a later
+   material-system.css rule that sets align-items: center. */
 .novel-section .novel-hero {
   position: relative !important;
   z-index: 60 !important;
-  align-items: flex-start !important;
   overflow: visible !important;
 }
 

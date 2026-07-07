@@ -120,18 +120,6 @@ body::before,
   height: 42px !important;
 }
 
-/* Novel hero: less top-heavy, warmer, and less muddy. */
-.novel-section .novel-hero {
-  min-height: clamp(188px, 16vw, 238px) !important;
-  padding-top: clamp(38px, 3.4vw, 54px) !important;
-  padding-bottom: clamp(28px, 2.4vw, 40px) !important;
-  background:
-    radial-gradient(circle at 13% 20%, rgba(188, 141, 91, 0.13), transparent 35%),
-    radial-gradient(circle at 89% 82%, rgba(114, 132, 129, 0.08), transparent 34%),
-    linear-gradient(135deg, rgba(246, 239, 228, 0.98), rgba(232, 221, 205, 0.95)) !important;
-  border-color: rgba(179, 145, 103, 0.34) !important;
-}
-
 .novel-section .novel-hero > div:first-child {
   transform: translateY(1.22em) !important;
 }
