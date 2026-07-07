@@ -27,20 +27,12 @@
     0 4px 14px rgba(44, 36, 24, 0.03);
 }
 
-html {
-  background:
-    linear-gradient(135deg, rgba(246, 241, 232, 0.16), rgba(223, 215, 202, 0.14)),
-    url("/texture-3-wide.jpg") center center / cover no-repeat,
-    var(--ah-bg-paper) !important;
-}
-
+/* background removed (2026-07-09 audit) - dead for all three selectors,
+   overridden by a later rule further down this file - color is this
+   block's real contribution. */
 body,
 body[data-ambient],
 body[data-theme="light"] {
-  background:
-    linear-gradient(135deg, rgba(246, 241, 232, 0.12), rgba(223, 215, 202, 0.08)),
-    url("/texture-3-wide.jpg") center center / cover no-repeat,
-    var(--ah-bg-paper) !important;
   color: var(--ah-ink-deep) !important;
 }
 
@@ -484,12 +476,6 @@ body[data-theme="dark"] {
     #171514 !important;
 }
 
-body[data-theme="dark"]::before {
-  opacity: 0.15 !important;
-  mix-blend-mode: overlay !important;
-  filter: contrast(0.9) brightness(0.75) !important;
-}
-
 body[data-theme="dark"] .relation-svg {
   background-color: #30342f !important;
   background-image: radial-gradient(rgba(208, 177, 138, 0.16) 1.25px, transparent 1.25px) !important;
@@ -507,21 +493,10 @@ body[data-theme="dark"] .graph-card.relation-graph {
   --ah-paper-live: #f3eee4;
 }
 
-html,
-body,
-body[data-theme="light"] {
-  background:
-    url("/texture-3-wide.jpg") center center / cover no-repeat,
-    var(--ah-paper-live) !important;
-}
-
-body::before {
-  background: url("/texture-3-wide.jpg") center center / cover no-repeat !important;
-  opacity: 0.34 !important;
-  mix-blend-mode: multiply !important;
-  filter: contrast(1.12) brightness(1.02) saturate(0.72) !important;
-}
-
+/* html/body removed from this selector (2026-07-09 audit) - their
+   background is dead here (overridden by a later rule), but
+   .app-shell/.content-shell/.novel-section genuinely need this
+   transparent value. */
 .app-shell,
 .content-shell,
 .novel-section {
@@ -739,19 +714,6 @@ body[data-theme="dark"] #root {
   color: #f5eadc !important;
 }
 
-body[data-theme="dark"]::before {
-  opacity: 0.08 !important;
-  mix-blend-mode: overlay !important;
-  filter: contrast(0.92) brightness(0.72) saturate(0.65) !important;
-}
-
-body[data-theme="dark"] :where(input, textarea, select) {
-  background: rgba(255, 248, 232, 0.1) !important;
-  border-color: rgba(230, 210, 184, 0.2) !important;
-  color: #f5eadc !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
-}
-
 body[data-theme="dark"] .user-info-grid input,
 body[data-theme="dark"] .auth-field input,
 body[data-theme="dark"] .novel-section .novel-meta > label input {
@@ -778,15 +740,16 @@ body[data-theme="dark"] .user-center-section .user-info-grid label input {
    Root cause addressed: full-viewport fixed pseudo layers with blend/filter
    were competing across legacy patch files and could trigger Windows GPU
    repaint flicker. Keep texture visible through normal backgrounds only. */
+/* background/background-attachment removed (2026-07-09 audit) - dead
+   for all five selectors (live-verified body/body[data-ambient]/
+   body[data-theme="light"]/#root directly), overridden by a later rule
+   further down this file - background-blend-mode is this block's only
+   surviving property. */
 html,
 body,
 body[data-ambient],
 body[data-theme="light"],
 #root {
-  background:
-    url("/texture-3-wide.jpg") center center / cover no-repeat,
-    var(--ah-paper-live, #f3eee4) !important;
-  background-attachment: scroll !important;
   background-blend-mode: normal !important;
 }
 
