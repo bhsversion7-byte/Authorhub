@@ -195,19 +195,6 @@
   color: var(--ink);
 }
 
-.zen-overlay {
-  z-index: 95;
-  background: rgba(44, 42, 41, 0.18);
-}
-
-.zen-editor {
-  width: min(920px, 100%);
-  border-radius: 22px;
-  background:
-    linear-gradient(180deg, rgba(255, 253, 248, 0.96), rgba(246, 241, 234, 0.92)),
-    rgba(255, 255, 255, 0.9);
-}
-
 .zen-editor-head h3 {
   font-size: clamp(24px, 2.5vw, 36px);
 }

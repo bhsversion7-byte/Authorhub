@@ -2222,30 +2222,20 @@ body[data-theme="dark"] .toggle-pill.is-active {
   margin-left: auto;
 }
 
+/* position/inset/z-index/display/place-items/padding/background/
+   backdrop-filter removed (2026-07-09 audit) - all dead, overridden by a
+   later authorhub-detail-polish.css rule - animation is this block's
+   only surviving property. */
 .zen-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 80;
-  display: grid;
-  place-items: center;
-  padding: clamp(18px, 4vw, 52px);
-  background: rgba(44, 42, 41, 0.12);
-  backdrop-filter: blur(20px);
   animation: riseIn 220ms var(--ease) both;
 }
 
+/* display/gap/width/padding/border-radius/background/border/box-shadow
+   removed (2026-07-09 audit) - all dead, overridden by a later
+   authorhub-detail-polish.css rule - min-height is this block's only
+   surviving property. */
 .zen-editor {
-  display: grid;
-  gap: 16px;
-  width: min(980px, 100%);
   min-height: min(720px, 82vh);
-  padding: clamp(18px, 3vw, 30px);
-  border-radius: 24px;
-  background:
-    radial-gradient(circle at 12% 2%, rgba(244, 213, 191, 0.22), transparent 34%),
-    rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.78);
-  box-shadow: 0 30px 80px rgba(44, 42, 41, 0.14);
 }
 
 .zen-editor-head {
