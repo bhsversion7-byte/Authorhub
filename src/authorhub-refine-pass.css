@@ -182,22 +182,6 @@ body::before,
   mix-blend-mode: multiply !important;
 }
 
-.graph-hint {
-  position: absolute !important;
-  right: 22px !important;
-  bottom: 16px !important;
-  z-index: 4 !important;
-  max-width: min(520px, calc(100% - 44px)) !important;
-  padding: 6px 10px !important;
-  border-radius: 999px !important;
-  background: rgba(255, 253, 248, 0.55) !important;
-  color: rgba(97, 79, 62, 0.74) !important;
-  font-size: 11px !important;
-  line-height: 1.45 !important;
-  text-align: right !important;
-  backdrop-filter: blur(8px) !important;
-}
-
 .graph-toolbar .toolbar-actions button,
 .relation-reset-button {
   background: rgba(255, 253, 248, 0.88) !important;
@@ -432,7 +416,7 @@ body[data-theme="dark"] :where(input, textarea, select) {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045) !important;
 }
 
-body[data-theme="dark"] :where(.eyebrow, .graph-hint, .media-empty, .ai-nudge p, .panel-title span, .nav-label) {
+body[data-theme="dark"] :where(.eyebrow, .media-empty, .ai-nudge p, .panel-title span, .nav-label) {
   color: var(--ah-dark-muted) !important;
 }
 

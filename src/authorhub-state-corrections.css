@@ -724,12 +724,37 @@ body[data-theme="dark"] .user-unregister-modal .btn-unregister:focus-visible {
 
 /* Star-map hint sits at the card's bottom-right and can land over a character
    node's label. A light frosted backdrop keeps the instructional text legible
-   without moving the graph or the nodes. */
+   without moving the graph or the nodes.
+   Consolidated 2026-07-09 from 7 scattered declarations across 4 files
+   (styles.css, authorhub-refine-pass.css, authorhub-detail-polish.css,
+   material-system.css x5) built up over several passes - this is now the
+   single source, holding only the values that were actually winning the
+   cascade (verified against live computed styles before/after). Keeping
+   !important here even though this is now the only declaration for this
+   selector: `.novel-section :where(..., .graph-card, ...) > *` in
+   material-system.css sets `position: relative !important` / `z-index: 1
+   !important` on every direct child of a few container types including
+   .graph-card - a DIFFERENT selector my exact-string dead-code audit
+   couldn't see, and it will beat a non-important declaration here
+   regardless of this selector's higher specificity (confirmed by a live
+   regression during this consolidation - position/z-index visibly changed
+   until !important was restored). No other file may declare `.graph-hint`
+   or this nested selector again - if a future tweak is needed, edit here. */
 .novel-section .graph-card.relation-graph > .graph-hint {
+  position: absolute !important;
+  right: 46px !important;
+  bottom: 14px !important;
+  z-index: 3 !important;
+  max-width: min(580px, calc(100% - 96px)) !important;
+  transform: translate(8px, 4px) !important;
   padding: 5px 11px !important;
   border-radius: 11px !important;
   background: rgba(247, 243, 235, 0.58) !important;
   backdrop-filter: blur(3px) !important;
+  color: rgba(90, 82, 74, 0.72) !important;
+  font-size: 11px !important;
+  line-height: 1.45 !important;
+  text-align: right !important;
 }
 
 body[data-theme="dark"] .novel-section .graph-card.relation-graph > .graph-hint {

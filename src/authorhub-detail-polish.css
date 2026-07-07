@@ -105,21 +105,6 @@ body::before,
   pointer-events: none !important;
 }
 
-.graph-hint {
-  right: 11px !important;
-  bottom: -2px !important;
-  max-width: min(560px, calc(100% - 26px)) !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  color: rgba(90, 72, 54, 0.62) !important;
-  font-size: 11px !important;
-  text-align: right !important;
-  backdrop-filter: none !important;
-}
-
 .graph-toolbar .toolbar-actions button,
 .relation-reset-button {
   background: rgba(255, 253, 248, 0.9) !important;

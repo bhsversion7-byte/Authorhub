@@ -359,17 +359,6 @@ body > .logo-lightbox-overlay {
   background: transparent !important;
 }
 
-.graph-hint {
-  bottom: 42px !important;
-  right: 16px !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  border: 0 !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  color: rgba(90, 82, 74, 0.72) !important;
-}
-
 /* Character detail workbench: warm linen paper that hosts colored planets. */
 .novel-section .inspector-card,
 .novel-section .inspector-card:hover,
@@ -635,6 +624,12 @@ body[data-theme="dark"] .landing-gateway.mode-auth {
   box-shadow: none !important;
   line-height: 1.08 !important;
   color: rgba(106, 91, 73, 0.7) !important;
+  /* font-size/font-weight used to only come from a since-removed dead
+     .novel-meta label rule in styles.css (2026-07-09 consolidation) -
+     restored here directly since nothing else set them and it's inherited
+     by this label's children. */
+  font-size: 11px !important;
+  font-weight: 800 !important;
 }
 
 .novel-section .novel-meta > label:nth-of-type(1) {
@@ -772,16 +767,6 @@ body[data-theme="dark"] .landing-gateway.mode-auth {
   background-image: radial-gradient(var(--mat-graph-dot) 1.25px, transparent 1.25px) !important;
   background-size: 24px 24px !important;
   background-position: 0 0 !important;
-}
-
-.graph-hint {
-  right: 28px !important;
-  bottom: 30px !important;
-  max-width: calc(100% - 56px) !important;
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  color: rgba(90, 82, 74, 0.72) !important;
 }
 
 .danger-lite-button,
@@ -1076,16 +1061,6 @@ body[data-theme="light"],
   height: calc(var(--relation-panel-height) - 148px) !important;
 }
 
-.novel-section .graph-card.relation-graph > .graph-hint {
-  position: absolute !important;
-  right: 34px !important;
-  bottom: 22px !important;
-  z-index: 3 !important;
-  max-width: min(560px, calc(100% - 68px)) !important;
-  color: rgba(90, 82, 74, 0.72) !important;
-  text-align: right !important;
-}
-
 .media-carousel-block,
 .imessage-stack,
 .media-empty {
@@ -1359,13 +1334,6 @@ body,
   height: calc(var(--relation-panel-height) - 124px) !important;
 }
 
-.novel-section .graph-card.relation-graph > .graph-hint {
-  right: 46px !important;
-  bottom: 16px !important;
-  transform: translate(8px, 4px) !important;
-  max-width: min(580px, calc(100% - 96px)) !important;
-}
-
 .imessage-card > button[aria-label="查看大图"],
 .imessage-card > button[aria-label^="切换到"] {
   appearance: none !important;
@@ -1477,10 +1445,6 @@ body,
 
 .relation-svg {
   height: calc(var(--relation-panel-height) - 76px) !important;
-}
-
-.novel-section .graph-card.relation-graph > .graph-hint {
-  bottom: 14px !important;
 }
 
 .character-action-row .primary-button,

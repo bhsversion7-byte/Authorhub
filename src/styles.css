@@ -461,7 +461,6 @@ a {
 .brand span,
 .eyebrow,
 .nav-label,
-.novel-meta span,
 .inspector-head span {
   margin: 0;
   color: var(--muted);
@@ -1303,52 +1302,11 @@ body[data-theme="dark"] .toggle-pill.is-active {
   box-shadow: 0 2px 0 color-mix(in srgb, var(--novel-color) 50%, transparent);
 }
 
-.novel-meta {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
-  max-width: 680px;
-}
-
-.novel-meta span,
-.novel-meta a,
 .tag-list span {
   padding: 8px 11px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.68);
   border: 1px solid rgba(255, 255, 255, 0.72);
-}
-
-.novel-meta label {
-  display: grid;
-  gap: 4px;
-  min-width: 132px;
-  padding: 8px 11px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.68);
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.novel-meta input {
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--ink);
-  font-size: 12px;
-  font-weight: 700;
-  box-shadow: none;
-}
-
-.novel-meta a {
-  color: color-mix(in srgb, var(--novel-color) 70%, var(--ink));
-  text-decoration: none;
-  font-size: 12px;
-  font-weight: 800;
 }
 
 .publish-link {
@@ -1612,16 +1570,6 @@ body[data-theme="dark"] .toggle-pill.is-active {
   stroke: rgba(234, 223, 212, 0.92);
   stroke-width: 1;
   filter: drop-shadow(0 5px 14px rgba(44, 42, 41, 0.05));
-}
-
-.graph-hint {
-  position: absolute;
-  right: 18px;
-  bottom: 14px;
-  z-index: 2;
-  max-width: 420px;
-  color: var(--muted);
-  font-size: 12px;
 }
 
 .inspector-card {
@@ -2810,15 +2758,6 @@ body[data-theme="dark"] .toggle-pill.is-active {
   font-size: clamp(13px, 1.2vw, 15px);
 }
 
-.novel-meta {
-  max-width: 560px;
-}
-
-.novel-meta label {
-  min-width: 116px;
-  padding: 7px 10px;
-}
-
 .story-grid {
   gap: 14px;
 }
@@ -3184,11 +3123,6 @@ textarea {
   font-size: clamp(22px, 2.2vw, 26px) !important;
 }
 
-.novel-meta label {
-  min-width: 104px;
-  padding: 6px 9px;
-}
-
 .relation-layout {
   --relation-panel-height: clamp(560px, calc(100vh - 38px), 690px);
 }
@@ -3415,7 +3349,6 @@ body {
 
 .section-heading p,
 .panel-title span,
-.graph-hint,
 .brand span {
   color: var(--muted);
 }
