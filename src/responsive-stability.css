@@ -107,24 +107,6 @@
       min-height: calc(100vh / var(--desktop-fit-scale));
     }
   }
-
-  @media (min-width: 2200px) {
-    :root {
-      --app-sidebar-width: 246px;
-      --content-wide-max: min(1840px, calc(100vw - 380px));
-      --desktop-fit-scale: 1.055;
-    }
-
-    .app-shell {
-      zoom: var(--desktop-fit-scale);
-      width: calc(100% / var(--desktop-fit-scale));
-      min-height: calc(100vh / var(--desktop-fit-scale));
-    }
-
-    .content-shell {
-      padding: 28px clamp(36px, 3vw, 76px) 68px !important;
-    }
-  }
 }
 
 @supports not (zoom: 1) {
@@ -136,19 +118,36 @@
       transform-origin: top left;
     }
   }
+}
 
-  /* Browsers without the non-standard `zoom` property (Firefox) need the
-     same scale applied via transform instead - the 2200px+ tier above sets
-     --desktop-fit-scale but never actually applied it outside of `zoom`,
-     so Firefox rendered that tier at 1x with no compensating width, unlike
-     the 1181-1700px tier just above which already had this fallback. */
-  @media (min-width: 2200px) {
-    .app-shell {
-      width: calc(100% / var(--desktop-fit-scale));
-      min-height: calc(100vh / var(--desktop-fit-scale));
-      transform: scale(var(--desktop-fit-scale));
-      transform-origin: top left;
-    }
+/* True 4K/ultra-wide (2200px+): uses transform:scale, not `zoom`, in every
+   browser - not just Firefox's fallback above. Found 2026-07-10: `zoom`'s
+   effect on this tier's CSS Grid content (.relation-layout) didn't line up
+   with the document's own overflow/scrollWidth accounting - the grid
+   rendered visibly wider than the viewport (measured: content extending
+   ~165px past the right edge at 3840px), but no scrollbar ever appeared to
+   reveal it, so the right-side character-detail card just looked clipped
+   with no way to reach it. `transform:scale` doesn't touch descendants'
+   own layout math the way `zoom` does (percentage/vw units inside still
+   resolve against the pre-scale box, then the whole rendered result scales
+   uniformly) - the 1181-1700px tier already relies on this exact mechanism
+   for non-zoom browsers without issue. */
+@media (min-width: 2200px) {
+  :root {
+    --app-sidebar-width: 246px;
+    --content-wide-max: min(1840px, calc(100vw - 380px));
+    --desktop-fit-scale: 1.055;
+  }
+
+  .app-shell {
+    width: calc(100% / var(--desktop-fit-scale));
+    min-height: calc(100vh / var(--desktop-fit-scale));
+    transform: scale(var(--desktop-fit-scale));
+    transform-origin: top left;
+  }
+
+  .content-shell {
+    padding: 28px clamp(36px, 3vw, 76px) 68px !important;
   }
 }
 

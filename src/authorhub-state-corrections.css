@@ -19,6 +19,28 @@
   }
 }
 
+/* True 4K/ultra-wide (2200px+, see responsive-stability.css): the 861px+
+   rule above sizes .content-shell from the RAW viewport (100vw), which is
+   correct everywhere else but wrong once .app-shell itself is visually
+   scaled up - app-shell's own layout width is deliberately shrunk to
+   calc(100%/scale) so that after the scale it renders back to 100vw, but
+   .content-shell's 100vw-based width ignores that shrink entirely and
+   computes against the true viewport regardless. The scale then cascades
+   onto content-shell too (transforms apply to descendants), so its FINAL
+   rendered width ends up scale× too wide - found 2026-07-10 via a real
+   screenshot showing the character-detail card clipped at 4K with no
+   scrollbar to reach it (the mismatch doesn't register as document-level
+   overflow, since app-shell's own outer box is still exactly viewport-
+   sized). Dividing by the same --desktop-fit-scale here keeps
+   content-shell's layout width in step with app-shell's shrink, so the
+   compounded scale lands back on exactly 100vw like everything else. */
+@media (min-width: 2200px) {
+  .content-shell {
+    width: calc((100vw - var(--sidebar-current-width, var(--app-sidebar-width, 246px))) / var(--desktop-fit-scale)) !important;
+    max-width: calc((100vw - var(--sidebar-current-width, var(--app-sidebar-width, 246px))) / var(--desktop-fit-scale)) !important;
+  }
+}
+
 .content-shell :where(
   .profile-panel,
   .progress-panel,
