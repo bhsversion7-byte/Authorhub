@@ -125,20 +125,12 @@
     0 0 0 3px rgba(215, 185, 142, 0.075) !important;
 }
 
-/* Only direct meta fields get the editable-field halo.
-   Popover labels must stay plain explanatory text. */
+/* display/gap/width/min-width/padding/border/border-radius/background/
+   box-shadow/color are all set (and win) elsewhere in material-system.css
+   for this exact selector - transition is the only property nothing else
+   declares, so it's the sole survivor of this block (2026-07-09 audit). */
 .novel-section .novel-meta > label,
 .novel-section .novel-meta > label:first-child {
-  display: grid !important;
-  gap: 4px !important;
-  width: 112px !important;
-  min-width: 0 !important;
-  padding: 4px 8px !important;
-  border: 1px solid transparent !important;
-  border-radius: 13px !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  color: rgba(127, 116, 107, 0.82) !important;
   transition:
     background 160ms var(--ease),
     border-color 160ms var(--ease),
@@ -161,26 +153,14 @@
     0 0 0 3px rgba(215, 185, 142, 0.07) !important;
 }
 
+/* width is the only property nothing else declares for this exact
+   selector pair - min-height/margin/padding/border/border-radius/
+   background/box-shadow/outline/color/font-size/font-weight/line-height
+   all win (identically for base and :focus) from material-system.css and
+   authorhub-state-corrections.css instead (2026-07-09 audit). */
 .novel-section .novel-meta > label input,
 .novel-section .novel-meta > label input:focus {
   width: 100% !important;
-  min-height: 0 !important;
-  margin: 3px 0 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  outline: none !important;
-  color: var(--ink) !important;
-  /* Must match the fixed 12px/700 chrome size these fields keep everywhere
-     else (authorhub-state-corrections.css) - the previous 13px/760 here
-     only won during :focus because pairing the selector with `:focus`
-     raised its specificity above that plain (non-focus-qualified) override,
-     so the field visibly grew the moment it was clicked. */
-  font-size: 12px !important;
-  font-weight: 700 !important;
-  line-height: 1.35 !important;
 }
 
 .novel-section .novel-meta > label input[type="number"]::-webkit-outer-spin-button,
