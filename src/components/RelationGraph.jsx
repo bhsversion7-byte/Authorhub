@@ -86,6 +86,16 @@ export default function RelationGraph({
   // wherever it last settled instead of jumping back to a fresh formula
   // position every time. Cleared only by 重置视图.
   const nodePositionsRef = useRef(new Map());
+  // Area-lock (2026-07-10): characters in this set get fx/fy pinned to
+  // their remembered position on every rebuild, so adding new characters
+  // (which recreates the whole D3 node array and re-runs every force) can
+  // never nudge them - this is the actual fix for "拖拽好了星球，加人物又
+  //被打乱了". A ref, not persisted state or Supabase data: consistent
+  // with nodePositionsRef itself not persisting across a reload either,
+  // and cleared by 重置视图 same as remembered positions are.
+  const lockedNodeIdsRef = useRef(new Set());
+  const areaSelectStartRef = useRef(null);
+  const areaSelectRectRef = useRef(null);
 
   const [selectedId, setSelectedId] = useState(novel.characters[0]?.id);
   const [graphFocusId, setGraphFocusId] = useState("");
@@ -98,6 +108,15 @@ export default function RelationGraph({
   const [connectLabel, setConnectLabel] = useState("关系");
   const [selectedRelationshipIndex, setSelectedRelationshipIndex] = useState(null);
   const [pendingNodeId, setPendingNodeId] = useState("");
+  // Area-lock: Shift+drag on empty canvas draws a selection box (rendered
+  // via areaSelectBox while the drag is live); on release, areaSelectedIds
+  // holds the character ids that landed inside it and stays populated
+  // (box still shown) until the user either right-clicks for the lock/
+  // unlock menu or clears the selection some other way. areaContextMenu
+  // is only ever set right after a non-empty selection is right-clicked.
+  const [areaSelectBox, setAreaSelectBox] = useState(null);
+  const [areaSelectedIds, setAreaSelectedIds] = useState([]);
+  const [areaContextMenu, setAreaContextMenu] = useState(null);
   const [tagText, setTagText] = useState("");
   const [detailPane, setDetailPane] = useState(36);
   const [resizing, setResizing] = useState(false);
@@ -199,12 +218,29 @@ export default function RelationGraph({
   // value without needing to be in that effect's dependency list.
   const selectedIdRef = useRef(selectedId);
   const isDraftDirtyRef = useRef(isDraftDirty);
+  // Same reasoning as above, for the area-lock context menu's contextmenu
+  // handler (also bound once inside the D3 effect below).
+  const areaSelectedIdsRef = useRef(areaSelectedIds);
   useEffect(() => {
     selectedIdRef.current = selectedId;
   }, [selectedId]);
   useEffect(() => {
     isDraftDirtyRef.current = isDraftDirty;
   }, [isDraftDirty]);
+  useEffect(() => {
+    areaSelectedIdsRef.current = areaSelectedIds;
+  }, [areaSelectedIds]);
+
+  useEffect(() => {
+    if (!areaSelectedIds.length && !areaContextMenu) return undefined;
+    function onKeyDown(event) {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      dismissAreaSelection();
+    }
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, [areaSelectedIds, areaContextMenu]);
 
   useEffect(() => {
     setDraft(selected ? { ...selected, tag: getCharacterTag(selected) } : null);
@@ -251,7 +287,7 @@ export default function RelationGraph({
     ink.append("feTurbulence").attr("type", "fractalNoise").attr("baseFrequency", "0.018").attr("numOctaves", "1").attr("seed", "8").attr("result", "noise");
     ink.append("feDisplacementMap").attr("in", "SourceGraphic").attr("in2", "noise").attr("scale", "1.2");
 
-    svg
+    const hitArea = svg
       .append("rect")
       .attr("class", "graph-hit-area")
       .attr("width", width)
@@ -264,6 +300,72 @@ export default function RelationGraph({
       });
 
     const graphLayer = svg.append("g").attr("class", "graph-layer");
+
+    // Area-lock selection box: lives inside graphLayer so it pans/zooms
+    // with the graph exactly like a node would, using the same world
+    // coordinate space (d3.pointer against graphLayer's own node already
+    // accounts for both the SVG's viewBox scaling and the zoom/pan
+    // transform, matching how the existing node-drag handlers get their
+    // coordinates).
+    const areaSelectRect = graphLayer
+      .append("rect")
+      .attr("class", "graph-area-select")
+      .attr("rx", 0)
+      .style("display", "none")
+      .style("pointer-events", "none");
+    areaSelectRectRef.current = areaSelectRect;
+
+    hitArea.on("mousedown.areaSelect", (event) => {
+      if (!event.shiftKey || event.button !== 0) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const [startX, startY] = d3.pointer(event, graphLayer.node());
+      areaSelectStartRef.current = { x: startX, y: startY };
+      areaSelectRect.style("display", null).attr("x", startX).attr("y", startY).attr("width", 0).attr("height", 0);
+      setAreaContextMenu(null);
+
+      function onMove(moveEvent) {
+        const [x, y] = d3.pointer(moveEvent, graphLayer.node());
+        const left = Math.min(startX, x);
+        const top = Math.min(startY, y);
+        areaSelectRect
+          .attr("x", left)
+          .attr("y", top)
+          .attr("width", Math.abs(x - startX))
+          .attr("height", Math.abs(y - startY));
+      }
+
+      function onUp(upEvent) {
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+        areaSelectStartRef.current = null;
+        const [endX, endY] = d3.pointer(upEvent, graphLayer.node());
+        const minX = Math.min(startX, endX);
+        const maxX = Math.max(startX, endX);
+        const minY = Math.min(startY, endY);
+        const maxY = Math.max(startY, endY);
+        const ids = nodesRef.current.filter((character) => character.x >= minX && character.x <= maxX && character.y >= minY && character.y <= maxY).map((character) => character.id);
+        if (!ids.length) {
+          areaSelectRect.style("display", "none");
+          setAreaSelectedIds([]);
+          return;
+        }
+        setAreaSelectedIds(ids);
+      }
+
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+    });
+
+    svg.on("contextmenu", (event) => {
+      // Only intercepts the browser's own right-click menu when a box was
+      // just drawn and landed on at least one character - a plain right-
+      // click anywhere else falls through to the default menu, unchanged.
+      if (!areaSelectedIdsRef.current.length) return;
+      event.preventDefault();
+      setAreaContextMenu({ x: event.clientX, y: event.clientY });
+    });
+
     const links = (novel.relationships ?? []).map((relationship, index) => {
       const displayRelationship =
         index === selectedRelationshipIndex && connectFrom && connectTo
@@ -355,14 +457,24 @@ export default function RelationGraph({
       // character(s) (already the visual focus via the halo) stay the
       // biggest plain circle on the star-map.
       const degree = adjacency.get(character.id)?.size ?? 0;
+      const startX = remembered?.x ?? (isMain ? width / 2 : width / 2 + Math.cos(angle) * ringRadius);
+      const startY = remembered?.y ?? (isMain ? height / 2 : height / 2 + Math.sin(angle) * ringRadius);
+      const isLocked = lockedNodeIdsRef.current.has(character.id);
       return {
         ...character,
         tag,
         labelWidth: Math.max(54, tag.length * 12 + 24),
         radius: isMain ? 28 + Math.min(degree, 5) * 1.2 : 21 + Math.min(degree, 6) * 1.6,
         ringRadius,
-        x: remembered?.x ?? (isMain ? width / 2 : width / 2 + Math.cos(angle) * ringRadius),
-        y: remembered?.y ?? (isMain ? height / 2 : height / 2 + Math.sin(angle) * ringRadius),
+        x: startX,
+        y: startY,
+        // Area-lock: pin fx/fy the same way an active user-drag does, so
+        // every force in the simulation (including the ones a newly added
+        // character's charge/collision would otherwise apply) simply
+        // cannot move this node - not just "resume from remembered
+        // position" like every other node, which is still subject to
+        // resettling on each rebuild.
+        ...(isLocked ? { fx: startX, fy: startY } : {}),
       };
     });
     linksRef.current = links;
@@ -373,6 +485,10 @@ export default function RelationGraph({
       .filter((event) => {
         if (event.type === "wheel") return true;
         if (event.button) return false;
+        // Shift+drag on empty canvas draws an area-lock selection box
+        // instead of panning - plain drag (no Shift) is completely
+        // untouched, still pans exactly as before.
+        if (event.shiftKey) return false;
         return !event.target?.closest?.(".graph-node");
       })
       .on("zoom", (event) => {
@@ -485,11 +601,34 @@ export default function RelationGraph({
             event.sourceEvent?.stopPropagation();
             if (!event.active) simulation.alphaTarget(0);
             nodePositionsRef.current.set(event.subject.id, { x: event.subject.x, y: event.subject.y });
-            event.subject.fx = null;
-            event.subject.fy = null;
+            // A locked node stays locked through a manual re-drag too - only
+            // clear fx/fy (letting physics move it again) if it wasn't in
+            // the locked set to begin with, otherwise every drag's own end
+            // handler would silently undo 锁定位置.
+            if (!lockedNodeIdsRef.current.has(event.subject.id)) {
+              event.subject.fx = null;
+              event.subject.fy = null;
+            }
             d3.select(event.sourceEvent?.target?.closest?.(".graph-node")).style("cursor", "grab");
           }),
       );
+
+    // Area-lock indicator: a subtle square-cornered (no border-radius,
+    // distinct from every other rounded shape in this graph on purpose -
+    // reads as "pinned in place", not another halo) dashed grey outline
+    // around a locked character, drawn behind the halo. Visibility is
+    // re-toggled directly (no rebuild needed) by lockSelectedArea/
+    // unlockSelectedArea via nodeSelectionRef, so this only needs to be
+    // right at creation/rebuild time.
+    node
+      .append("rect")
+      .attr("class", "node-lock-ring")
+      .attr("x", (character) => -(character.radius + 17))
+      .attr("y", (character) => -(character.radius + 17))
+      .attr("width", (character) => (character.radius + 17) * 2)
+      .attr("height", (character) => (character.radius + 17) * 2)
+      .attr("rx", 0)
+      .style("display", (character) => (lockedNodeIdsRef.current.has(character.id) ? null : "none"));
 
     // Halo colors are fixed, not tinted by novel.color. The main-character
     // halo stays warm two-tone, but the red/yellow are close enough in value
@@ -665,7 +804,52 @@ export default function RelationGraph({
     // main character(s) back at dead center instead of resuming wherever
     // they'd drifted to - the one thing 重置视图 is supposed to restore.
     nodePositionsRef.current.clear();
+    // 重置视图 is a full reset back to the best-fit default view - locked
+    // nodes surviving it would mean the "reset" silently keeps pinning
+    // some characters at their just-cleared old spot, which isn't a real
+    // reset at all.
+    lockedNodeIdsRef.current.clear();
+    setAreaSelectedIds([]);
+    setAreaContextMenu(null);
     setLayoutResetKey((current) => current + 1);
+  }
+
+  function dismissAreaSelection() {
+    areaSelectRectRef.current?.style("display", "none");
+    setAreaSelectedIds([]);
+    setAreaContextMenu(null);
+  }
+
+  function lockSelectedArea() {
+    const ids = areaSelectedIdsRef.current;
+    if (!ids.length) return;
+    ids.forEach((id) => lockedNodeIdsRef.current.add(id));
+    nodesRef.current.forEach((character) => {
+      if (!ids.includes(character.id)) return;
+      character.fx = character.x;
+      character.fy = character.y;
+    });
+    nodeSelectionRef.current
+      ?.select(".node-lock-ring")
+      .style("display", (character) => (lockedNodeIdsRef.current.has(character.id) ? null : "none"));
+    dismissAreaSelection();
+  }
+
+  function unlockSelectedArea() {
+    const ids = areaSelectedIdsRef.current;
+    if (!ids.length) return;
+    // Ignore ids that were never locked to begin with - a no-op for those,
+    // per spec, not an error.
+    ids.forEach((id) => lockedNodeIdsRef.current.delete(id));
+    nodesRef.current.forEach((character) => {
+      if (!ids.includes(character.id)) return;
+      character.fx = null;
+      character.fy = null;
+    });
+    nodeSelectionRef.current
+      ?.select(".node-lock-ring")
+      .style("display", (character) => (lockedNodeIdsRef.current.has(character.id) ? null : "none"));
+    dismissAreaSelection();
   }
 
   function handleSaveCharacter() {
@@ -844,6 +1028,7 @@ export default function RelationGraph({
     setGraphFocusId("");
     setHoverId("");
     clearRelationshipSelection();
+    dismissAreaSelection();
   }
 
   // Multi-select: a character can carry several tags. `tags` is the source of
@@ -1123,6 +1308,26 @@ export default function RelationGraph({
           <p>暂无人物。</p>
         )}
       </aside>}
+      {areaContextMenu &&
+        createPortal(
+          <>
+            <div className="graph-area-menu-backdrop" role="presentation" onMouseDown={dismissAreaSelection} onContextMenu={(event) => event.preventDefault()} />
+            <div
+              className="graph-area-menu"
+              role="menu"
+              style={{ left: areaContextMenu.x, top: areaContextMenu.y }}
+              onMouseDown={(event) => event.stopPropagation()}
+            >
+              <button type="button" role="menuitem" onClick={lockSelectedArea}>
+                锁定位置
+              </button>
+              <button type="button" role="menuitem" onClick={unlockSelectedArea}>
+                取消锁定
+              </button>
+            </div>
+          </>,
+          document.body,
+        )}
       {pendingCharacterSwitch &&
         createPortal(
           <div className="modal-backdrop relation-confirm-backdrop" role="presentation" onMouseDown={() => setPendingCharacterSwitch(null)}>
