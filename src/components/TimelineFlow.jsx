@@ -25,11 +25,23 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
   const [slideIndex, setSlideIndex] = useState(0);
   const [handoffState, setHandoffState] = useState("");
   const [deleteEventCandidate, setDeleteEventCandidate] = useState(null);
+  const [pendingEventSwitch, setPendingEventSwitch] = useState(null);
   const trackRef = useRef(null);
   const reorderRef = useRef(onReorderEvent);
   const selectedIndex = useMemo(() => novel.timeline.findIndex((event) => event.id === selectedId), [novel.timeline, selectedId]);
   const selected = useMemo(() => novel.timeline.find((event) => event.id === selectedId) ?? novel.timeline[0], [novel.timeline, selectedId]);
   const [draft, setDraft] = useState(selected ?? null);
+  // date/title/background/plot/images only ever leave `draft` via an
+  // explicit 保存时间点 click, so switching timeline points can silently
+  // throw away in-progress edits - this warns before that happens.
+  const isDraftDirty = useMemo(() => {
+    // draft.id briefly lags selected.id for one render right after switching
+    // events (the reset effect below hasn't committed yet) - that gap is not
+    // a real edit, so only compare once both sides agree on which event
+    // they describe.
+    if (!draft || !selected || draft.id !== selected.id) return false;
+    return JSON.stringify(draft) !== JSON.stringify(selected);
+  }, [draft, selected]);
   const maxSlide = Math.max(0, novel.timeline.length - VISIBLE_TIMELINE_NODES);
   const keywords = buildReferenceKeywords(draft, novel);
 
@@ -81,12 +93,28 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
   }, [selectedIndex, maxSlide]);
 
   function openEvent(event) {
+    if (event.id !== selectedId && isDraftDirty) {
+      setPendingEventSwitch(() => () => applyOpenEvent(event));
+      return;
+    }
+    applyOpenEvent(event);
+  }
+
+  function applyOpenEvent(event) {
     setSelectedId(event.id);
     setDraft({ ...event });
   }
 
   function addEvent() {
     if (readOnly) return;
+    if (isDraftDirty) {
+      setPendingEventSwitch(() => createAndSelectEvent);
+      return;
+    }
+    createAndSelectEvent();
+  }
+
+  function createAndSelectEvent() {
     const event = createEvent(novel.id);
     onAddEvent(novel.id, event);
     setSelectedId(event.id);
@@ -312,6 +340,33 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
           </div>
         </div>
       )}
+      {pendingEventSwitch &&
+        createPortal(
+          <div className="modal-backdrop timeline-confirm-backdrop" role="presentation" onMouseDown={() => setPendingEventSwitch(null)}>
+            <section className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="unsaved-event-title" onMouseDown={(event) => event.stopPropagation()}>
+              <p className="eyebrow">Unsaved changes</p>
+              <h2 id="unsaved-event-title">当前时间点有未保存的修改</h2>
+              <p>切换到另一个时间点会丢失“{draft?.title ?? "当前时间点"}”尚未点击“保存时间点”的修改。是否放弃这些修改并切换？</p>
+              <div className="confirm-actions">
+                <button type="button" className="ghost-button" onClick={() => setPendingEventSwitch(null)}>
+                  取消，留在这里
+                </button>
+                <button
+                  type="button"
+                  className="danger-button"
+                  onClick={() => {
+                    const proceed = pendingEventSwitch;
+                    setPendingEventSwitch(null);
+                    proceed();
+                  }}
+                >
+                  放弃修改并切换
+                </button>
+              </div>
+            </section>
+          </div>,
+          document.body,
+        )}
       {deleteEventCandidate &&
         createPortal(
         <div className="modal-backdrop timeline-confirm-backdrop" role="presentation" onMouseDown={() => setDeleteEventCandidate(null)}>

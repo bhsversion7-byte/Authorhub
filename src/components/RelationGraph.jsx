@@ -103,6 +103,7 @@ export default function RelationGraph({
   const [resizing, setResizing] = useState(false);
   const [deleteCharacterCandidate, setDeleteCharacterCandidate] = useState(null);
   const [confirmClearRelationship, setConfirmClearRelationship] = useState(false);
+  const [pendingCharacterSwitch, setPendingCharacterSwitch] = useState(null);
 
   // The tag palette is persisted per-novel (`novel.characterTags`) so users
   // can curate it - delete a default tag they never use, add their own - and
@@ -177,6 +178,33 @@ export default function RelationGraph({
     () => novel.characters.find((character) => character.id === selectedId) ?? novel.characters[0],
     [novel.characters, selectedId],
   );
+
+  // Name/age/role/background/secret/images only ever leave `draft` via an
+  // explicit 保存人物 click (color and tags commit immediately elsewhere, so
+  // they never differ from `selected` and can't cause a false positive
+  // here). Used to warn before switching characters throws this away.
+  const isDraftDirty = useMemo(() => {
+    // draft.id briefly lags selected.id for one render right after switching
+    // characters (the reset effect below hasn't committed yet) - that gap is
+    // not a real edit, so only compare once both sides agree on which
+    // character they describe.
+    if (!draft || !selected || draft.id !== selected.id) return false;
+    return JSON.stringify(draft) !== JSON.stringify({ ...selected, tag: getCharacterTag(selected) });
+  }, [draft, selected]);
+  // The SVG node click handler is (re)bound by the D3 setup effect below,
+  // which intentionally does NOT depend on selectedId/isDraftDirty (adding
+  // them would tear down and rebuild the whole force-simulated graph on
+  // every keystroke/selection change). That means the bound closure can be
+  // stale by the time it fires - refs give it a way to read the current
+  // value without needing to be in that effect's dependency list.
+  const selectedIdRef = useRef(selectedId);
+  const isDraftDirtyRef = useRef(isDraftDirty);
+  useEffect(() => {
+    selectedIdRef.current = selectedId;
+  }, [selectedId]);
+  useEffect(() => {
+    isDraftDirtyRef.current = isDraftDirty;
+  }, [isDraftDirty]);
 
   useEffect(() => {
     setDraft(selected ? { ...selected, tag: getCharacterTag(selected) } : null);
@@ -593,6 +621,14 @@ export default function RelationGraph({
 
   function handleAddCharacter() {
     if (readOnly) return;
+    if (isDraftDirty) {
+      setPendingCharacterSwitch(() => createAndSelectCharacter);
+      return;
+    }
+    createAndSelectCharacter();
+  }
+
+  function createAndSelectCharacter() {
     const character = emptyCharacter(novel.id);
     onAddCharacter(novel.id, character);
     setSelectedId(character.id);
@@ -688,6 +724,14 @@ export default function RelationGraph({
 
   function selectNodeForRelationship(event, character) {
     event.stopPropagation();
+    if (character.id !== selectedIdRef.current && isDraftDirtyRef.current) {
+      setPendingCharacterSwitch(() => () => applyNodeSelection(character));
+      return;
+    }
+    applyNodeSelection(character);
+  }
+
+  function applyNodeSelection(character) {
     character.fx = character.x;
     character.fy = character.y;
     setSelectedId(character.id);
@@ -1067,6 +1111,33 @@ export default function RelationGraph({
           <p>暂无人物。</p>
         )}
       </aside>}
+      {pendingCharacterSwitch &&
+        createPortal(
+          <div className="modal-backdrop relation-confirm-backdrop" role="presentation" onMouseDown={() => setPendingCharacterSwitch(null)}>
+            <section className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="unsaved-character-title" onMouseDown={(event) => event.stopPropagation()}>
+              <p className="eyebrow">Unsaved changes</p>
+              <h2 id="unsaved-character-title">当前人物有未保存的修改</h2>
+              <p>切换到另一个人物会丢失“{draft?.name ?? "当前人物"}”尚未点击“保存人物”的修改。是否放弃这些修改并切换？</p>
+              <div className="confirm-actions">
+                <button type="button" className="ghost-button" onClick={() => setPendingCharacterSwitch(null)}>
+                  取消，留在这里
+                </button>
+                <button
+                  type="button"
+                  className="danger-button"
+                  onClick={() => {
+                    const proceed = pendingCharacterSwitch;
+                    setPendingCharacterSwitch(null);
+                    proceed();
+                  }}
+                >
+                  放弃修改并切换
+                </button>
+              </div>
+            </section>
+          </div>,
+          document.body,
+        )}
       {deleteCharacterCandidate &&
         createPortal(
         <div className="modal-backdrop relation-confirm-backdrop" role="presentation" onMouseDown={() => setDeleteCharacterCandidate(null)}>
