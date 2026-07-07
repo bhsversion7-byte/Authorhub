@@ -41,6 +41,41 @@
   }
 }
 
+/* The paper-texture background (material-system.css) tiles /texture-3.jpg
+   at its native 574x1024px - correct at normal desktop widths, but on a
+   2K/4K screen that small a tile repeats many times over, reading as
+   visibly busy/repetitive rather than a subtle paper grain (found
+   2026-07-10, user feedback). The source image has no higher-resolution
+   version to swap in, so this scales the SAME asset up instead - a soft
+   grain texture tolerates moderate upscaling far better than a sharp
+   image would, especially blended under a gradient at low opacity like
+   this one already is. Keeps the exact 574:1024 aspect ratio throughout so
+   the grain doesn't stretch/distort, just repeats less often. */
+@media (min-width: 1701px) and (max-width: 2199px) {
+  html,
+  body,
+  body[data-ambient],
+  body[data-theme="light"],
+  #root,
+  .loading-screen {
+    /* Two background-image layers on the base rule (gradient, then the
+       texture) - "auto" for the gradient preserves its existing behavior,
+       only the texture tile itself gets the larger size. */
+    background-size: auto, 861px 1536px !important;
+  }
+}
+
+@media (min-width: 2200px) {
+  html,
+  body,
+  body[data-ambient],
+  body[data-theme="light"],
+  #root,
+  .loading-screen {
+    background-size: auto, 1148px 2048px !important;
+  }
+}
+
 .content-shell :where(
   .profile-panel,
   .progress-panel,
