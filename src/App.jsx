@@ -191,7 +191,7 @@ export default function App() {
 
   useEffect(() => {
     if (isPublicShareRoute) return;
-    if (!authUser || !data) {
+    if (!authUser) {
       setSharedNovels([]);
       setSharedNovelsReady(false);
       return;
@@ -206,14 +206,19 @@ export default function App() {
     return () => {
       mounted = false;
     };
-    // Intentionally NOT depending on `data` itself: every keystroke anywhere
-    // in the app produces a new `data` reference, and this effect has no
-    // debounce, so depending on the object identity re-fires this RPC on
-    // every edit. All post-load mutations (create/join/realtime/detach)
-    // already update `sharedNovels` locally via setSharedNovels, so this
-    // only needs to run once data becomes available after login.
+    // Keyed on authUser?.id alone, NOT on `data` (used to gate on
+    // `Boolean(data)` too, which made this RPC start only after the private
+    // document finished loading - the two are actually independent calls
+    // with no data dependency between them, so that was a fully avoidable
+    // serialized network round trip on every login/page load, fixed as part
+    // of a 2026-07-08 perf pass). Also intentionally NOT depending on `data`
+    // itself: every keystroke anywhere in the app produces a new `data`
+    // reference, and this effect has no debounce, so depending on the
+    // object identity would re-fire this RPC on every edit. All post-load
+    // mutations (create/join/realtime/detach) already update `sharedNovels`
+    // locally via setSharedNovels, so this only needs to run once per login.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authUser?.id, Boolean(data), isPublicShareRoute]);
+  }, [authUser?.id, isPublicShareRoute]);
 
   useEffect(() => {
     if (!authUser || !data || shareRoute?.intent !== SHARE_ROLES.EDITOR || !shareRoute.token) return;

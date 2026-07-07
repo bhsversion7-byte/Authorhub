@@ -20,13 +20,16 @@ export async function loadAuthorHubData(user) {
 
   if (hasSupabaseConfig && supabase && user?.id) {
     try {
-      await ensureProfile(user);
-      const { data, error } = await supabase
-        .from("author_hub_documents")
-        .select("document")
-        .eq("user_id", user.id)
-        .eq("title", DOCUMENT_TITLE)
-        .maybeSingle();
+      // ensureProfile (profiles table) and this select (author_hub_documents
+      // table) don't depend on each other's result, but used to run one
+      // after the other - a fully avoidable extra network round trip added
+      // to every single login/page load, which matters most for users with
+      // higher latency to the project's region. Run them concurrently
+      // instead (2026-07-08 perf pass).
+      const [, { data, error }] = await Promise.all([
+        ensureProfile(user),
+        supabase.from("author_hub_documents").select("document").eq("user_id", user.id).eq("title", DOCUMENT_TITLE).maybeSingle(),
+      ]);
 
       if (error) throw error;
 
