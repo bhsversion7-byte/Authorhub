@@ -648,6 +648,18 @@ export default function RelationGraph({
     const svgElement = svgRef.current;
     const zoom = zoomRef.current;
     if (!svgElement || !zoom) return;
+    // Set this BEFORE starting the animated transition below, not after -
+    // setLayoutResetKey triggers the graph-rebuild effect on the next
+    // render (near-immediately), which reapplies whatever
+    // zoomTransformRef.current holds via `svg.call(zoom.transform, ...)`.
+    // The transition's own "zoom" event only updates that ref
+    // progressively as it animates over 520ms, so the rebuild used to run
+    // long before the ref caught up to identity - it would reapply the
+    // stale pre-reset zoom level, so 重置视图 visually reset node
+    // positions but not the zoom scale ("大小"). Setting it synchronously
+    // here means the rebuild always sees the correct target regardless of
+    // how far the transition has actually animated.
+    zoomTransformRef.current = d3.zoomIdentity;
     d3.select(svgElement).transition().duration(520).ease(d3.easeCubicOut).call(zoom.transform, d3.zoomIdentity);
     // Drop every remembered position so the rebuild this triggers puts the
     // main character(s) back at dead center instead of resuming wherever
