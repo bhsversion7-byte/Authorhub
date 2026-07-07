@@ -107,6 +107,41 @@ export function formatSharedSaveNotice({ label, snippet }) {
   return cleanSnippet ? `${label || "协作者"}已保存：${cleanSnippet}......` : SHARED_SYNC_NOTICE;
 }
 
+// Top-level novel keys the "edited while you were away" catch-up notice can
+// name. Anything else (id, sharedMeta, etc.) is either bookkeeping or not
+// meaningful to call out by name.
+const SHARED_NOVEL_SECTION_LABELS = {
+  title: "书名",
+  subtitle: "副标题",
+  outline: "大纲",
+  setting: "设定集",
+  characters: "人物详情",
+  timeline: "时间线",
+  themes: "主题标签",
+};
+
+// Shallow top-level diff between the previous and next novel object, mapped
+// to the same Chinese section names shown elsewhere in the UI. Deliberately
+// shallow (JSON-stringify per key, not a deep patch) - this only needs to
+// name WHICH cards changed for a notice, not describe the change itself.
+export function diffNovelSections(previousNovel, nextNovel) {
+  if (!previousNovel || !nextNovel) return [];
+  const sections = [];
+  for (const [key, label] of Object.entries(SHARED_NOVEL_SECTION_LABELS)) {
+    const before = JSON.stringify(previousNovel[key] ?? null);
+    const after = JSON.stringify(nextNovel[key] ?? null);
+    if (before !== after) sections.push(label);
+  }
+  return sections;
+}
+
+export function formatSharedEditCatchUpNotice({ editorName, sections }) {
+  const label = String(editorName ?? "").trim() || "协作者";
+  const cleanSections = Array.isArray(sections) ? sections.filter(Boolean) : [];
+  if (!cleanSections.length) return `${label}已编辑此小说。`;
+  return `${label}已编辑：${cleanSections.join("、")}`;
+}
+
 export function normalizeSharedDraftPreview(payload, { currentUserId, now = Date.now() } = {}) {
   if (!payload || payload.type !== "draft-preview") return null;
   const sharedNovelId = String(payload.sharedNovelId ?? "").trim();

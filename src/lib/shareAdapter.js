@@ -188,15 +188,39 @@ export async function loadSharedNovelsForUser() {
   return (data ?? []).map(normalizeSharedNovelRow).filter(Boolean);
 }
 
-export async function saveSharedNovel(sharedNovelId, novel, expectedUpdatedAt) {
+export async function saveSharedNovel(sharedNovelId, novel, expectedUpdatedAt, editorName, changedSections) {
   assertSharingAvailable();
   const { data, error } = await supabase.rpc("save_author_hub_shared_novel", {
     p_shared_novel_id: sharedNovelId,
     p_novel: stripSharedNovel(novel),
     p_expected_updated_at: expectedUpdatedAt ?? null,
+    p_editor_name: editorName ?? null,
+    p_changed_sections: changedSections?.length ? changedSections : null,
   });
   if (error) throw error;
   return normalizeSharedNovelRow(Array.isArray(data) ? data[0] : data);
+}
+
+// Called once when a shared novel becomes active (mount / switching into its
+// view). Tells the caller whether someone else edited it since their own
+// previous visit - the only way to catch an edit that happened while this
+// user was offline the whole time, since the live "已保存" toast is a
+// realtime broadcast nobody offline can receive.
+export async function markSharedNovelSeen(sharedNovelId) {
+  if (!hasSupabaseConfig || !supabase || !sharedNovelId) return null;
+  const { data, error } = await supabase.rpc("mark_author_hub_shared_novel_seen", {
+    p_shared_novel_id: sharedNovelId,
+  });
+  if (error) {
+    console.warn("AuthorHub could not check for missed shared-novel edits.", error);
+    return null;
+  }
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row?.missed_edit) return null;
+  return {
+    editorName: row.editor_name,
+    sections: Array.isArray(row.sections) ? row.sections : [],
+  };
 }
 
 export function subscribeToSharedNovel(sharedNovelId, onChange) {

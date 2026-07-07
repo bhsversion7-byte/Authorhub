@@ -18,6 +18,7 @@ import {
   joinSharedNovel,
   leaveSharedNovel,
   loadSharedNovelsForUser,
+  markSharedNovelSeen,
   parseShareRoute,
   revokeShareRole,
   saveSharedNovel,
@@ -29,7 +30,9 @@ import {
 import {
   createSharedSaveNotice,
   createSharedDraftPreview,
+  diffNovelSections,
   formatPresenceLabel,
+  formatSharedEditCatchUpNotice,
   formatSharedSaveNotice,
   getSharedSaveSnippet,
   isLocalSharedSaveEcho,
@@ -202,6 +205,16 @@ export default function App() {
         setSharedNovels(rows);
         setSharedNovelsReady(true);
       }
+      // Viewer-role shares have no membership row (view access is
+      // token-only), so only owner/editor rows can be checked here. This is
+      // the one place that can catch an edit nobody was online to see live -
+      // see markSharedNovelSeen's doc comment.
+      const editableRows = rows.filter((row) => row.role !== SHARE_ROLES.VIEWER);
+      Promise.all(editableRows.map((row) => markSharedNovelSeen(row.id))).then((results) => {
+        if (!mounted) return;
+        const notices = results.filter(Boolean).map((missed) => formatSharedEditCatchUpNotice(missed));
+        if (notices.length) showQueuedShareNotices(notices, 10000);
+      });
     });
     return () => {
       mounted = false;
@@ -592,7 +605,7 @@ export default function App() {
           const workspaceNovel = decorateSharedNovel(row);
           const nextWorkspaceNovel = updater(workspaceNovel);
           const nextNovel = stripSharedNovel(nextWorkspaceNovel);
-          scheduleSharedSave(row.id, nextNovel, row.updatedAt);
+          scheduleSharedSave(row.id, nextNovel, row.updatedAt, diffNovelSections(row.novel, nextNovel));
           return {
             ...row,
             novel: nextNovel,
@@ -608,7 +621,7 @@ export default function App() {
     }));
   }
 
-  function scheduleSharedSave(sharedNovelId, novel, expectedUpdatedAt) {
+  function scheduleSharedSave(sharedNovelId, novel, expectedUpdatedAt, changedSections) {
     sharedSaveDebouncerRef.current.schedule(sharedNovelId, () => {
       // The debounce entry is gone the instant this timer fires (before the
       // network round trip even starts), so the realtime guard's `has()`
@@ -616,7 +629,11 @@ export default function App() {
       // request. Track that window explicitly so an incoming realtime update
       // for this novel is skipped until our own save has actually settled.
       sharedSaveInFlightRef.current.add(sharedNovelId);
-      saveSharedNovel(sharedNovelId, novel, expectedUpdatedAt)
+      const editorName = formatPresenceLabel({
+        name: authUser?.user_metadata?.username ?? authUser?.user_metadata?.name,
+        email: authUser?.email,
+      });
+      saveSharedNovel(sharedNovelId, novel, expectedUpdatedAt, editorName, changedSections)
         .then((row) => {
           // The novel may have been detached (confirmDeleteNovel) while this
           // request was in flight - don't let a late-arriving response
@@ -697,6 +714,19 @@ export default function App() {
       setShareNotice("");
       shareNoticeTimerRef.current = null;
     }, durationMs);
+  }
+
+  // Shows each message for the full duration, one after another, instead of
+  // showShareNotice's usual "replace whatever's showing" behavior - used for
+  // the missed-edit catch-up notices, where more than one shared novel can
+  // have changed while this user was away and each one deserves its own
+  // full 10s, not a shared/interrupted window.
+  function showQueuedShareNotices(messages, durationMs = 5000) {
+    if (!messages.length) return;
+    const [first, ...rest] = messages;
+    showShareNotice(first, durationMs);
+    if (!rest.length) return;
+    window.setTimeout(() => showQueuedShareNotices(rest, durationMs), durationMs);
   }
 
   function announceSharedSave(sharedNovelId, novel) {
