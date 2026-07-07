@@ -183,6 +183,10 @@ body,
   background: rgba(44, 38, 30, 0.16) !important;
   backdrop-filter: blur(15px) saturate(0.95) !important;
   -webkit-backdrop-filter: blur(15px) saturate(0.95) !important;
+  /* Pairs with .zen-editor textarea's own layer-promotion hint below - keeps
+     this blur on its own stable GPU layer instead of one shared with the
+     scrolling textarea inside it (2026-07-10 scroll-stutter fix). */
+  will-change: backdrop-filter !important;
 }
 
 .zen-editor {
@@ -512,6 +516,15 @@ body,
   max-height: 100% !important;
   overflow: auto !important;
   resize: none !important;
+  /* .zen-overlay carries a heavy backdrop-filter blur; without this the
+     browser can end up recompositing that whole blur layer on every scroll
+     tick of this textarea instead of treating the two as independent
+     layers, which is what caused the reported scroll stutter (2026-07-10).
+     Promotes just the scrolling textarea to its own GPU layer so its
+     repaints stay isolated from the blur - purely a perf hint, no visual
+     change. */
+  will-change: scroll-position !important;
+  transform: translateZ(0) !important;
   /* Deliberately lighter than the editor's own --ah-zen-squash (#faf4e6)
      background - a visible "spotlight" for the writing area, not just the
      same tone at lower opacity (2026-07-09, the previous rgba(250,244,230,.9)

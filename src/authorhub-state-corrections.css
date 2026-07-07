@@ -648,6 +648,18 @@ body[data-theme="dark"] .tour-target-outline {
   background: rgba(44, 38, 33, 0.22) !important;
   backdrop-filter: blur(22px) saturate(0.88) !important;
   -webkit-backdrop-filter: blur(22px) saturate(0.88) !important;
+  /* Same GPU-layer hint as .zen-overlay (2026-07-10) - most uses of this
+     backdrop are brief, non-scrolling confirm dialogs where this does
+     nothing either way, but .legal-modal-body/.announcement-modal (both
+     scroll internally, both sit behind this exact blur) benefit the same
+     way the zen editor did. */
+  will-change: backdrop-filter !important;
+}
+
+.legal-modal-body,
+.announcement-modal {
+  will-change: scroll-position !important;
+  transform: translateZ(0) !important;
 }
 
 body[data-theme="dark"] .modal-backdrop,
