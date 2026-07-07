@@ -625,17 +625,22 @@ export default function RelationGraph({
     onUpdateCharacter(novel.id, draft.id, draft);
   }
 
-  function updateDraftFocusPages(key, pages) {
+  function updateDraftFocusPages(key, pages, { isStructural = true } = {}) {
     if (!draft || readOnly) return;
     const nextFocusPages = patchFocusPageMap(draft.focusPages, key, pages);
     setDraft((current) => (current ? { ...current, focusPages: nextFocusPages } : current));
-    // Focus-editor page add/rename/reorder/delete must reach Supabase right
-    // away, not sit gated behind the separate "保存人物" button - the delete
-    // confirmation copy already promises this ("并同步到云端保存"), and it's
-    // a structural deletion (standing rule: deletions must always sync).
-    // Persisted against `selected` (the last-saved character), not the full
-    // `draft`, so an in-progress unsaved text edit isn't force-committed too.
-    if (selected) onUpdateCharacter(novel.id, selected.id, { ...selected, focusPages: nextFocusPages });
+    // Structural changes (add/rename/reorder/delete a 小标题) must reach
+    // Supabase right away, not sit gated behind the separate "保存人物"
+    // button - the delete confirmation copy already promises this ("并同步
+    // 到云端保存"). Plain typing inside a page is NOT structural (found
+    // 2026-07-09: FocusTextarea used to report every keystroke through this
+    // same callback, so typing silently bypassed 保存人物 and re-saved the
+    // whole character on every character typed) - it only updates `draft`
+    // above, same as every other field on this form, until an explicit
+    // save. Persisted against `selected` (the last-saved character), not
+    // the full `draft`, so an in-progress unsaved text edit elsewhere on
+    // the form isn't force-committed as a side effect.
+    if (isStructural && selected) onUpdateCharacter(novel.id, selected.id, { ...selected, focusPages: nextFocusPages });
   }
 
   function requestDeleteCharacter() {
@@ -994,7 +999,7 @@ export default function RelationGraph({
                   label="背景故事"
                   value={draft.background}
                   pages={draft.focusPages?.background}
-                  onPagesChange={(pages) => updateDraftFocusPages("background", pages)}
+                  onPagesChange={(pages, meta) => updateDraftFocusPages("background", pages, meta)}
                   onChange={(background) => setDraft((current) => (current ? { ...current, background } : current))}
                   onSave={handleSaveCharacter}
                   readOnly={readOnly}
@@ -1004,7 +1009,7 @@ export default function RelationGraph({
                     label="隐藏设定"
                     value={draft.secret}
                     pages={draft.focusPages?.secret}
-                    onPagesChange={(pages) => updateDraftFocusPages("secret", pages)}
+                    onPagesChange={(pages, meta) => updateDraftFocusPages("secret", pages, meta)}
                     onChange={(secret) => setDraft((current) => (current ? { ...current, secret } : current))}
                     onSave={handleSaveCharacter}
                     readOnly={readOnly}

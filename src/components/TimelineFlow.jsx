@@ -99,16 +99,20 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
     onUpdateEvent(novel.id, draft.id, draft);
   }
 
-  function updateDraftFocusPages(key, pages) {
+  function updateDraftFocusPages(key, pages, { isStructural = true } = {}) {
     if (!draft || readOnly) return;
     const nextFocusPages = patchFocusPageMap(draft.focusPages, key, pages);
     setDraft((current) => (current ? { ...current, focusPages: nextFocusPages } : current));
-    // Same standing rule as RelationGraph's character focus pages: page
-    // add/rename/reorder/delete must reach Supabase immediately rather than
-    // waiting on a separate "保存时间点" click, and persisted against
-    // `selected` (last-saved event) so unsaved plain-text edits aren't
-    // force-committed as a side effect.
-    if (selected) onUpdateEvent(novel.id, selected.id, { ...selected, focusPages: nextFocusPages });
+    // Same standing rule as RelationGraph's character focus pages:
+    // structural page changes (add/rename/reorder/delete) must reach
+    // Supabase immediately rather than waiting on a separate "保存时间点"
+    // click - plain typing inside a page is not structural (found
+    // 2026-07-09: every keystroke used to report through this same
+    // callback, silently bypassing 保存时间点) and only updates `draft`
+    // above until an explicit save, persisted against `selected`
+    // (last-saved event) so unsaved plain-text edits elsewhere on the
+    // form aren't force-committed as a side effect.
+    if (isStructural && selected) onUpdateEvent(novel.id, selected.id, { ...selected, focusPages: nextFocusPages });
   }
 
   function requestDeleteEvent(event = draft) {
@@ -254,7 +258,7 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
               label="发生背景"
               value={draft.background}
               pages={draft.focusPages?.background}
-              onPagesChange={(pages) => updateDraftFocusPages("background", pages)}
+              onPagesChange={(pages, meta) => updateDraftFocusPages("background", pages, meta)}
               onChange={(background) => setDraft((current) => (current ? { ...current, background } : current))}
               onSave={saveEvent}
               readOnly={readOnly}
@@ -263,7 +267,7 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
               label="具体剧情"
               value={draft.plot}
               pages={draft.focusPages?.plot}
-              onPagesChange={(pages) => updateDraftFocusPages("plot", pages)}
+              onPagesChange={(pages, meta) => updateDraftFocusPages("plot", pages, meta)}
               onChange={(plot) => setDraft((current) => (current ? { ...current, plot } : current))}
               onSave={saveEvent}
               readOnly={readOnly}

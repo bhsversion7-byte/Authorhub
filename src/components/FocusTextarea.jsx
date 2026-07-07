@@ -163,7 +163,7 @@ const FocusTextarea = forwardRef(function FocusTextarea(
     const nextValue = event.target.value;
     onChange?.(nextValue);
     if (hasCustomPages) {
-      onPagesChange?.([]);
+      onPagesChange?.([], { isStructural: true });
     }
     updateCursorFrom(event);
     if (!composingRef.current) {
@@ -176,7 +176,7 @@ const FocusTextarea = forwardRef(function FocusTextarea(
     const nextValue = event.target.value;
     if (hasPageNavigation) {
       const nextPages = normalizedPages.map((page) => (page.id === activePage?.id ? { ...page, value: nextValue } : page));
-      commitPages(nextPages, activePage?.id);
+      commitPages(nextPages, activePage?.id, false);
     } else {
       onChange?.(nextValue);
     }
@@ -223,10 +223,20 @@ const FocusTextarea = forwardRef(function FocusTextarea(
     jumpToIndex(match.index, searchQuery.trim().length);
   }
 
-  function commitPages(nextPages, preferredActiveId) {
+  // isStructural distinguishes "the page list itself changed" (add/rename/
+  // reorder/delete a 小标题) from "the user is just typing inside a page" -
+  // callers with an explicit-save draft model (RelationGraph/TimelineFlow)
+  // use this to decide whether a change must sync immediately (structural,
+  // matching the delete confirmation's "并同步到云端保存" promise) or can
+  // stay local until the user clicks 保存, same as every other field on
+  // that form. Found 2026-07-09: without this flag, typing a single
+  // character inside any 小标题 subpage was indistinguishable from
+  // structural changes, so it silently bypassed the explicit-save button
+  // and re-saved the whole character/event object on every keystroke.
+  function commitPages(nextPages, preferredActiveId, isStructural = true) {
     const cleaned = normalizeFocusPages(nextPages, "", label);
     const nextPersistedPages = serializeFocusPages(cleaned);
-    onPagesChange?.(nextPersistedPages);
+    onPagesChange?.(nextPersistedPages, { isStructural });
     onChange?.(combineFocusPages(cleaned));
     setActivePageId(preferredActiveId || nextPersistedPages[0]?.id || cleaned[0]?.id || "");
   }
