@@ -46,7 +46,7 @@ The interface stays warm, papery, and low-distraction on purpose. The features c
 | | |
 |---|---|
 | 📚 **Multi-novel workspace** | Every novel keeps its own outline, settings, tags, cover color, and publishing links. |
-| 🌌 **Character relation star-map** | A D3 force graph with draggable nodes, focus/reset, main-character centering, relationship labels, and a highlighted main-pair line. |
+| 🌌 **Character relation star-map** | A D3 force graph with draggable nodes, focus/reset, main-character centering, relationship labels, and a highlighted main-pair line. Shift+drag to box-select stars, then right-click to lock their position - new characters won't reshuffle them. |
 | 🧑‍🎨 **Rich character cards** | Images, age, role, **multi-select tags**, background, and a private hidden-settings field only you can see. |
 | 🕰️ **Interactive timeline** | Drag events into narrative order — organized by story beats, not just dates. |
 | 🏷️ **Themes & references** | Theme tags, world settings, reference images, and text cards, all drag-to-reorder in one place. |
