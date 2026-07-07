@@ -44,9 +44,10 @@ body::before,
     rgba(245, 241, 232, 0.1) url("/texture-3-bg.jpg") center center / cover no-repeat !important;
 }
 
+/* min-height removed (2026-07-09 audit) - dead, overridden by a later
+   material-system.css rule (same 100vh value, so no visual change). */
 .loading-screen {
   position: relative !important;
-  min-height: 100vh !important;
   isolation: isolate !important;
   background: transparent !important;
   color: var(--ah-ink) !important;

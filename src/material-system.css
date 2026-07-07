@@ -1254,12 +1254,12 @@ body,
   font-size: var(--editor-font-size, 14px) !important;
 }
 
+/* display/place-items/align-content/gap removed (2026-07-09 audit) - all
+   dead, overridden by a later authorhub-state-corrections.css rule
+   (same values, so no visual change) - min-height is this block's only
+   surviving property. */
 .loading-screen {
-  display: grid !important;
   min-height: 100vh !important;
-  place-items: center !important;
-  align-content: center !important;
-  gap: 14px !important;
 }
 
 .loading-screen::before {

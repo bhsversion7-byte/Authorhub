@@ -2458,15 +2458,6 @@ body[data-theme="dark"] .toggle-pill.is-active {
   }
 }
 
-.loading-screen {
-  display: grid;
-  min-height: 100vh;
-  place-items: center;
-  align-content: center;
-  gap: 16px;
-  color: var(--muted);
-}
-
 .error-screen {
   display: grid;
   min-height: 100vh;
