@@ -40,12 +40,16 @@ for (const row of rows) {
     continue;
   }
 
-  const after = Buffer.byteLength(JSON.stringify(result.document), "utf8");
-  console.log(
-    `  [${apply ? "migrate" : "would-migrate"}] ${shortId(row.id)} user=${shortId(row.user_id)} images=${result.changedCount} ${prettyBytes(before)} -> ${prettyBytes(after)}`,
-  );
-
   if (!apply) {
+    // Nothing actually gets uploaded in dry-run, so resolve each src to a
+    // realistic placeholder URL (same shape a real upload would produce)
+    // purely to make the reported before/after sizes reflect the real
+    // projected savings instead of showing no change at all.
+    for (const upload of result.uploads) upload.resolve(placeholderUrl(upload.userId, upload.mime));
+    const after = Buffer.byteLength(JSON.stringify(result.document), "utf8");
+    console.log(
+      `  [would-migrate] ${shortId(row.id)} user=${shortId(row.user_id)} images=${result.changedCount} ${prettyBytes(before)} -> ${prettyBytes(after)}`,
+    );
     totalImagesMigrated += result.changedCount;
     totalRowsChanged += 1;
     totalBytesReclaimed += before - after;
@@ -60,6 +64,11 @@ for (const row of rows) {
     }
     upload.resolve(uploaded);
   }
+
+  const after = Buffer.byteLength(JSON.stringify(result.document), "utf8");
+  console.log(
+    `  [migrate] ${shortId(row.id)} user=${shortId(row.user_id)} images=${result.changedCount} ${prettyBytes(before)} -> ${prettyBytes(after)}`,
+  );
 
   const writeOk = await updateDocument(row.id, result.document);
   if (!writeOk) {
@@ -159,6 +168,11 @@ async function fetchCandidateDocuments() {
     offset += rows.length;
   }
   return candidates;
+}
+
+function placeholderUrl(userId, mime) {
+  const ext = (mime.split("/")[1] || "jpg").replace(/[^a-z0-9]/gi, "") || "jpg";
+  return `${supabaseUrl}/storage/v1/object/public/${bucket}/${userId}/${crypto.randomUUID()}.${ext}`;
 }
 
 async function uploadToStorage(userId, mime, bytes) {
