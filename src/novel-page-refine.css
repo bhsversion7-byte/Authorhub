@@ -9,6 +9,18 @@
   overflow: visible !important;
 }
 
+/* border-radius used to only come from the since-removed old flat
+   .novel-hero rules (2026-07-09 consolidation) - nothing in the
+   current-generation rules set it. Deliberately using the bare `.novel-hero`
+   selector (not `.novel-section .novel-hero`) to match responsive-stability.css's
+   narrow-mobile override's own specificity (0,1,0) - a higher-specificity
+   selector here would have beaten that <=520px override regardless of
+   load order, since specificity is compared before source order when both
+   sides are !important. */
+.novel-hero {
+  border-radius: 24px !important;
+}
+
 .novel-section .novel-hero > div:first-child {
   align-self: flex-start !important;
   padding-top: 0 !important;

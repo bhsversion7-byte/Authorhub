@@ -1,24 +1,3 @@
-.novel-hero {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 20px;
-  overflow: visible;
-  border-radius: 24px;
-  background:
-    linear-gradient(120deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.55)),
-    linear-gradient(135deg, color-mix(in srgb, var(--novel-color) 20%, transparent), transparent 55%);
-  border: 1px solid rgba(255, 255, 255, 0.78);
-  box-shadow: var(--shadow);
-}
-
-.novel-hero > div:first-child {
-  display: block;
-  align-content: normal;
-  min-width: 0;
-}
-
 .publish-pill {
   display: grid;
   min-width: 58px;
@@ -40,12 +19,6 @@
 }
 
 @media (max-width: 980px) {
-  .novel-hero {
-    display: flex;
-    align-items: start;
-    flex-direction: column;
-  }
-
   .novel-meta {
     justify-content: flex-start;
     padding-top: 0;

@@ -1256,20 +1256,6 @@ body[data-theme="dark"] .toggle-pill.is-active {
   padding-top: 16px;
 }
 
-.novel-hero {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 22px;
-  border-radius: 24px;
-  background:
-    linear-gradient(120deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.55)),
-    linear-gradient(135deg, color-mix(in srgb, var(--novel-color) 20%, transparent), transparent 55%);
-  border: 1px solid rgba(255, 255, 255, 0.78);
-  box-shadow: var(--shadow);
-}
-
 .novel-title-input,
 .novel-subtitle-input {
   display: block;
@@ -2649,11 +2635,6 @@ body[data-theme="dark"] .toggle-pill.is-active {
     grid-template-columns: 1fr;
   }
 
-  .novel-hero {
-    align-items: start;
-    flex-direction: column;
-  }
-
   .section-heading h1 {
     font-size: 42px;
   }
@@ -2740,13 +2721,6 @@ body[data-theme="dark"] .toggle-pill.is-active {
   min-height: 36px;
   padding: 8px 0;
   font-size: 14px;
-}
-
-.novel-hero {
-  align-items: center;
-  padding: 20px;
-  gap: 16px;
-  overflow: visible;
 }
 
 .novel-title-input {
@@ -3114,11 +3088,6 @@ textarea {
   gap: 12px;
 }
 
-.novel-hero {
-  padding: 16px;
-  border-radius: 18px;
-}
-
 .novel-title-input {
   font-size: clamp(22px, 2.2vw, 26px) !important;
 }
@@ -3319,7 +3288,6 @@ body {
 .timeline-panel,
 .story-card,
 .theme-card,
-.novel-hero,
 .profile-panel,
 .progress-panel,
 .appearance-panel,
@@ -3339,7 +3307,6 @@ body {
 .timeline-panel:hover,
 .story-card:hover,
 .theme-card:hover,
-.novel-hero:hover,
 .profile-panel:hover,
 .progress-panel:hover,
 .appearance-panel:hover,
