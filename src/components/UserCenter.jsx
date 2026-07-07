@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { FileJson, FileText, KeyRound, LogOut, Mail, Moon, ShieldCheck, Sun, Trash2, UserX, WalletCards } from "lucide-react";
 import { hasSupabaseConfig, supabase } from "../lib/supabaseClient.js";
 import { useEscapeToClose } from "../lib/useEscapeToClose.js";
+import { humanizeAuthError } from "../lib/humanizeAuthError.js";
 import AnnouncementCenter from "./AnnouncementCenter.jsx";
 
 const DONATION_QR = {
@@ -211,7 +212,7 @@ function PasswordModal({ onClose }) {
         setMessage("当前为本地演示模式，配置 Supabase 后即可修改真实密码。");
       }
     } catch (error) {
-      setMessage(error.message || "密码更新失败，请稍后再试。");
+      setMessage(humanizeAuthError(error, "密码更新失败，请稍后再试。"));
     } finally {
       setBusy(false);
     }
@@ -252,7 +253,7 @@ function UnregisterModal({ onClose, onConfirm }) {
     try {
       await onConfirm();
     } catch (error) {
-      setMessage(error.message || "注销失败，请稍后再试。");
+      setMessage(humanizeAuthError(error, "注销失败，请稍后再试。"));
       setBusy(false);
     }
   }
