@@ -342,11 +342,12 @@ body::before,
   color: #141312 !important;
 }
 
-/* Global dark mode: preserve function zones, invert ink/surfaces, keep texture restrained. */
+/* Global dark mode: preserve function zones, invert ink/surfaces, keep texture restrained.
+   color removed (2026-07-09 audit) - dead for both selectors here,
+   overridden by a later material-system.css rule. */
 body[data-theme="dark"],
 body[data-theme="dark"] #root {
   background-color: var(--ah-dark-bg) !important;
-  color: var(--ah-dark-ink) !important;
 }
 
 body[data-theme="dark"]::before,

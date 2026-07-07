@@ -22,14 +22,11 @@
   color: var(--ink);
 }
 
+/* --bg/--card/--card-soft/--ink/--muted/--line removed (2026-07-09
+   audit) - all dead, redeclared (and overridden) by a later
+   material-system.css rule for this same selector. */
 body[data-theme="dark"] {
-  --bg: #171514;
   --bg-deep: #26211d;
-  --card: #211e1b;
-  --card-soft: rgba(42, 37, 33, 0.84);
-  --ink: #f6eee6;
-  --muted: #c6b9ad;
-  --line: rgba(234, 223, 212, 0.16);
   --shadow: 0 18px 54px rgba(0, 0, 0, 0.24);
   background:
     radial-gradient(circle at 8px 8px, rgba(245, 230, 211, 0.045) 1px, transparent 1px),
