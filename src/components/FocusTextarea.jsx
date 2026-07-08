@@ -598,7 +598,9 @@ function serializeFocusPages(pages) {
 }
 
 function combineFocusPages(pages) {
-  return normalizeFocusPages(pages, "", "").map((page) => page.value).join("\n\n").trimEnd();
+  return normalizeFocusPages(pages, "", "")
+    .map((page) => page.value)
+    .join("\n\n");
 }
 
 function createPageId() {
