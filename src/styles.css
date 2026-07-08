@@ -2232,12 +2232,9 @@ body[data-theme="dark"] .toggle-pill.is-active {
   min-height: min(720px, 82vh);
 }
 
-.zen-editor-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
+/* .zen-editor-head rule removed entirely (2026-07-10 audit) - every
+   property here is fully shadowed by an !important twin of the exact same
+   rule in authorhub-detail-polish.css. */
 
 .zen-editor-head h3 {
   margin: 0;
@@ -3126,17 +3123,16 @@ textarea {
   margin: 14px 0;
 }
 
+/* min-height/border-radius/background/border removed (2026-07-10 audit) -
+   all fully shadowed by internal-polish.css's later rule for this same
+   selector. */
 .user-action-board button {
   display: inline-flex;
   min-width: 0;
-  min-height: 38px;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border-radius: 12px;
-  background: rgba(255, 250, 244, 0.86);
   color: #5f5148;
-  border: 1px solid rgba(234, 223, 212, 0.84);
   font-weight: 850;
 }
 

@@ -149,16 +149,14 @@
   letter-spacing: 0.18em;
 }
 
+/* z-index/min-height/cursor/pointer-events/transform removed (2026-07-10
+   audit) - all fully shadowed by later landing-tuning.css/landing-quote-
+   refine.css rules for this same selector. */
 .landing-book-stage {
   position: relative;
-  z-index: 2;
   display: grid;
-  min-height: min(72vh, 760px);
   place-items: center;
-  cursor: grab;
-  pointer-events: auto;
   touch-action: none;
-  transform: translateX(0) scale(1);
   transition:
     opacity 940ms ease,
     transform 940ms cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -194,22 +192,19 @@
   filter: blur(8px);
 }
 
+/* position/right/bottom/min-width/padding/text-align removed (2026-07-10
+   audit) - all fully shadowed by later landing-tuning.css/landing-quote-
+   refine.css rules for this same selector. */
 .landing-enter-button {
-  position: absolute;
   z-index: 6;
-  right: clamp(28px, 7vw, 96px);
-  bottom: clamp(30px, 7vh, 74px);
   display: inline-grid;
   gap: 5px;
-  min-width: min(280px, calc(100vw - 48px));
-  padding: 17px 26px 16px;
   border: 1px solid rgba(255, 248, 239, 0.18);
   border-radius: 999px;
   background:
     linear-gradient(135deg, rgba(255, 248, 239, 0.13), rgba(255, 248, 239, 0.055)),
     rgba(18, 22, 26, 0.38);
   color: #fff8ef;
-  text-align: left;
   box-shadow:
     inset 0 1px 0 rgba(255, 248, 239, 0.16),
     0 24px 70px rgba(0, 0, 0, 0.28),
@@ -251,17 +246,15 @@
   pointer-events: none;
 }
 
-.landing-enter-button span {
-  font-family: "Xiangcui-Kesong", "Noto Serif SC", "Songti SC", serif;
-  font-size: 1.08rem;
-  letter-spacing: 0.22em;
-}
+/* .landing-enter-button span's font-family/font-size/letter-spacing all
+   removed (2026-07-10 audit) - the whole rule was fully shadowed by later
+   landing-tuning.css/landing-quote-refine.css rules for the same selector. */
 
 .landing-enter-button small {
+  /* font-family/font-size/letter-spacing removed (2026-07-10 audit) - all
+     fully shadowed by later landing-tuning.css/landing-quote-refine.css
+     rules; color/text-transform are this selector's only survivors here. */
   color: rgba(255, 248, 239, 0.54);
-  font-family: "Victoria Typewriter Regular", "Bozhen-Typewriter", Georgia, serif;
-  font-size: 0.74rem;
-  letter-spacing: 0.2em;
   text-transform: uppercase;
 }
 

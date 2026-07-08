@@ -69,17 +69,17 @@
     transform 760ms ease;
 }
 
+/* min-width/padding removed (2026-07-10 audit) - both fully shadowed by
+   landing-quote-refine.css's later rule for this same selector. */
 .landing-enter-button {
   position: static;
   left: auto;
   right: auto;
   bottom: auto;
-  min-width: min(240px, calc(100vw - 48px));
   width: 100%;
   justify-items: center;
   text-align: center;
   transform: none;
-  padding: 12px 18px 11px;
 }
 
 .landing-enter-button:hover {
@@ -90,15 +90,9 @@
   transform: translateY(0);
 }
 
-.landing-enter-button span {
-  font-size: 0.88rem;
-  letter-spacing: 0.18em;
-}
-
-.landing-enter-button small {
-  font-size: 0.61rem;
-  letter-spacing: 0.16em;
-}
+/* .landing-enter-button span and .landing-enter-button small both removed
+   entirely (2026-07-10 audit) - every property in both was fully shadowed
+   by landing-quote-refine.css's later rules for the same selectors. */
 
 .mode-folding .landing-control-zone,
 .mode-auth .landing-control-zone {
