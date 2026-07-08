@@ -2242,13 +2242,12 @@ body[data-theme="dark"] .toggle-pill.is-active {
   font-size: clamp(26px, 3vw, 42px);
 }
 
+/* min-height/padding/border-radius removed (2026-07-10 audit) - all fully
+   shadowed by an !important twin in authorhub-detail-polish.css. */
 .zen-editor-head button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
-  padding: 0 14px;
-  border-radius: 999px;
   background: #2c2a29;
   color: #fff8ef;
 }
@@ -3185,10 +3184,10 @@ textarea {
   display: none;
 }
 
+/* grid-template-columns/width/padding removed (2026-07-10 audit) - all
+   fully shadowed by music-player-tuning.css's later rule for this same
+   selector; border-radius is this rule's only survivor. */
 .floating-music.is-collapsed {
-  grid-template-columns: 38px 18px;
-  width: 62px;
-  padding: 8px;
   border-radius: 999px;
 }
 

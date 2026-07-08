@@ -1204,10 +1204,10 @@ body,
   content: none !important;
 }
 
+/* display/margin/color removed (2026-07-10 audit) - all fully shadowed by
+   authorhub-state-corrections.css's later rule for this same selector;
+   font-size/letter-spacing are this rule's only survivors. */
 .loading-screen > p {
-  display: block !important;
-  margin: 0 !important;
-  color: rgba(90, 82, 74, 0.76) !important;
   font-size: 13px !important;
   letter-spacing: 0.08em !important;
 }

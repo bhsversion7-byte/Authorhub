@@ -81,14 +81,13 @@
   transform: scale(1.15);
 }
 
+/* min-height/grid-template-columns/align-items/padding removed (2026-07-10
+   audit) - all fully shadowed by landing-tuning.css's later rule for this
+   same selector; position/display/gap are this rule's only survivors. */
 .landing-stage {
   position: relative;
   display: grid;
-  min-height: 100vh;
-  grid-template-columns: minmax(280px, 0.86fr) minmax(340px, 1.14fr);
-  align-items: center;
   gap: clamp(18px, 4vw, 72px);
-  padding: clamp(28px, 5vw, 72px);
 }
 
 .landing-copy {
@@ -141,12 +140,12 @@
   line-height: 2.1;
 }
 
+/* color/font-family/letter-spacing removed (2026-07-10 audit) - all fully
+   shadowed by landing-quote-refine.css's later rule for this same
+   selector; margin/font-size are this rule's only survivors. */
 .landing-signature {
   margin: clamp(72px, 16vh, 150px) 0 0;
-  color: rgba(255, 248, 239, 0.38);
-  font-family: "Bozhen-Typewriter", "Victoria Typewriter Regular", Georgia, serif;
   font-size: clamp(0.82rem, 1.25vw, 1rem);
-  letter-spacing: 0.18em;
 }
 
 /* z-index/min-height/cursor/pointer-events/transform removed (2026-07-10
