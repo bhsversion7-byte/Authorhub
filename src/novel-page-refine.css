@@ -109,14 +109,9 @@
   background: rgba(255, 250, 244, 0.36) !important;
 }
 
-.novel-section .novel-title-input:focus,
-.novel-section .novel-subtitle-input:focus {
-  border-color: rgba(210, 194, 172, 0.72) !important;
-  background: rgba(255, 250, 244, 0.72) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.74),
-    0 0 0 3px rgba(215, 185, 142, 0.075) !important;
-}
+/* .novel-title-input:focus / .novel-subtitle-input:focus rule removed
+   entirely (2026-07-10 audit) - every property here is fully shadowed by
+   material-system.css's later rule for the exact same selector pair. */
 
 /* display/gap/width/min-width/padding/border/border-radius/background/
    box-shadow/color are all set (and win) elsewhere in material-system.css
