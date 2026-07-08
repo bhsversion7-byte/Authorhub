@@ -613,10 +613,10 @@ a {
   box-shadow: var(--soft-shadow);
 }
 
+/* background/color removed (2026-07-10 audit) - both fully shadowed by
+   internal-polish.css's later rule for this same selector. */
 .add-novel-button {
   border-color: rgba(108, 139, 136, 0.16);
-  background: rgba(255, 250, 244, 0.72);
-  color: var(--muted);
 }
 
 .add-novel-button:hover {
@@ -677,10 +677,10 @@ a {
   line-height: 1.75;
 }
 
+/* display/grid-template-columns/gap removed (2026-07-10 audit) - all
+   fully shadowed by an !important twin in authorhub-refine-pass.css;
+   margin-top is this rule's only survivor. */
 .confirm-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
   margin-top: 8px;
 }
 
@@ -3115,10 +3115,11 @@ textarea {
   font-weight: 800;
 }
 
+/* grid-template-columns/gap removed (2026-07-10 audit) - both fully
+   shadowed by later rules (material-system.css's !important twin for
+   grid-template-columns, internal-polish.css for gap). */
 .user-action-board {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
   margin: 14px 0;
 }
 
@@ -3135,9 +3136,9 @@ textarea {
   font-weight: 850;
 }
 
+/* background/transform removed (2026-07-10 audit) - both fully shadowed
+   by internal-polish.css's later rule for this same selector. */
 .user-action-board button:hover {
-  background: #fff;
-  transform: translateY(-1px);
   box-shadow: var(--soft-shadow);
 }
 
