@@ -472,9 +472,10 @@ a {
   font-weight: 800;
 }
 
+/* gap removed (2026-07-10 audit) - dead, shadowed by internal-polish.css's
+   later rule for this same selector. */
 .nav-stack {
   display: grid;
-  gap: 8px;
   min-width: 0;
 }
 
@@ -619,9 +620,9 @@ a {
   border-color: rgba(108, 139, 136, 0.16);
 }
 
-.add-novel-button:hover {
-  color: var(--ink);
-}
+/* Entire rule removed (2026-07-10 audit) - its only property (color) is
+   fully shadowed by internal-polish.css's later rule for this same
+   selector. */
 
 
 
@@ -911,13 +912,14 @@ a {
   gap: 8px;
 }
 
+/* background removed (2026-07-10 audit) - dead, shadowed by
+   internal-polish.css's later rule for this same selector. */
 .donation-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   padding: 4px;
   border-radius: 999px;
-  background: rgba(234, 223, 212, 0.22);
 }
 
 .donation-tabs button,
@@ -1482,15 +1484,13 @@ body[data-theme="dark"] .toggle-pill.is-active {
     color-mix(in srgb, var(--novel-color) 2%, #fdfbf7);
 }
 
+/* background removed (2026-07-10 audit) - dead, shadowed by an !important
+   twin in authorhub-refine-pass.css. */
 .graph-card::before {
   content: "";
   position: absolute;
   inset: 66px 18px 42px;
   border-radius: 26px;
-  background:
-    radial-gradient(circle at 30% 28%, color-mix(in srgb, var(--novel-color) 22%, transparent), transparent 25%),
-    radial-gradient(circle at 78% 72%, color-mix(in srgb, var(--novel-accent) 26%, transparent), transparent 28%),
-    linear-gradient(135deg, rgba(255, 250, 244, 0.76), rgba(255, 255, 255, 0.55));
   pointer-events: none;
 }
 
@@ -1903,8 +1903,9 @@ body[data-theme="dark"] .toggle-pill.is-active {
   background: linear-gradient(90deg, transparent, rgba(108, 139, 136, 0.38), transparent);
 }
 
+/* position removed (2026-07-10 audit) - dead, shadowed by an !important
+   twin in material-system.css. */
 .timeline-node {
-  position: relative;
   display: grid;
   flex: 0 0 calc((100% - 56px) / 5);
   gap: 6px;
@@ -3072,10 +3073,11 @@ textarea {
   padding: 13px;
 }
 
+/* gap removed (2026-07-10 audit) - dead, shadowed by internal-polish.css's
+   later rule for this same selector. */
 .user-center-page-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.76fr);
-  gap: 14px;
 }
 
 .user-account-panel,
@@ -3156,9 +3158,10 @@ textarea {
   min-height: 260px;
 }
 
+/* left removed (2026-07-10 audit) - dead, shadowed by an !important twin
+   in music-player-tuning.css. */
 .floating-music {
   position: fixed;
-  left: 0;
   top: 0;
   z-index: 9999;
   display: grid;

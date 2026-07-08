@@ -54,9 +54,8 @@ body,
   transform: translateY(0.45em) !important;
 }
 
-.novel-section .novel-hero .eyebrow {
-  color: rgba(120, 82, 45, 0.72) !important;
-}
+/* Entire rule removed (2026-07-10 audit) - its only property (color) is
+   fully shadowed by an !important twin in material-system.css. */
 
 .novel-section .novel-hero :where(input, textarea, select) {
   background: rgba(255, 253, 247, 0.4) !important;
@@ -112,7 +111,8 @@ body,
   font-size: 10px !important;
   font-style: normal !important;
   line-height: 1 !important;
-  opacity: 0 !important;
+  /* opacity removed (2026-07-10 audit) - dead, shadowed by material-
+     system.css's later rule for this same selector. */
   transform: scale(0.82) !important;
   box-shadow: 0 3px 8px rgba(44, 36, 24, 0.08) !important;
   transition: opacity 160ms var(--ease), transform 160ms var(--ease), background 160ms var(--ease) !important;

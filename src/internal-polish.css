@@ -200,10 +200,11 @@
 }
 
 @media (max-width: 980px) {
+  /* justify-content/padding-top removed (2026-07-10 audit) - both fully
+     shadowed by novel-section-restore.css's later rule for this same
+     selector+media context; padding-left is this rule's only survivor. */
   .novel-meta {
-    justify-content: flex-start;
     padding-left: 0;
-    padding-top: 14px;
   }
 
   .novel-meta::before {
