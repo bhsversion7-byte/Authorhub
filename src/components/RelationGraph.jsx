@@ -102,6 +102,14 @@ export default function RelationGraph({
   // button) - otherwise they'd leak, bound forever over a detached D3
   // selection from the old render.
   const areaSelectCleanupRef = useRef(null);
+  // A completed area-select drag ends with a mousedown+mouseup pair that
+  // (when both land on the same element, e.g. the background hit-area) the
+  // browser follows with its own native "click" event on that element -
+  // which used to immediately clear the selection the drag had just set,
+  // making the box vanish right after being drawn. Set true the moment a
+  // real drag distance is seen, consumed (and reset) by the next click
+  // handler so exactly that one synthesized click is ignored.
+  const suppressAreaClickRef = useRef(false);
 
   const [selectedId, setSelectedId] = useState(novel.characters[0]?.id);
   const [graphFocusId, setGraphFocusId] = useState("");
@@ -302,6 +310,10 @@ export default function RelationGraph({
       .style("cursor", "default")
       .on("click", (event) => {
         event.stopPropagation();
+        if (suppressAreaClickRef.current) {
+          suppressAreaClickRef.current = false;
+          return;
+        }
         clearGraphSelection();
       });
 
@@ -321,7 +333,16 @@ export default function RelationGraph({
       .style("pointer-events", "none");
     areaSelectRectRef.current = areaSelectRect;
 
-    hitArea.on("mousedown.areaSelect", (event) => {
+    // Bound on svg itself (an ancestor of the hit-area rect AND the node/
+    // link/label layers), not just the hit-area rect: the hit-area sits
+    // BEHIND the graph layer in paint order, so a Shift+drag starting on
+    // top of a node (or a link, or a label) - easy to hit when nodes are
+    // packed near the canvas edge - used to never reach a mousedown bound
+    // only to the hit-area, silently failing to start a selection box at
+    // all. Binding to svg lets the gesture start from anywhere; the node
+    // drag behavior's own `.filter()` below bails out on Shift so the two
+    // don't fight over the same mousedown.
+    svg.on("mousedown.areaSelect", (event) => {
       // Shift+drag on every platform (Mac keyboards have Shift too, no need
       // for a separate Cmd/metaKey path).
       if (!event.shiftKey || event.button !== 0) return;
@@ -336,11 +357,15 @@ export default function RelationGraph({
         const [x, y] = d3.pointer(moveEvent, graphLayer.node());
         const left = Math.min(startX, x);
         const top = Math.min(startY, y);
-        areaSelectRect
-          .attr("x", left)
-          .attr("y", top)
-          .attr("width", Math.abs(x - startX))
-          .attr("height", Math.abs(y - startY));
+        const w = Math.abs(x - startX);
+        const h = Math.abs(y - startY);
+        // Past a tiny threshold this is a real drag, not just a jittery
+        // click - the upcoming mouseup's synthesized "click" (fired when
+        // mousedown/mouseup land on the same element, regardless of how far
+        // the pointer moved between them) must not be allowed to instantly
+        // clear the selection this same gesture is about to set.
+        if (w > 3 || h > 3) suppressAreaClickRef.current = true;
+        areaSelectRect.attr("x", left).attr("y", top).attr("width", w).attr("height", h);
       }
 
       function onUp(upEvent) {
@@ -590,6 +615,10 @@ export default function RelationGraph({
       .on("mouseenter", (_, character) => setHoverId(character.id))
       .on("mouseleave", () => setHoverId(""))
       .on("click", (event, character) => {
+        if (suppressAreaClickRef.current) {
+          suppressAreaClickRef.current = false;
+          return;
+        }
         selectNodeForRelationship(event, character);
         focusNode(svg, zoom, width, height, character);
       })
@@ -597,6 +626,11 @@ export default function RelationGraph({
         d3
           .drag()
           .container(graphLayer.node())
+          // Shift+mousedown on a node must start an area-select box (see the
+          // svg-level mousedown handler above), not drag that one node - the
+          // default filter only excludes ctrl/secondary-button, so Shift was
+          // previously left to fall through and move the node instead.
+          .filter((event) => !event.shiftKey && !event.ctrlKey && !event.button)
           .on("start", (event) => {
             event.sourceEvent?.stopPropagation();
             d3.select(event.sourceEvent?.target?.closest?.(".graph-node")).style("cursor", "grabbing");
