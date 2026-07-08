@@ -530,7 +530,8 @@ body,
      same tone at lower opacity (2026-07-09, the previous rgba(250,244,230,.9)
      was close enough to the chrome color to barely read as highlighted). */
   background: rgba(255, 253, 248, 0.96) !important;
-  font-size: max(14px, var(--field-font-size, 13px)) !important;
+  /* font-size removed (2026-07-10 audit) - fully shadowed by reading-scale-
+     fixes.css's later !important rule for this same selector. */
   line-height: 1.85 !important;
   /* Long outline/setting text must stay mouse-wheel scrollable here without
      ever showing a native scrollbar track - a global `*`/`*::-webkit-scrollbar`

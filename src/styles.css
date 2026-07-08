@@ -2256,13 +2256,13 @@ body[data-theme="dark"] .toggle-pill.is-active {
   color: #fff8ef;
 }
 
+/* min-height/font-size/line-height/background removed (2026-07-10 audit) -
+   all fully shadowed by a later authorhub-detail-polish.css/reading-scale-
+   fixes.css rule; border-radius/padding are this selector's only surviving
+   properties anywhere in the cascade. */
 .zen-editor textarea {
-  min-height: 560px;
   border-radius: 20px;
   padding: 20px;
-  font-size: calc(var(--editor-font-size) + 2px);
-  line-height: 1.9;
-  background: rgba(255, 255, 255, 0.84);
 }
 
 .event-core-grid {

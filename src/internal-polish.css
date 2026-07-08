@@ -199,13 +199,6 @@
   font-size: clamp(24px, 2.5vw, 36px);
 }
 
-.zen-editor textarea {
-  min-height: min(560px, 62vh);
-  background:
-    linear-gradient(180deg, rgba(255, 253, 248, 0.96), rgba(255, 250, 244, 0.86)),
-    repeating-linear-gradient(180deg, transparent 0 34px, rgba(141, 122, 107, 0.055) 34px 35px);
-}
-
 @media (max-width: 980px) {
   .novel-meta {
     justify-content: flex-start;
