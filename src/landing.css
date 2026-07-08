@@ -240,12 +240,8 @@
     0 26px 72px rgba(0, 0, 0, 0.34);
 }
 
-.mode-folding .landing-enter-button,
-.mode-auth .landing-enter-button {
-  opacity: 0;
-  filter: blur(8px);
-  pointer-events: none;
-}
+/* Entire rule removed (2026-07-08 audit) - all 3 properties fully shadowed
+   by landing-tuning.css's later rule for these same selectors. */
 
 /* .landing-enter-button span's font-family/font-size/letter-spacing all
    removed (2026-07-10 audit) - the whole rule was fully shadowed by later

@@ -14,9 +14,9 @@
   margin-left: var(--app-sidebar-width) !important;
 }
 
-.section {
-  max-width: min(var(--content-wide-max), calc(100vw - var(--app-sidebar-width) - 44px));
-}
+/* Entire rule removed (2026-07-08 audit) - its only property (max-width)
+   is fully shadowed by material-system.css's later rule for this same
+   selector. */
 
 .timeline-mobile-switcher {
   display: none;

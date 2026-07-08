@@ -43,16 +43,9 @@ body,
     0 13px 32px rgba(63, 45, 28, 0.06) !important;
 }
 
-.novel-section .novel-hero:hover {
-  background:
-    radial-gradient(circle at 10% 12%, rgba(255, 252, 244, 0.42), transparent 32%),
-    radial-gradient(circle at 88% 40%, rgba(139, 99, 57, 0.12), transparent 42%),
-    linear-gradient(135deg, var(--ah-novel-surface), var(--ah-novel-surface-2)) !important;
-}
-
-.novel-section .novel-hero > div:first-child {
-  transform: translateY(0.45em) !important;
-}
+/* .novel-section .novel-hero:hover (background) and .novel-section
+   .novel-hero > div:first-child (transform) removed (2026-07-08 audit) -
+   both fully shadowed by later !important twins in material-system.css. */
 
 /* Entire rule removed (2026-07-10 audit) - its only property (color) is
    fully shadowed by an !important twin in material-system.css. */
@@ -62,14 +55,9 @@ body,
 }
 
 /* Relation graph: dot layer returns to the inner canvas, not the entire card. */
-.graph-card.relation-graph,
-.graph-card.relation-graph:hover {
-  background:
-    radial-gradient(circle at 24% 20%, rgba(255, 252, 244, 0.28), transparent 34%),
-    radial-gradient(circle at 82% 76%, rgba(139, 99, 57, 0.1), transparent 42%),
-    linear-gradient(135deg, var(--ah-graph-surface), var(--ah-graph-surface-2)) !important;
-  border-color: rgba(117, 94, 64, 0.16) !important;
-}
+/* .graph-card.relation-graph + :hover (background, border-color) removed
+   (2026-07-08 audit) - both fully shadowed by material-system.css's later
+   !important rules for these same selectors. */
 
 .graph-card.relation-graph::before,
 .graph-card.relation-graph::after {
@@ -124,9 +112,9 @@ body,
   transform: scale(1) !important;
 }
 
-.tag-chip-board button:has(.tag-chip-remove:hover) {
-  animation: tagDeleteTremble 180ms linear infinite !important;
-}
+/* Entire rule removed (2026-07-08 audit) - its only property (animation)
+   is fully shadowed by material-system.css's later !important rule for
+   this same selector. */
 
 @keyframes tagDeleteTremble {
   0%, 100% { transform: translateX(0); }

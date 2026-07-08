@@ -104,10 +104,9 @@
   line-height: 1.38 !important;
 }
 
-.novel-section .novel-title-input:hover,
-.novel-section .novel-subtitle-input:hover {
-  background: rgba(255, 250, 244, 0.36) !important;
-}
+/* .novel-title-input:hover / .novel-subtitle-input:hover rule removed
+   (2026-07-08 audit) - its only property (background) is fully shadowed
+   by material-system.css's later rule for the exact same selector pair. */
 
 /* .novel-title-input:focus / .novel-subtitle-input:focus rule removed
    entirely (2026-07-10 audit) - every property here is fully shadowed by
@@ -125,13 +124,9 @@
     box-shadow 160ms var(--ease) !important;
 }
 
-.novel-section .novel-meta > label:nth-of-type(1) {
-  width: 230px !important;
-}
-
-.novel-section .novel-meta > label:hover {
-  background: rgba(255, 250, 244, 0.3) !important;
-}
+/* .novel-meta > label:nth-of-type(1) (width) and :hover (background)
+   rules removed (2026-07-08 audit) - both fully shadowed by later rules
+   for these same selectors in material-system.css. */
 
 .novel-section .novel-meta > label:focus-within {
   border-color: rgba(210, 194, 172, 0.72) !important;

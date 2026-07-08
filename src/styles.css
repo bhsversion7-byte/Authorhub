@@ -479,10 +479,8 @@ a {
   min-width: 0;
 }
 
-.nav-label {
-  margin: 14px 0 3px;
-  text-transform: uppercase;
-}
+/* Entire rule removed (2026-07-08 audit) - both properties fully shadowed by
+   internal-polish.css's later rule for this same selector. */
 
 .nav-item,
 .ghost-button,
@@ -587,32 +585,18 @@ a {
   box-shadow: var(--soft-shadow);
 }
 
-.nav-item.is-home.is-active,
-.nav-item.is-home:hover {
-  background: #2c2a29;
-  color: #fff9f2;
-  border-color: rgba(44, 42, 41, 0.12);
-  box-shadow: 0 14px 34px rgba(44, 42, 41, 0.12);
-}
-
-.nav-item.is-home.is-active svg,
-.nav-item.is-home:hover svg {
-  color: #f8ead9;
-}
-
-.nav-item svg {
-  color: var(--item-color, var(--teal));
-}
+/* Three rules removed (2026-07-08 audit): .nav-item.is-home.is-active +
+   .nav-item.is-home:hover (background/color/border-color/box-shadow), their
+   svg variant (color), and bare .nav-item svg (color) - all fully shadowed
+   by internal-polish.css's later combined rules for these same selectors. */
 
 .is-home {
   background: #2c2a29;
   color: #fff9f2;
 }
 
-.nav-item.is-active:not(.is-home) {
-  background: #fff;
-  box-shadow: var(--soft-shadow);
-}
+/* Entire rule removed (2026-07-08 audit) - both properties fully shadowed by
+   internal-polish.css's later combined rule for this same selector. */
 
 /* background/color removed (2026-07-10 audit) - both fully shadowed by
    internal-polish.css's later rule for this same selector. */
@@ -634,17 +618,9 @@ a {
   transition: margin-left 180ms var(--ease);
 }
 
-.content-shell.font-serif {
-  font-family: Georgia, "Times New Roman", serif;
-}
-
-.content-shell.font-sans {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-.content-shell.font-mono {
-  font-family: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
-}
+/* Three font-serif/font-sans/font-mono rules removed (2026-07-08 audit) -
+   each only set font-family, fully shadowed by reading-font-options.css's
+   later !important rules for these same selectors. */
 
 /* position/inset/z-index/display/place-items/padding/background/
    backdrop-filter removed (2026-07-09 audit) - all dead, overridden by
@@ -1601,12 +1577,8 @@ body[data-theme="dark"] .toggle-pill.is-active {
   min-height: 132px;
 }
 
-.character-editor-top {
-  display: grid;
-  grid-template-columns: minmax(230px, 0.95fr) minmax(260px, 1.05fr);
-  gap: 16px;
-  align-items: start;
-}
+/* Entire rule removed (2026-07-08 audit) - all 4 properties fully shadowed
+   by a later .character-editor-top rule further down this same file. */
 
 .character-quick-fields,
 .character-long-fields {
@@ -1643,12 +1615,8 @@ body[data-theme="dark"] .toggle-pill.is-active {
   gap: 7px;
 }
 
-.node-color-picker.is-wide {
-  padding: 12px;
-  border: 1px solid rgba(234, 223, 212, 0.62);
-  border-radius: 16px;
-  background: rgba(255, 250, 244, 0.42);
-}
+/* Entire rule removed (2026-07-08 audit) - all 4 properties fully shadowed
+   by a later .node-color-picker.is-wide rule further down this same file. */
 
 .node-color-picker.is-wide div {
   grid-template-columns: repeat(auto-fill, minmax(42px, 48px));
@@ -2549,14 +2517,9 @@ body[data-theme="dark"] .toggle-pill.is-active {
 
 @media (max-width: 1180px) {
 
-  .dashboard-grid,
-  .event-editor {
-    grid-template-columns: 1fr;
-  }
-
-  .relation-layout {
-    grid-template-columns: 1fr;
-  }
+  /* .dashboard-grid+.event-editor and .relation-layout rules removed
+     (2026-07-08 audit) - both fully shadowed by responsive-stability.css's
+     later !important rule for this same media breakpoint. */
 
   .relation-split-handle {
     display: none;
@@ -2630,13 +2593,9 @@ body[data-theme="dark"] .toggle-pill.is-active {
 }
 
 /* Production polish overrides */
-.content-shell {
-  padding: 16px clamp(14px, 2vw, 28px) 38px;
-}
-
-.section {
-  margin-bottom: 22px;
-}
+/* .content-shell (padding) and .section (margin-bottom) removed
+   (2026-07-08 audit) - both fully shadowed by later rules for these same
+   selectors further down this file. */
 
 .section-heading {
   max-width: 760px;
@@ -2724,10 +2683,8 @@ body[data-theme="dark"] .toggle-pill.is-active {
   scrollbar-gutter: stable;
 }
 
-.character-editor-top {
-  grid-template-columns: minmax(150px, 0.95fr) minmax(0, 1.05fr);
-  gap: 12px;
-}
+/* Entire rule removed (2026-07-08 audit) - both properties fully shadowed
+   by the later .character-editor-top rule further down this same file. */
 
 .character-quick-fields label {
   display: flex;
@@ -2785,17 +2742,9 @@ body[data-theme="dark"] .toggle-pill.is-active {
   align-items: flex-start;
 }
 
-.tag-chip-board button {
-  max-width: 100%;
-}
-
-.sidebar {
-  padding: 20px 16px 16px;
-}
-
-.brand {
-  margin-bottom: 20px;
-}
+/* .tag-chip-board button (max-width), .sidebar (padding) and .brand
+   (margin-bottom) removed (2026-07-08 audit) - all fully shadowed by
+   internal-polish.css's later rules for these same selectors. */
 
 
 
@@ -2915,9 +2864,8 @@ textarea {
   font-size: 10.5px;
 }
 
-.nav-label {
-  margin: 12px 0 2px;
-}
+/* Entire rule removed (2026-07-08 audit) - its only property (margin) is
+   fully shadowed by internal-polish.css's later rule for this selector. */
 
 .nav-item,
 .ghost-button,
@@ -3242,10 +3190,9 @@ textarea {
   --paper-gradient: linear-gradient(135deg, rgba(253, 251, 247, 1) 85%, rgba(120, 139, 156, 0.12) 100%);
 }
 
-.app-shell,
-.content-shell {
-  background: transparent;
-}
+/* Entire rule removed (2026-07-08 audit) - its only property (background)
+   is fully shadowed by material-system.css's later rule for these same
+   selectors. */
 
 .panel,
 .graph-card,

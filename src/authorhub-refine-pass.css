@@ -92,9 +92,9 @@
   height: 42px !important;
 }
 
-.novel-section .novel-hero > div:first-child {
-  transform: translateY(1.22em) !important;
-}
+/* Entire rule removed (2026-07-08 audit) - its only property (transform)
+   is fully shadowed by material-system.css's later !important rule for
+   this same selector. */
 
 .novel-section .novel-title-input {
   margin-top: 6px !important;
@@ -225,13 +225,9 @@
   justify-content: center !important;
 }
 
-.danger-lite-button,
-.danger-lite-button:hover,
-.danger-lite-button:focus-visible {
-  border-color: rgba(184, 141, 133, 0.4) !important;
-  background: rgba(184, 141, 133, 0.11) !important;
-  color: #7a4a42 !important;
-}
+/* Entire rule removed (2026-07-08 audit) - all 3 properties fully shadowed
+   by later !important rules for these same selectors in
+   authorhub-detail-polish.css / material-system.css. */
 
 .connect-box {
   min-width: 0 !important;

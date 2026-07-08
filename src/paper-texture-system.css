@@ -140,10 +140,9 @@
   background-image: linear-gradient(135deg, rgba(255, 253, 248, 0.66), rgba(242, 234, 220, 0.92)) !important;
 }
 
-.author-section .progress-panel:hover,
-.novel-section .timeline-panel:hover {
-  background-image: linear-gradient(145deg, rgba(239, 244, 235, 0.72), rgba(229, 234, 223, 0.94)) !important;
-}
+/* Entire rule removed (2026-07-08 audit) - its only property
+   (background-image) is fully shadowed by authorhub-state-corrections.css's
+   later rule for the exact same selector pair. */
 
 .novel-section .story-grid .story-card:nth-child(2):hover {
   background-image: linear-gradient(140deg, rgba(250, 247, 240, 0.78), rgba(236, 232, 221, 0.94)) !important;
@@ -153,9 +152,9 @@
   background-image: linear-gradient(145deg, rgba(248, 241, 235, 0.82), rgba(237, 228, 223, 0.96)) !important;
 }
 
-.author-section .appearance-panel:hover {
-  background-image: linear-gradient(145deg, rgba(245, 248, 247, 0.68), rgba(233, 236, 232, 0.94)) !important;
-}
+/* Entire rule removed (2026-07-08 audit) - its only property
+   (background-image) is fully shadowed by authorhub-state-corrections.css's
+   later rule for this same selector. */
 
 .graph-card,
 .inspector-card,

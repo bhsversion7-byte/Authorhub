@@ -101,11 +101,8 @@ body > .logo-lightbox-overlay {
   object-fit: contain !important;
 }
 
-.app-shell,
-.content-shell,
-.novel-section {
-  background: transparent !important;
-}
+/* Entire rule removed (2026-07-08 audit) - its only property (background)
+   is fully shadowed by an identical later rule further down this file. */
 
 /* Auth is a quiet task surface, not the cinematic landing stage. */
 .landing-gateway.mode-auth {
@@ -180,13 +177,9 @@ body > .logo-lightbox-overlay {
 }
 
 /* Loading surfaces use the same paper, but no text pill and no white halo. */
-.loading-screen {
-  background:
-    linear-gradient(135deg, rgba(246, 241, 232, 0.18), rgba(223, 215, 202, 0.1)),
-    url("/texture-3-wide.jpg") center center / cover no-repeat,
-    var(--ah-bg-paper) !important;
-}
-
+/* Entire rule removed (2026-07-08 audit) - its only property (background)
+   is fully shadowed by a later .loading-screen rule further down this
+   file. */
 
 /* display/padding/border/background/box-shadow removed (2026-07-09 audit)
    - all dead, overridden by a later rule further down this file -
@@ -244,9 +237,9 @@ body > .logo-lightbox-overlay {
   filter: contrast(1.04) saturate(0.7) brightness(1.02) !important;
 }
 
-.novel-section .novel-hero > div:first-child {
-  transform: translateY(0.95em) !important;
-}
+/* Entire rule removed (2026-07-08 audit) - its only property (transform)
+   is fully shadowed by a later .novel-section .novel-hero > div:first-child
+   rule further down this file. */
 
 .novel-section .novel-hero .eyebrow {
   color: #8b6937 !important;
@@ -319,10 +312,9 @@ body > .logo-lightbox-overlay {
   filter: saturate(0.5) contrast(1.04) brightness(1.02) !important;
 }
 
-.graph-card.relation-graph::after {
-  content: none !important;
-  display: none !important;
-}
+/* Entire rule removed (2026-07-08 audit) - both properties fully shadowed
+   by an identical later .graph-card.relation-graph::after rule further
+   down this file. */
 
 .graph-toolbar {
   background: transparent !important;
@@ -469,12 +461,9 @@ body > .logo-lightbox-overlay {
   justify-self: center !important;
 }
 
-body[data-theme="dark"] {
-  background:
-    linear-gradient(135deg, rgba(29, 27, 25, 0.92), rgba(20, 21, 20, 0.96)),
-    url("/texture-3-wide.jpg") center center / cover no-repeat,
-    #171514 !important;
-}
+/* Entire rule removed (2026-07-08 audit) - its only property (background)
+   is fully shadowed by later body[data-theme="dark"] rules further down
+   this file. */
 
 body[data-theme="dark"] .relation-svg {
   background-color: #30342f !important;
@@ -517,11 +506,9 @@ body[data-theme="dark"] .landing-gateway.mode-auth {
   color: var(--ah-ink-deep) !important;
 }
 
-.loading-screen {
-  background:
-    url("/texture-3-wide.jpg") center center / cover no-repeat,
-    var(--ah-paper-live) !important;
-}
+/* Entire rule removed (2026-07-08 audit) - its only property (background)
+   is fully shadowed by a later .loading-screen rule further down this
+   file. */
 
 .loading-screen::before {
   background: url("/texture-3-wide.jpg") center center / cover no-repeat !important;
@@ -705,14 +692,9 @@ body[data-theme="dark"] .landing-gateway.mode-auth {
   font-weight: 800 !important;
 }
 
-body[data-theme="dark"],
-body[data-theme="dark"] #root {
-  background:
-    radial-gradient(circle at 18% 18%, rgba(191, 165, 123, 0.12), transparent 32%),
-    radial-gradient(circle at 72% 24%, rgba(97, 113, 118, 0.18), transparent 34%),
-    linear-gradient(135deg, #181613 0%, #272018 52%, #121313 100%) !important;
-  color: #f5eadc !important;
-}
+/* Entire rule removed (2026-07-08 audit) - both properties (background,
+   color) fully shadowed by a later, larger selector group further down
+   this file. */
 
 body[data-theme="dark"] .user-info-grid input,
 body[data-theme="dark"] .auth-field input,
@@ -775,11 +757,9 @@ body[data-theme="dark"]::before,
   background-attachment: scroll !important;
 }
 
-.loading-screen {
-  background:
-    url("/texture-3-wide.jpg") center center / cover no-repeat,
-    var(--ah-paper-live, #f3eee4) !important;
-}
+/* Entire rule removed (2026-07-08 audit) - its only property (background)
+   is fully shadowed by a later .loading-screen rule further down this
+   file. */
 
 body[data-theme="dark"],
 body[data-theme="dark"] #root,

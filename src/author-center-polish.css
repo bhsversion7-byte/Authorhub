@@ -101,13 +101,9 @@
   outline-offset: -4px;
 }
 
-.author-section .profile-panel,
-.author-section .progress-panel,
-.author-section .appearance-panel {
-  transition:
-    border-color 170ms var(--ease),
-    box-shadow 170ms var(--ease);
-}
+/* Entire rule removed (2026-07-08 audit) - its only property (transition)
+   is fully shadowed by paper-texture-system.css's later !important rule
+   for these same selectors. */
 
 .author-section .profile-panel:hover,
 .author-section .progress-panel:hover,
