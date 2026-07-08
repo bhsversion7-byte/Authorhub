@@ -392,19 +392,19 @@
     margin-top: 48px;
   }
 
+  /* min-height removed (2026-07-10 audit) - dead, shadowed by
+     landing-tuning.css's later rule for this same selector+media context. */
   .landing-book-stage {
-    min-height: 34vh;
     order: -1;
     opacity: 0.74;
   }
 
-  
-
+  /* width removed (2026-07-10 audit) - dead, shadowed by landing-tuning.css's
+     later rule for this same selector+media context. */
   .landing-enter-button {
     left: 24px;
     right: 24px;
     bottom: 24px;
-    width: auto;
   }
 }
 

@@ -335,9 +335,9 @@
     bottom: calc(env(safe-area-inset-bottom, 0px) + 14px) !important;
   }
 
-  .floating-music:not(.is-collapsed) {
-    width: min(276px, calc(100vw - 20px)) !important;
-  }
+  /* .floating-music:not(.is-collapsed) rule removed (2026-07-10 audit) -
+     its only property is fully shadowed by material-system.css's later
+     rule for this same selector+media context. */
 
   /* Desktop "collapse" shrinks the vertical rail to an icon-only column -
      that treatment doesn't translate to the phone top bar (.nav-stack here

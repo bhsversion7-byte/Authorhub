@@ -2562,9 +2562,9 @@ body[data-theme="dark"] .toggle-pill.is-active {
     display: none;
   }
 
-  .story-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  /* .story-grid rule removed (2026-07-10 audit) - its only property is
+     fully shadowed by an !important twin in responsive-stability.css for
+     this same selector+media context. */
 
   .inspector-card {
     grid-template-columns: 1fr;

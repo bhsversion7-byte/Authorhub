@@ -285,19 +285,21 @@
     min-height: 34vh;
   }
 
+  /* width removed (2026-07-10 audit) - dead, shadowed by landing-quote-
+     refine.css's later rule for this same selector+media context. */
   .landing-control-zone {
     left: 50%;
     right: auto;
     bottom: 18px;
-    width: min(266px, calc(100vw - 48px));
     transform: translateX(-50%);
   }
 
+  /* padding removed (2026-07-10 audit) - dead, shadowed by landing-quote-
+     refine.css's later rule for this same selector+media context. */
   .landing-enter-button {
     width: 100%;
     min-width: 0;
     transform: none;
-    padding: 11px 18px 10px;
   }
 
   .landing-quote-track {
