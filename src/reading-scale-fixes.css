@@ -64,12 +64,17 @@
   background-image: none !important;
 }
 
-* {
+/* :not(.nav-stack) - this file loads last, so its blanket scrollbar-hide
+   otherwise cancels out responsive-stability.css's deliberate thin grey
+   scrollbar on the mobile top-nav strip (the only remaining hint that row
+   scrolls sideways, now that the old `::` drag handle is gone) - found
+   2026-07-10 from a user report that the indicator had become invisible. */
+*:not(.nav-stack) {
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
 }
 
-*::-webkit-scrollbar {
+*:not(.nav-stack)::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
