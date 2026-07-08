@@ -254,9 +254,9 @@
   overflow: auto !important;
   scrollbar-width: none !important;
   border-radius: 24px !important;
-  background: rgba(246, 241, 250, 0.98) !important;
   border: 1px solid rgba(215, 204, 226, 0.82) !important;
   box-shadow: 0 30px 82px rgba(44, 36, 24, 0.18) !important;
+  /* background removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .announcement-modal::-webkit-scrollbar {

@@ -12,8 +12,8 @@
   --ah-ink-soft: #756a60;
 
   /* User-requested novel-page materials. */
-  --mat-graph: #d9dddc;       /* 冷浆熟宣灰 */
-  --mat-graph-dot: rgba(116, 125, 123, 0.32);
+  /* --mat-graph/--mat-graph-dot removed (2026-07-08 audit) - both fully
+     shadowed by a later :root rule further down this file. */
   --mat-outline: #e3e4e0;     /* 淡灰宣纸白 */
   --mat-setting: #b9c1be;     /* 莫兰迪哑光青岩灰 */
   --mat-theme: #d8c8de;       /* 知性丁香淡紫色 */
@@ -109,11 +109,7 @@ body > .logo-lightbox-overlay {
   display: grid !important;
   place-items: center !important;
   min-height: 100vh !important;
-  background:
-    radial-gradient(circle at 70% 46%, rgba(242, 153, 74, 0.19), transparent 23%),
-    radial-gradient(circle at 78% 38%, rgba(123, 97, 255, 0.15), transparent 29%),
-    radial-gradient(circle at 18% 14%, rgba(215, 137, 142, 0.12), transparent 28%),
-    linear-gradient(135deg, #0f1317 0%, #12161a 48%, #171214 100%) !important;
+  /* background removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .landing-gateway.mode-auth .landing-stage,
@@ -232,9 +228,9 @@ body > .logo-lightbox-overlay {
 .novel-section .novel-hero::before {
   background:
     url("/texture-card-1.jpg") center center / 190px 190px repeat !important;
-  opacity: 0.24 !important;
   mix-blend-mode: multiply !important;
   filter: contrast(1.04) saturate(0.7) brightness(1.02) !important;
+  /* opacity removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 /* Entire rule removed (2026-07-08 audit) - its only property (transform)
@@ -297,9 +293,7 @@ body > .logo-lightbox-overlay {
 .graph-card.relation-graph,
 .graph-card.relation-graph:hover {
   --ah-graph-dot-soft: var(--mat-graph-dot);
-  background: linear-gradient(135deg, var(--mat-graph), var(--mat-graph)) !important;
-  background-color: var(--mat-graph) !important;
-  border-color: rgba(99, 108, 106, 0.2) !important;
+  /* background/background-color/border-color removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .graph-card.relation-graph::before {
@@ -466,13 +460,13 @@ body > .logo-lightbox-overlay {
    this file. */
 
 body[data-theme="dark"] .relation-svg {
-  background-color: #30342f !important;
   background-image: radial-gradient(rgba(208, 177, 138, 0.16) 1.25px, transparent 1.25px) !important;
+  /* background-color removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 body[data-theme="dark"] .graph-card.relation-graph {
   background: linear-gradient(135deg, #30342f, #30342f) !important;
-  background-color: #30342f !important;
+  /* background-color removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 /* 2026-06-20 stability pass: final overrides for loading, auth, graph, meta, dark inputs and sidebar affordance. */
@@ -567,13 +561,10 @@ body[data-theme="dark"] .landing-gateway.mode-auth {
 .novel-section .novel-meta > label:nth-of-type(1) {
   grid-column: 1 !important;
   grid-row: 2 !important;
-  width: auto !important;
-  min-width: 0 !important;
-  padding: 0 !important;
   border: 0 !important;
-  border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
+  /* width/min-width/padding/border-radius removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .novel-section .novel-meta > label:nth-of-type(2) {
@@ -669,8 +660,8 @@ body[data-theme="dark"] .landing-gateway.mode-auth {
 .graph-card.relation-graph,
 .graph-card.relation-graph:hover {
   background: var(--mat-graph) !important;
-  background-color: var(--mat-graph) !important;
   border-color: rgba(104, 114, 111, 0.24) !important;
+  /* background-color removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .graph-card.relation-graph::before,
@@ -764,12 +755,8 @@ body[data-theme="dark"]::before,
 body[data-theme="dark"],
 body[data-theme="dark"] #root,
 body[data-theme="dark"] .loading-screen {
-  background:
-    radial-gradient(circle at 18% 18%, rgba(191, 165, 123, 0.12), transparent 32%),
-    radial-gradient(circle at 72% 24%, rgba(97, 113, 118, 0.18), transparent 34%),
-    linear-gradient(135deg, #181613 0%, #272018 52%, #121313 100%) !important;
   background-attachment: scroll !important;
-  color: #f5eadc !important;
+  /* background/color removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .graph-card.relation-graph,
@@ -909,7 +896,6 @@ body[data-theme="light"],
    sharing-collab.css rule. */
 .novel-section .novel-meta {
   display: grid !important;
-  grid-template-columns: minmax(188px, 1.12fr) minmax(126px, 0.88fr) 66px !important;
   grid-template-areas:
     "target current publish"
     "genre finish publish" !important;
@@ -918,6 +904,7 @@ body[data-theme="light"],
   justify-self: end !important;
   align-items: center !important;
   transform: none !important;
+  /* grid-template-columns removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 /* border/background/box-shadow are redundant with the later

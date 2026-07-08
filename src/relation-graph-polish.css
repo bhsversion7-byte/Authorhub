@@ -1,8 +1,7 @@
 .relation-reset-button {
-  background: rgba(255, 250, 244, 0.72) !important;
-  color: rgba(80, 72, 63, 0.82) !important;
   border: 1px solid rgba(234, 223, 212, 0.72) !important;
   box-shadow: none !important;
+  /* background/color removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .relation-reset-button:hover {

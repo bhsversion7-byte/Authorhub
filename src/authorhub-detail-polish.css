@@ -82,7 +82,7 @@ body,
 .tag-chip-board button {
   position: relative !important;
   padding-right: 18px !important;
-  overflow: visible !important;
+  /* overflow removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .tag-chip-remove {
@@ -108,8 +108,8 @@ body,
 
 .tag-chip-board button:hover .tag-chip-remove,
 .tag-chip-board button:focus-within .tag-chip-remove {
-  opacity: 1 !important;
   transform: scale(1) !important;
+  /* opacity removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 /* Entire rule removed (2026-07-08 audit) - its only property (animation)
@@ -125,15 +125,13 @@ body,
 /* Keep dense action controls compact and consistent. */
 .character-action-row button,
 .relation-action-row button {
-  min-height: 40px !important;
-  padding: 8px 12px !important;
   font-size: 12px !important;
+  /* min-height/padding removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .timeline-action-row button {
-  min-height: 38px !important;
-  padding: 7px 12px !important;
   font-size: 12px !important;
+  /* min-height/padding removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .relation-action-row .relation-save-button,

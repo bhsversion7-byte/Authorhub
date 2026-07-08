@@ -108,11 +108,9 @@
 .author-section .profile-panel:hover,
 .author-section .progress-panel:hover,
 .author-section .appearance-panel:hover {
-  transform: none !important;
   background: #F0EBE0 !important;
-  border-color: rgba(108, 139, 136, 0.28) !important;
-  box-shadow: none !important;
   animation: authorCardBorderPop 190ms ease-out;
+  /* transform/border-color/box-shadow removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .author-section .appearance-controls {

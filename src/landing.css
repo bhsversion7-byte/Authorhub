@@ -1,7 +1,4 @@
 .landing-gateway {
-  position: relative;
-  min-height: 100vh;
-  overflow: hidden;
   color: #fff8ef;
   isolation: isolate;
   background:
@@ -9,6 +6,7 @@
     radial-gradient(circle at 78% 38%, rgba(123, 97, 255, 0.15), transparent 29%),
     radial-gradient(circle at 18% 14%, rgba(215, 137, 142, 0.12), transparent 28%),
     linear-gradient(135deg, #0f1317 0%, #12161a 48%, #171214 100%);
+  /* position/min-height/overflow removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .landing-gateway::before {
@@ -370,10 +368,9 @@
 
 @media (max-width: 860px) {
   .landing-stage {
-    grid-template-columns: 1fr;
     align-content: center;
-    padding: 28px;
-  }
+    /* grid-template-columns/padding removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
+}
 
   .landing-copy h1 {
     font-size: clamp(3.2rem, 18vw, 5.4rem);

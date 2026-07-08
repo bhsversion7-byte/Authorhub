@@ -27,8 +27,8 @@
 .loading-screen {
   position: relative !important;
   isolation: isolate !important;
-  background: transparent !important;
   color: var(--ah-ink) !important;
+  /* background removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 
@@ -140,8 +140,8 @@
 
 .graph-toolbar .toolbar-actions button,
 .relation-reset-button {
-  background: rgba(255, 253, 248, 0.88) !important;
   color: var(--ah-ink) !important;
+  /* background removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 /* Inspector and timeline controls must fit the resizable pane. */
@@ -221,8 +221,8 @@
 .relation-action-row button {
   width: 100% !important;
   min-width: 0 !important;
-  min-height: 42px !important;
   justify-content: center !important;
+  /* min-height removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 /* Entire rule removed (2026-07-08 audit) - all 3 properties fully shadowed
@@ -275,10 +275,9 @@
 .confirm-modal .danger-button,
 .confirm-modal .danger-button:hover,
 .confirm-modal .danger-button:focus-visible {
-  background: linear-gradient(135deg, #c7928b, #b77e78) !important;
-  color: var(--ah-danger-ink) !important;
   border-color: rgba(151, 82, 76, 0.2) !important;
   box-shadow: 0 12px 26px rgba(184, 125, 118, 0.2) !important;
+  /* background/color removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 /* User center day/night switch. */
@@ -373,8 +372,8 @@ body[data-theme="dark"] .danger-lite-button {
 
 body[data-theme="dark"] .timeline-node:hover,
 body[data-theme="dark"] .timeline-node.is-active {
-  background: linear-gradient(135deg, rgba(41, 48, 45, 0.92), rgba(34, 38, 36, 0.86)) !important;
   color: var(--ah-dark-ink) !important;
+  /* background removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 @media (max-width: 1120px) {

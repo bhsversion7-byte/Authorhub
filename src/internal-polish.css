@@ -1,9 +1,7 @@
 .sidebar {
-  background:
-    linear-gradient(180deg, rgba(255, 253, 248, 0.78), rgba(246, 239, 229, 0.74)),
-    radial-gradient(circle at 18% 8%, rgba(221, 169, 106, 0.12), transparent 34%);
   border-right: 1px solid rgba(214, 199, 183, 0.72);
   box-shadow: 18px 0 58px rgba(73, 55, 43, 0.045);
+  /* background removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .brand {

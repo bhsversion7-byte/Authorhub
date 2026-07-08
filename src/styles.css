@@ -4,8 +4,6 @@
   --bg-deep: #f1e7dd;
   --card: #ffffff;
   --card-soft: rgba(255, 255, 255, 0.82);
-  --ink: #2c2a29;
-  --muted: #7f746b;
   --line: #eadfd4;
   --blue: #8298c0;
   --teal: #6c8b88;
@@ -20,6 +18,8 @@
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: var(--bg);
   color: var(--ink);
+  /* --ink/--muted removed (2026-07-08 audit) - both fully shadowed by a
+     later :root rule further down this file. */
 }
 
 /* --bg/--card/--card-soft/--ink/--muted/--line removed (2026-07-09
@@ -28,11 +28,8 @@
 body[data-theme="dark"] {
   --bg-deep: #26211d;
   --shadow: 0 18px 54px rgba(0, 0, 0, 0.24);
-  background:
-    radial-gradient(circle at 8px 8px, rgba(245, 230, 211, 0.045) 1px, transparent 1px),
-    radial-gradient(circle at 18% 8%, rgba(245, 230, 211, 0.1), transparent 30%),
-    radial-gradient(circle at 86% 8%, rgba(139, 160, 156, 0.12), transparent 32%),
-    linear-gradient(135deg, #171514 0%, #211d1a 52%, #28221d 100%);
+  /* background removed (2026-07-08 audit) - fully shadowed by a later
+     material-system.css rule for this same selector. */
 }
 
 body[data-theme="dark"] input,
@@ -115,12 +112,12 @@ textarea,
 select {
   width: 100%;
   border: 1px solid var(--line);
-  border-radius: 12px;
   background: rgba(255, 255, 255, 0.88);
   color: var(--ink);
   outline: none;
-  padding: 10px 12px;
   min-width: 0;
+  /* border-radius/padding removed (2026-07-08 audit) - both fully
+     shadowed by a later rule for this same selector group. */
   transition:
     border-color 180ms var(--ease),
     box-shadow 180ms var(--ease),
@@ -136,13 +133,14 @@ select:focus {
 }
 
 textarea {
-  min-height: 118px;
   resize: vertical;
   line-height: 1.7;
   font-size: var(--field-font-size);
   width: 100%;
   min-width: 100%;
   max-width: 100%;
+  /* min-height removed (2026-07-08 audit) - fully shadowed by a later
+     rule for this same selector. */
 }
 
 a {
@@ -155,13 +153,10 @@ a {
 
 .auth-wall {
   display: grid;
-  min-height: 100vh;
   place-items: center;
   padding: clamp(18px, 5vw, 48px);
-  background:
-    radial-gradient(circle at 18% 12%, rgba(221, 169, 106, 0.16), transparent 30%),
-    radial-gradient(circle at 84% 16%, rgba(139, 160, 156, 0.14), transparent 32%),
-    linear-gradient(135deg, #fbf9f6 0%, #f7f0e8 100%);
+  /* min-height/background removed (2026-07-08 audit) - both fully
+     shadowed by a later material-system.css rule for this selector. */
 }
 
 .auth-card {
@@ -170,14 +165,11 @@ a {
   width: min(430px, 100%);
   gap: 14px;
   padding: clamp(24px, 4vw, 34px);
-  border: 1px solid rgba(255, 255, 255, 0.74);
   border-radius: 26px;
-  background:
-    radial-gradient(circle at 16% 2%, rgba(244, 213, 191, 0.28), transparent 34%),
-    rgba(253, 251, 247, 0.94);
-  box-shadow: 0 34px 90px rgba(44, 38, 33, 0.16);
   backdrop-filter: blur(20px);
   animation: authCardIn 360ms var(--ease) both;
+  /* border/background/box-shadow removed (2026-07-08 audit) - all fully
+     shadowed by a later rule for this same selector. */
 }
 
 .auth-mark {
@@ -435,11 +427,9 @@ a {
   z-index: 20;
   display: flex;
   flex-direction: column;
-  padding: 24px 18px 20px;
-  background: rgba(255, 255, 255, 0.72);
-  border-right: 1px solid rgba(234, 223, 212, 0.9);
-  box-shadow: 18px 0 55px rgba(73, 55, 43, 0.05);
   backdrop-filter: blur(24px);
+  /* padding/background/border-right/box-shadow removed (2026-07-08
+     audit) - all fully shadowed by later rules for this same selector. */
 }
 
 
@@ -448,12 +438,9 @@ a {
 
 .brand {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
+  /* align-items/gap/margin-bottom removed (2026-07-08 audit) - all fully
+     shadowed by later rules for this same selector. */
 }
-
-
 
 .brand p,
 .brand span,
@@ -468,8 +455,9 @@ a {
 
 .brand p {
   color: var(--ink);
-  font-size: 18px;
   font-weight: 800;
+  /* font-size removed (2026-07-08 audit) - fully shadowed by a later
+     rule for this same selector. */
 }
 
 /* gap removed (2026-07-10 audit) - dead, shadowed by internal-polish.css's
@@ -510,7 +498,8 @@ a {
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  padding: 0 12px;
+  /* padding removed (2026-07-08 audit) - fully shadowed by a later rule
+     for this same selector. */
 }
 
 .novel-nav-item {
@@ -532,7 +521,8 @@ a {
 
 .novel-select-button svg {
   flex: 0 0 auto;
-  color: var(--item-color, var(--teal));
+  /* color removed (2026-07-08 audit) - fully shadowed by a later rule
+     for this same selector. */
 }
 
 .novel-nav-title {
@@ -544,16 +534,15 @@ a {
 
 .novel-delete-button {
   position: absolute;
-  right: 28px;
   z-index: 6;
   display: grid;
-  width: 24px;
-  height: 24px;
   place-items: center;
   border-radius: 999px;
   color: var(--muted);
   opacity: 0;
   pointer-events: auto;
+  /* right/width/height removed (2026-07-08 audit) - all fully shadowed
+     by later rules for this same selector. */
   transition:
     opacity 180ms var(--ease),
     background 180ms var(--ease),
@@ -614,8 +603,9 @@ a {
 
 .content-shell {
   position: relative;
-  padding: 18px clamp(16px, 2.4vw, 34px) 44px;
   transition: margin-left 180ms var(--ease);
+  /* padding removed (2026-07-08 audit) - fully shadowed by a later rule
+     for this same selector. */
 }
 
 /* Three font-serif/font-sans/font-mono rules removed (2026-07-08 audit) -
@@ -631,15 +621,10 @@ a {
 
 .confirm-modal {
   display: grid;
-  width: min(460px, 100%);
   gap: 12px;
   padding: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.82);
-  border-radius: 22px;
-  background:
-    radial-gradient(circle at 14% 4%, rgba(244, 213, 191, 0.22), transparent 34%),
-    rgba(255, 255, 255, 0.92);
-  box-shadow: 0 30px 80px rgba(44, 42, 41, 0.16);
+  /* width/border/border-radius/background/box-shadow removed (2026-07-08
+     audit) - all fully shadowed by later rules for this same selector. */
 }
 
 .confirm-modal h2 {
@@ -678,15 +663,13 @@ a {
   position: relative;
   z-index: 1;
   margin: 0 auto 26px;
-  max-width: 1480px;
   animation: riseIn 520ms var(--ease) both;
+  /* max-width removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .section-heading {
   display: grid;
-  max-width: 880px;
-  gap: 10px;
-  margin: 16px 0 18px;
+  /* max-width/gap/margin removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .section-heading h1,
@@ -733,8 +716,7 @@ a {
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
-  gap: 18px;
+  /* grid-template-columns/gap removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 /* border/border-radius/background/box-shadow removed (2026-07-09 audit) -
@@ -751,49 +733,44 @@ a {
 
 .profile-panel {
   display: grid;
-  grid-template-columns: 190px minmax(0, 1fr);
-  gap: 22px;
-  padding: 22px;
+  /* grid-template-columns/gap/padding removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .profile-orbit {
   position: relative;
   display: grid;
-  min-height: 210px;
   place-items: center;
   border-radius: 16px;
   background:
     linear-gradient(135deg, rgba(108, 139, 136, 0.12), rgba(215, 185, 142, 0.2)),
     #fffaf3;
   overflow: hidden;
+  /* min-height removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .profile-orbit span {
   position: absolute;
-  width: 142px;
-  height: 142px;
   border: 1px dashed rgba(108, 139, 136, 0.42);
   border-radius: 50%;
   animation: slowSpin 18s linear infinite;
+  /* width/height removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .profile-orbit div {
   display: grid;
-  width: 78px;
-  height: 78px;
   place-items: center;
   border-radius: 50%;
   background: #2c2a29;
   color: #fff3e4;
   box-shadow: 0 14px 34px rgba(44, 42, 41, 0.18);
   font-family: Georgia, serif;
-  font-size: 36px;
+  /* width/height/font-size removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .editable-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  /* gap removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .editable-field {
@@ -812,12 +789,10 @@ a {
 
 .editable-field strong {
   display: block;
-  min-height: 42px;
-  padding: 10px 0;
   color: var(--ink);
-  font-size: 15px;
   line-height: 1.6;
   text-wrap: pretty;
+  /* min-height/padding/font-size removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .editable-control {
@@ -843,7 +818,7 @@ a {
 
 .appearance-panel {
   margin-top: 18px;
-  padding: 22px;
+  /* padding removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 
@@ -851,7 +826,7 @@ a {
 .donation-panel {
   display: grid;
   gap: 16px;
-  padding: 22px;
+  /* padding removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 
@@ -915,7 +890,7 @@ a {
 .toggle-pill.is-active {
   background: #2c2a29;
   color: #fff8ef;
-  box-shadow: 0 12px 30px rgba(44, 42, 41, 0.1);
+  /* box-shadow removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 body[data-theme="dark"] .donation-tabs button.is-active,
@@ -1078,9 +1053,9 @@ body[data-theme="dark"] .toggle-pill.is-active {
 .appearance-controls {
   display: grid;
   grid-template-columns: minmax(220px, 0.8fr) minmax(220px, 0.7fr) minmax(280px, 1fr);
-  gap: 16px;
   align-items: end;
   margin-top: 16px;
+  /* gap removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .appearance-controls label {
@@ -1133,8 +1108,6 @@ body[data-theme="dark"] .toggle-pill.is-active {
 
 .meter-ring {
   display: grid;
-  width: 210px;
-  height: 210px;
   place-items: center;
   margin: 18px auto;
   border-radius: 50%;
@@ -1142,6 +1115,7 @@ body[data-theme="dark"] .toggle-pill.is-active {
     radial-gradient(circle, #fff 58%, transparent 60%),
     conic-gradient(var(--teal) var(--progress), rgba(215, 185, 142, 0.23) 0);
   box-shadow: inset 0 0 0 1px rgba(108, 139, 136, 0.07), var(--soft-shadow);
+  /* width/height removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .meter-ring div {
@@ -1151,7 +1125,7 @@ body[data-theme="dark"] .toggle-pill.is-active {
 
 .meter-ring strong {
   font-family: Georgia, serif;
-  font-size: 44px;
+  /* font-size removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .meter-ring span,
@@ -1242,17 +1216,16 @@ body[data-theme="dark"] .toggle-pill.is-active {
 .novel-title-input {
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(24px, 4vw, 28px);
   font-weight: 800;
-  line-height: 1;
   color: var(--ink);
+  /* font-size/line-height removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .novel-subtitle-input {
   margin-top: 8px;
   color: var(--muted);
-  font-size: clamp(13px, 1.5vw, 16px);
   line-height: 1.5;
+  /* font-size removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .novel-title-input:focus,
@@ -1348,8 +1321,8 @@ body[data-theme="dark"] .toggle-pill.is-active {
 .story-grid {
   display: grid;
   grid-template-columns: 1fr 1fr minmax(220px, 0.55fr);
-  gap: 16px;
   margin: 18px 0;
+  /* gap removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .story-card,
@@ -1430,11 +1403,8 @@ body[data-theme="dark"] .toggle-pill.is-active {
 
 .relation-layout {
   display: grid;
-  grid-template-columns: minmax(0, calc(100% - var(--detail-pane, 34%) - 16px)) 8px minmax(320px, var(--detail-pane, 34%));
-  gap: 16px;
   margin: 18px 0;
-  align-items: stretch;
-  --relation-panel-height: clamp(660px, calc(100vh - 48px), 820px);
+  /* grid-template-columns/gap/align-items/--relation-panel-height removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .relation-split-handle {
@@ -1454,10 +1424,7 @@ body[data-theme="dark"] .toggle-pill.is-active {
   position: relative;
   min-height: var(--relation-panel-height);
   height: var(--relation-panel-height);
-  overflow: hidden;
-  background:
-    linear-gradient(135deg, rgba(253, 251, 247, 0.94), rgba(255, 255, 255, 0.76)),
-    color-mix(in srgb, var(--novel-color) 2%, #fdfbf7);
+  /* overflow/background removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 /* background removed (2026-07-10 audit) - dead, shadowed by an !important
@@ -1478,7 +1445,7 @@ body[data-theme="dark"] .toggle-pill.is-active {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 18px 18px 0;
+  /* padding removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .toolbar-actions {
@@ -1619,9 +1586,9 @@ body[data-theme="dark"] .toggle-pill.is-active {
    by a later .node-color-picker.is-wide rule further down this same file. */
 
 .node-color-picker.is-wide div {
-  grid-template-columns: repeat(auto-fill, minmax(42px, 48px));
   justify-content: start;
   gap: 10px;
+  /* grid-template-columns removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .node-color-picker button {
@@ -1703,18 +1670,14 @@ body[data-theme="dark"] .toggle-pill.is-active {
 }
 
 .tag-chip-board {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  min-width: 0;
   max-width: 100%;
+  /* display/flex-wrap/gap/min-width removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .tag-chip-board button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  max-width: 100%;
   min-width: 0;
   min-height: 30px;
   padding: 0 10px;
@@ -1722,10 +1685,10 @@ body[data-theme="dark"] .toggle-pill.is-active {
   background: rgba(255, 250, 244, 0.92);
   color: #66584f;
   border: 1px solid rgba(234, 223, 212, 0.92);
-  font-size: 12px;
   font-weight: 800;
   overflow-wrap: anywhere;
   white-space: normal;
+  /* max-width/font-size removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .tag-chip-board button.is-selected {
@@ -1753,8 +1716,8 @@ body[data-theme="dark"] .toggle-pill.is-active {
 
 .tag-compose-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 42px;
   gap: 8px;
+  /* grid-template-columns removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .tag-compose-row button {
@@ -1791,9 +1754,9 @@ body[data-theme="dark"] .toggle-pill.is-active {
 .media-empty {
   max-width: 260px;
   color: var(--muted);
-  font-size: 12px;
   line-height: 1.7;
   text-align: center;
+  /* font-size removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .media-empty-hint {
@@ -2158,7 +2121,7 @@ body[data-theme="dark"] .toggle-pill.is-active {
 
 .focus-textarea-wrap {
   display: grid;
-  gap: 6px;
+  /* gap removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .focus-textarea-label {
@@ -2176,9 +2139,8 @@ body[data-theme="dark"] .toggle-pill.is-active {
   height: 30px;
   place-items: center;
   border-radius: 10px;
-  background: #fffaf3;
-  color: var(--teal);
   border: 1px solid var(--line);
+  /* background/color removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .panel-title-expand {
@@ -2207,8 +2169,7 @@ body[data-theme="dark"] .toggle-pill.is-active {
 
 .zen-editor-head h3 {
   margin: 0;
-  font-family: Georgia, serif;
-  font-size: clamp(26px, 3vw, 42px);
+  /* font-family/font-size removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 /* min-height/padding/border-radius removed (2026-07-10 audit) - all fully
@@ -2288,9 +2249,8 @@ body[data-theme="dark"] .toggle-pill.is-active {
 .imessage-card img {
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
   pointer-events: none;
+  /* height/object-fit removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .imessage-card button {
@@ -2598,21 +2558,19 @@ body[data-theme="dark"] .toggle-pill.is-active {
    selectors further down this file. */
 
 .section-heading {
-  max-width: 760px;
   gap: 8px;
-  margin: 12px 0 16px;
+  /* max-width/margin removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .section-heading h1 {
   max-width: 760px;
-  font-size: clamp(24px, 2.3vw, 28px) !important;
   line-height: 1.16;
+  /* font-size removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .section-heading p {
-  max-width: 680px;
-  font-size: 13px;
   line-height: 1.62;
+  /* max-width/font-size removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .dashboard-grid {
@@ -2621,10 +2579,8 @@ body[data-theme="dark"] .toggle-pill.is-active {
 }
 
 .profile-panel {
-  grid-template-columns: minmax(142px, 0.64fr) minmax(0, 1.36fr);
-  gap: 16px;
-  padding: 18px;
   min-width: 0;
+  /* grid-template-columns/gap/padding removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .profile-orbit {
@@ -2653,8 +2609,8 @@ body[data-theme="dark"] .toggle-pill.is-active {
 }
 
 .novel-title-input {
-  font-size: clamp(24px, 2.4vw, 28px) !important;
   line-height: 1.08;
+  /* font-size removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .novel-subtitle-input {
@@ -2668,7 +2624,7 @@ body[data-theme="dark"] .toggle-pill.is-active {
 .relation-layout {
   grid-template-columns: minmax(0, calc(100% - var(--detail-pane, 34%) - 12px)) 6px minmax(260px, var(--detail-pane, 34%));
   gap: 12px;
-  --relation-panel-height: clamp(620px, calc(100vh - 44px), 760px);
+  /* --relation-panel-height removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 /* .inspector-card removed from this selector (2026-07-09 audit) - its
@@ -2679,8 +2635,8 @@ body[data-theme="dark"] .toggle-pill.is-active {
 }
 
 .inspector-scroll {
-  padding-right: 18px;
   scrollbar-gutter: stable;
+  /* padding-right removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 /* Entire rule removed (2026-07-08 audit) - both properties fully shadowed
@@ -2691,9 +2647,8 @@ body[data-theme="dark"] .toggle-pill.is-active {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  width: 100%;
-  min-width: 0;
   white-space: nowrap;
+  /* width/min-width removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .character-quick-fields label input,
@@ -2794,9 +2749,9 @@ body[data-theme="dark"] .toggle-pill.is-active {
 
 @media (max-width: 1180px) {
   .relation-layout {
-    grid-template-columns: 1fr;
     --relation-panel-height: 620px;
-  }
+    /* grid-template-columns removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
+}
 
   .inspector-card {
     position: relative;
@@ -2844,8 +2799,8 @@ textarea {
 }
 
 .sidebar {
-  width: 224px !important;
   padding: 16px 12px;
+  /* width removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .brand {
@@ -2903,9 +2858,9 @@ textarea {
 }
 
 .novel-delete-button {
-  right: 18px;
   width: 22px;
   height: 22px;
+  /* right removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .content-shell {
@@ -2913,8 +2868,8 @@ textarea {
 }
 
 .section {
-  max-width: 1320px;
   margin-bottom: 18px;
+  /* max-width removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .section-heading {
@@ -3238,9 +3193,8 @@ textarea {
   aspect-ratio: auto;
   object-fit: contain;
   flex: 0 0 auto;
-  border-radius: 10px;
-  filter: grayscale(1) contrast(1.08) brightness(0.82);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  /* border-radius/filter removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .brand:hover .brand-logo {
@@ -3257,9 +3211,9 @@ textarea {
 
 .character-editor-top {
   display: grid;
-  grid-template-columns: minmax(170px, 0.72fr) minmax(0, 1.28fr);
   align-items: start;
   gap: 16px;
+  /* grid-template-columns removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .media-carousel {
@@ -3271,7 +3225,7 @@ textarea {
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 12px;
   width: 100%;
-  min-width: 0;
+  /* min-width removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .character-attribute-grid label,
@@ -3300,10 +3254,10 @@ textarea {
 
 .node-color-picker.is-wide {
   margin-top: 12px;
-  padding: 12px;
   border: 1px solid rgba(234, 229, 218, 0.86);
   border-radius: 14px;
   background: rgba(253, 251, 247, 0.6);
+  /* padding removed (2026-07-08 audit) - fully shadowed by later rule(s) for this same selector. */
 }
 
 .node-color-picker.is-wide>span {
