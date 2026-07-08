@@ -96,6 +96,12 @@ export default function RelationGraph({
   const lockedNodeIdsRef = useRef(new Set());
   const areaSelectStartRef = useRef(null);
   const areaSelectRectRef = useRef(null);
+  // Holds a teardown for the drag-in-progress window listeners below so the
+  // main effect's cleanup can detach them if it reruns/unmounts mid-drag
+  // (character list changes while the user is still holding the mouse
+  // button) - otherwise they'd leak, bound forever over a detached D3
+  // selection from the old render.
+  const areaSelectCleanupRef = useRef(null);
 
   const [selectedId, setSelectedId] = useState(novel.characters[0]?.id);
   const [graphFocusId, setGraphFocusId] = useState("");
@@ -340,6 +346,7 @@ export default function RelationGraph({
       function onUp(upEvent) {
         window.removeEventListener("mousemove", onMove);
         window.removeEventListener("mouseup", onUp);
+        areaSelectCleanupRef.current = null;
         areaSelectStartRef.current = null;
         const [endX, endY] = d3.pointer(upEvent, graphLayer.node());
         const minX = Math.min(startX, endX);
@@ -357,6 +364,10 @@ export default function RelationGraph({
 
       window.addEventListener("mousemove", onMove);
       window.addEventListener("mouseup", onUp);
+      areaSelectCleanupRef.current = () => {
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+      };
     });
 
     svg.on("contextmenu", (event) => {
@@ -699,7 +710,11 @@ export default function RelationGraph({
     linkSelectionRef.current = link;
     labelSelectionRef.current = label;
     nodesRef.current = nodes;
-    return () => simulation.stop();
+    return () => {
+      simulation.stop();
+      areaSelectCleanupRef.current?.();
+      areaSelectCleanupRef.current = null;
+    };
   }, [
     novel.id,
     novel.characters,
@@ -886,6 +901,9 @@ export default function RelationGraph({
     if (!deleteCharacterCandidate) return;
     const remainingCharacters = novel.characters.filter((character) => character.id !== deleteCharacterCandidate.id);
     const nextCharacter = remainingCharacters[0] ?? null;
+    lockedNodeIdsRef.current.delete(deleteCharacterCandidate.id);
+    nodePositionsRef.current.delete(deleteCharacterCandidate.id);
+    setAreaSelectedIds((current) => current.filter((id) => id !== deleteCharacterCandidate.id));
     onDeleteCharacter?.(novel.id, deleteCharacterCandidate.id);
     clearRelationshipSelection();
     setDeleteCharacterCandidate(null);

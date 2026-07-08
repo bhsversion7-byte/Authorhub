@@ -154,21 +154,6 @@
   background-image: none !important;
 }
 
-.novel-section .story-grid > article.panel.story-card:nth-child(1):hover {
-  background-color: #f2eadc !important;
-  background-image: linear-gradient(135deg, rgba(255, 253, 248, 0.66), rgba(242, 234, 220, 0.92)) !important;
-}
-
-.novel-section .story-grid > article.panel.story-card:nth-child(2):hover {
-  background-color: #ece8dd !important;
-  background-image: linear-gradient(140deg, rgba(250, 247, 240, 0.78), rgba(236, 232, 221, 0.94)) !important;
-}
-
-.novel-section .theme-card:hover {
-  background-color: #ede4df !important;
-  background-image: linear-gradient(145deg, rgba(248, 241, 235, 0.82), rgba(237, 228, 223, 0.96)) !important;
-}
-
 body[data-theme="dark"] .author-section .profile-panel,
 body[data-theme="dark"] .author-section .profile-panel:hover {
   background-color: #433a30 !important;
@@ -252,11 +237,6 @@ body[data-theme="dark"] .timeline-arrow {
   background: rgba(255, 248, 232, 0.72) !important;
   border-color: rgba(255, 248, 232, 0.2) !important;
   color: rgba(49, 41, 34, 0.9) !important;
-}
-
-body[data-theme="dark"] .event-editor-main {
-  background: rgba(72, 66, 58, 0.72) !important;
-  border-color: rgba(230, 210, 184, 0.2) !important;
 }
 
 body[data-theme="dark"] .event-core-grid label,
