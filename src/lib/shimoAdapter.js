@@ -305,7 +305,11 @@ function migrateNovel(novel) {
         color: character.color ?? ["#8BA09C", "#DDA96A", "#A9A084", "#BFA57B", "#A7B8C8"][index % 5],
         images: character.images ?? [],
       })),
-      relationships: novel.relationships ?? [],
+      relationships: normalizeRelationships(novel.id, novel.relationships),
+      relationGraphLayout: normalizeGraphLayout(
+        novel.relationGraphLayout,
+        (novel.characters ?? []).filter(isRecord).map((character) => character.id),
+      ),
       timeline: (novel.timeline ?? []).filter(isRecord).map((event) => ({ ...event, images: event.images ?? [] })),
     };
     migratedNovelCache.set(novel, migrated);
@@ -347,3 +351,4 @@ function inferCharacterTag(character, index) {
   if (index === 1 || /主角2|受/.test(role)) return "主角2";
   return "主要配角";
 }
+import { normalizeGraphLayout, normalizeRelationships } from "./relationGraphModel.js";

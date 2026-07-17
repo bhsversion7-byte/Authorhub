@@ -8,6 +8,13 @@ import { createKeyedDebouncer } from "./lib/debounce.js";
 import { buildMarkdownExport, getRelationshipEndpointId } from "./lib/markdownExport.js";
 import { deleteImageFromStorage } from "./lib/mediaStorage.js";
 import {
+  addRelationshipRecord,
+  createNewRelationshipId,
+  removeGraphLayoutNode,
+  removeRelationshipRecord,
+  updateRelationshipRecord,
+} from "./lib/relationGraphModel.js";
+import {
   SHARE_ROLES,
   createShareLink as createSharedNovelLink,
   decorateSharedNovel,
@@ -844,24 +851,31 @@ export default function App() {
         const targetId = getRelationshipEndpointId(relationship.target);
         return sourceId !== characterId && targetId !== characterId;
       }),
+      relationGraphLayout: removeGraphLayoutNode(novel.relationGraphLayout, characterId),
     }));
   }
 
   function addRelationship(novelId, relationship) {
-    updateNovelRecord(novelId, (novel) => ({ ...novel, relationships: [...(novel.relationships ?? []), relationship] }));
-  }
-
-  function updateRelationship(novelId, relationshipIndex, patch) {
     updateNovelRecord(novelId, (novel) => ({
       ...novel,
-      relationships: (novel.relationships ?? []).map((relationship, index) => (index === relationshipIndex ? { ...relationship, ...patch } : relationship)),
+      relationships: addRelationshipRecord(novel.relationships, {
+        ...relationship,
+        id: relationship.id || createNewRelationshipId(),
+      }),
     }));
   }
 
-  function deleteRelationship(novelId, relationshipIndex) {
+  function updateRelationship(novelId, relationshipId, patch) {
     updateNovelRecord(novelId, (novel) => ({
       ...novel,
-      relationships: (novel.relationships ?? []).filter((_, index) => index !== relationshipIndex),
+      relationships: updateRelationshipRecord(novel.relationships, relationshipId, patch),
+    }));
+  }
+
+  function deleteRelationship(novelId, relationshipId) {
+    updateNovelRecord(novelId, (novel) => ({
+      ...novel,
+      relationships: removeRelationshipRecord(novel.relationships, relationshipId),
     }));
   }
 

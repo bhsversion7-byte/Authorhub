@@ -2,6 +2,7 @@ import React, { forwardRef, useEffect, useId, useImperativeHandle, useMemo, useR
 import { createPortal } from "react-dom";
 import Sortable from "sortablejs";
 import { ChevronLeft, ChevronRight, Maximize2, Minimize2, Plus, Save, Search, X } from "lucide-react";
+import { appendFocusPage } from "../lib/focusPages.js";
 
 const FocusTextarea = forwardRef(function FocusTextarea(
   {
@@ -246,9 +247,7 @@ const FocusTextarea = forwardRef(function FocusTextarea(
     const customPageCount = normalizedPages.filter((page) => page.id !== "page-main").length;
     const title = newPageTitle.trim() || `小标题 ${customPageCount + 1}`;
     const id = createPageId();
-    const activeIndex = Math.max(0, normalizedPages.findIndex((page) => page.id === activePage?.id));
-    const nextPages = [...normalizedPages];
-    nextPages.splice(activeIndex + 1, 0, { id, title: title.slice(0, 36), value: "" });
+    const nextPages = appendFocusPage(normalizedPages, { id, title: title.slice(0, 36), value: "" });
     commitPages(nextPages, id);
     setNewPageTitle("");
     setAddingPage(false);

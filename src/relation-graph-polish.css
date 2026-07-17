@@ -30,6 +30,83 @@
   pointer-events: none;
 }
 
+.graph-node .node-core {
+  transition: stroke-width 160ms ease, filter 160ms ease;
+}
+
+.planet-halo {
+  animation: none;
+}
+
+.planet-halo.is-celestial {
+  animation: celestialAura 3.8s ease-in-out infinite;
+}
+
+.graph-node.is-selected .node-core {
+  stroke: #fffdf8;
+  stroke-width: 6;
+  filter: drop-shadow(0 0 0.45rem rgba(122, 94, 68, 0.45));
+}
+
+.graph-relationship-preview {
+  pointer-events: none;
+}
+
+.graph-link-preview {
+  opacity: 0.86;
+  vector-effect: non-scaling-stroke;
+}
+
+.graph-link-preview-label rect {
+  fill: rgba(255, 253, 248, 0.94);
+  stroke: rgba(126, 154, 154, 0.62);
+}
+
+.graph-link-preview-label text {
+  fill: #5d7474;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.relation-lock-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.relation-lock-toggle input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #7e9a9a;
+}
+
+.inspector-card {
+  container-type: inline-size;
+}
+
+.character-attribute-grid .character-role-field {
+  grid-column: 1 / -1;
+}
+
+@container (max-width: 310px) {
+  .character-attribute-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .planet-halo,
+  .planet-halo.is-celestial {
+    animation: none;
+  }
+}
+
 body[data-theme="dark"] .graph-area-select {
   fill: rgba(224, 214, 200, 0.07);
   stroke: rgba(224, 214, 200, 0.42);

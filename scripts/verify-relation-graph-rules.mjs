@@ -6,6 +6,17 @@ import {
   isMainPairRelationship,
   normalizeRelationTag,
 } from "../src/lib/relationGraphRules.js";
+import {
+  addRelationshipRecord,
+  createEmptyRelationshipDraft,
+  createRelationshipId,
+  mergeCharacterDraft,
+  normalizeGraphLayout,
+  reduceRelationshipSelection,
+  removeRelationshipRecord,
+  updateRelationshipRecord,
+} from "../src/lib/relationGraphModel.js";
+import { readFileSync } from "node:fs";
 
 assert.equal(MAIN_PAIR_RELATION_COLOR, "#C95F5A");
 
@@ -37,5 +48,78 @@ assert.equal(isMainPairRelationship({ source: "a", target: "b" }, nodes, getNode
 assert.equal(isMainPairRelationship({ source: "a", target: "c" }, nodes, getNodeId), false);
 assert.equal(isMainPairRelationship({ source: "missing", target: "b" }, nodes, getNodeId), false);
 assert.equal(isMainPairRelationship(null, nodes, getNodeId), false);
+
+const unsavedDraft = {
+  id: "character-a",
+  name: "尚未保存的名字",
+  role: "尚未保存的身份",
+  background: "尚未保存的背景",
+  color: "#9FA2A4",
+};
+assert.deepEqual(
+  mergeCharacterDraft(unsavedDraft, { color: "#DDA96A" }),
+  { ...unsavedDraft, color: "#DDA96A" },
+  "an immediate color patch must preserve every unsaved draft field",
+);
+
+const sceneHookSource = readFileSync(new URL("../src/components/relation-graph/useRelationGraphScene.js", import.meta.url), "utf8");
+[
+  "selectedCharacterId",
+  "selectedRelationshipId",
+  "connectFrom",
+  "connectTo",
+  "connectLabel",
+  "detailPane",
+  "hoverId",
+].forEach((transientState) => {
+  assert.equal(
+    sceneHookSource.includes(transientState),
+    false,
+    `${transientState} must never restart the D3 scene`,
+  );
+});
+
+const emptyRelationship = createEmptyRelationshipDraft();
+const selectedA = reduceRelationshipSelection(
+  { selectedCharacterId: "", relationship: emptyRelationship },
+  "character-a",
+);
+assert.deepEqual(selectedA, {
+  selectedCharacterId: "character-a",
+  relationship: { ...emptyRelationship, source: "character-a" },
+});
+const selectedB = reduceRelationshipSelection(selectedA, "character-b");
+assert.equal(selectedB.selectedCharacterId, "character-a", "the inspector must remain on the relationship source");
+assert.equal(selectedB.relationship.source, "character-a");
+assert.equal(selectedB.relationship.target, "character-b");
+
+const relationId = createRelationshipId("novel-a", { source: "character-a", target: "character-b" }, 0);
+assert.equal(relationId, createRelationshipId("novel-a", { source: "character-a", target: "character-b" }, 0));
+assert.notEqual(relationId, createRelationshipId("novel-a", { source: "character-a", target: "character-b" }, 1));
+
+const firstRelationship = { id: relationId, source: "character-a", target: "character-b", label: "旧关系" };
+const secondRelationship = { id: "relation-two", source: "character-b", target: "character-c", label: "朋友" };
+assert.deepEqual(
+  addRelationshipRecord([firstRelationship], secondRelationship),
+  [firstRelationship, secondRelationship],
+  "adding a relationship must retain its stable id",
+);
+assert.equal(
+  updateRelationshipRecord([firstRelationship, secondRelationship], relationId, { label: "新关系" })[0].label,
+  "新关系",
+);
+assert.deepEqual(removeRelationshipRecord([firstRelationship, secondRelationship], relationId), [secondRelationship]);
+
+assert.deepEqual(
+  normalizeGraphLayout({
+    version: 1,
+    nodes: {
+      "character-a": { x: 1.4, y: -0.2, locked: 1 },
+      missing: { x: 0.5, y: 0.5, locked: true },
+    },
+  }, ["character-a"]),
+  { version: 1, nodes: { "character-a": { x: 1, y: 0, locked: true } } },
+  "layout migration must clamp coordinates and discard deleted characters",
+);
 
 console.log("relation graph rule checks passed");

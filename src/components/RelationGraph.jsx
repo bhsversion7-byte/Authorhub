@@ -2,16 +2,21 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import * as d3 from "d3";
 import Sortable from "sortablejs";
-import { Check, Link2, Plus, RotateCcw, Save, Sparkles, Trash2, X, ZoomIn } from "lucide-react";
+import { Plus, RotateCcw, ZoomIn } from "lucide-react";
 import { patchFocusPageMap } from "../lib/focusPages.js";
+import {
+  createNewRelationshipId,
+  mergeCharacterDraft,
+  updateGraphLayoutNode,
+} from "../lib/relationGraphModel.js";
 import {
   MAIN_PAIR_RELATION_COLOR,
   getCharacterRelationTag,
   isMainCharacter,
   isMainPairRelationship,
 } from "../lib/relationGraphRules.js";
-import FocusTextarea from "./FocusTextarea.jsx";
-import MediaCarousel from "./MediaCarousel.jsx";
+import CharacterInspector from "./relation-graph/CharacterInspector.jsx";
+import { useRelationGraphScene } from "./relation-graph/useRelationGraphScene.js";
 
 const ROLE_TAGS = ["主角1", "主角2", "主要配角", "反派", "亲友", "家族线"];
 // Cool tones first, then warm tones (pure visual ordering only - the
@@ -76,23 +81,25 @@ export default function RelationGraph({
   const nodeSelectionRef = useRef(null);
   const linkSelectionRef = useRef(null);
   const labelSelectionRef = useRef(null);
+  const previewUpdateRef = useRef(null);
+  const relationshipDraftRef = useRef({ source: "", target: "", label: "关系" });
   const linksRef = useRef([]);
   const zoomRef = useRef(null);
   const zoomTransformRef = useRef(d3.zoomIdentity);
   const dimsRef = useRef({ width: 0, height: 0 });
   const nodesRef = useRef([]);
+  const sceneNovelIdRef = useRef(novel.id);
+  const nodeClickRef = useRef(null);
+  const relationshipClickRef = useRef(null);
+  const persistNovelRef = useRef(null);
   // Survives the simulation being rebuilt (new character added, a node
   // clicked to select it, etc.) so an existing character resumes from
   // wherever it last settled instead of jumping back to a fresh formula
   // position every time. Cleared only by 重置视图.
   const nodePositionsRef = useRef(new Map());
-  // Area-lock (2026-07-10): characters in this set get fx/fy pinned to
-  // their remembered position on every rebuild, so adding new characters
-  // (which recreates the whole D3 node array and re-runs every force) can
-  // never nudge them - this is the actual fix for "拖拽好了星球，加人物又
-  //被打乱了". A ref, not persisted state or Supabase data: consistent
-  // with nodePositionsRef itself not persisting across a reload either,
-  // and cleared by 重置视图 same as remembered positions are.
+  // Runtime lock lookup mirrors relationGraphLayout. D3 reads the set during
+  // drag/force updates; completed lock changes persist normalized coordinates
+  // through the novel JSON save chain.
   const lockedNodeIdsRef = useRef(new Set());
   const areaSelectStartRef = useRef(null);
   const areaSelectRectRef = useRef(null);
@@ -120,8 +127,7 @@ export default function RelationGraph({
   const [connectFrom, setConnectFrom] = useState("");
   const [connectTo, setConnectTo] = useState("");
   const [connectLabel, setConnectLabel] = useState("关系");
-  const [selectedRelationshipIndex, setSelectedRelationshipIndex] = useState(null);
-  const [pendingNodeId, setPendingNodeId] = useState("");
+  const [selectedRelationshipId, setSelectedRelationshipId] = useState("");
   // Area-lock: Shift+drag on empty canvas draws a selection box (rendered
   // via areaSelectBox while the drag is live); on release, areaSelectedIds
   // holds the character ids that landed inside it and stays populated
@@ -166,6 +172,13 @@ export default function RelationGraph({
     if (readOnly || typeof onNovelChange !== "function") return;
     onNovelChange(novel.id, { characterTags: order });
   };
+  persistNovelRef.current = (patch) => {
+    if (readOnly || typeof onNovelChange !== "function") return;
+    onNovelChange(novel.id, patch);
+  };
+  nodeClickRef.current = (event, character) => selectNodeForRelationship(event, character);
+  relationshipClickRef.current = (event, relationship) => selectRelationship(event, relationship);
+  relationshipDraftRef.current = { source: connectFrom, target: connectTo, label: connectLabel };
 
   // Drag-to-reorder the tag chips, same feel as the sidebar novel drag. The ×
   // is filtered so grabbing it deletes instead of dragging; a plain click
@@ -195,15 +208,19 @@ export default function RelationGraph({
   }, [readOnly, boardTags.length]);
   const draftRelationshipKey =
     connectFrom && connectTo && connectFrom !== connectTo
-      ? relationshipKey({ source: connectFrom, target: connectTo }, selectedRelationshipIndex ?? "__preview")
+      ? relationshipKey({ id: selectedRelationshipId || "__preview", source: connectFrom, target: connectTo })
       : "";
+  const selectedRelationship = useMemo(
+    () => (novel.relationships ?? []).find((relationship) => relationship.id === selectedRelationshipId) ?? null,
+    [novel.relationships, selectedRelationshipId],
+  );
   const activeRelationshipKey =
-    selectedRelationshipIndex !== null && novel.relationships?.[selectedRelationshipIndex]
-      ? draftRelationshipKey || relationshipKey(novel.relationships[selectedRelationshipIndex], selectedRelationshipIndex)
+    selectedRelationship
+      ? draftRelationshipKey || relationshipKey(selectedRelationship)
       : "";
   const previewRelationship =
-    connectFrom && connectTo && connectFrom !== connectTo && selectedRelationshipIndex === null
-      ? { source: connectFrom, target: connectTo, label: connectLabel || "关系", index: "__preview", isPreview: true }
+    connectFrom && connectTo && connectFrom !== connectTo && !selectedRelationshipId
+      ? { id: "__preview", source: connectFrom, target: connectTo, label: connectLabel || "关系", isPreview: true }
       : null;
   const previewRelationshipKey = previewRelationship ? draftRelationshipKey : "";
   const focusId = activeRelationshipKey || previewRelationshipKey ? "" : hoverId || graphFocusId || "";
@@ -258,7 +275,7 @@ export default function RelationGraph({
 
   useEffect(() => {
     setDraft(selected ? { ...selected, tag: getCharacterTag(selected) } : null);
-  }, [selected]);
+  }, [novel.id, selected?.id]);
 
   useEffect(() => {
     if (!resizing) return;
@@ -279,9 +296,28 @@ export default function RelationGraph({
     };
   }, [resizing]);
 
-  useEffect(() => {
+  useRelationGraphScene({
+    novelId: novel.id,
+    characters: novel.characters,
+    relationships: novel.relationships,
+    layout: novel.relationGraphLayout,
+    color: novel.color,
+    accent: novel.accent,
+    resetKey: layoutResetKey,
+    readOnly,
+    setup: () => {
     const svgElement = svgRef.current;
     if (!svgElement) return;
+
+    if (sceneNovelIdRef.current !== novel.id) {
+      nodePositionsRef.current.clear();
+      sceneNovelIdRef.current = novel.id;
+    }
+    lockedNodeIdsRef.current = new Set(
+      Object.entries(novel.relationGraphLayout?.nodes ?? {})
+        .filter(([, position]) => position?.locked)
+        .map(([characterId]) => characterId),
+    );
 
     const svg = d3.select(svgElement);
     svg.selectAll("*").remove();
@@ -404,23 +440,10 @@ export default function RelationGraph({
       setAreaContextMenu({ x: event.clientX, y: event.clientY });
     });
 
-    const links = (novel.relationships ?? []).map((relationship, index) => {
-      const displayRelationship =
-        index === selectedRelationshipIndex && connectFrom && connectTo
-          ? { ...relationship, source: connectFrom, target: connectTo, label: connectLabel || "关系", isPreview: true }
-          : relationship;
-      return {
-        ...displayRelationship,
-        index,
-        key: relationshipKey(displayRelationship, index),
-      };
-    });
-    if (previewRelationship) {
-      links.push({
-        ...previewRelationship,
-        key: previewRelationshipKey,
-      });
-    }
+    const links = (novel.relationships ?? []).map((relationship) => ({
+      ...relationship,
+      key: relationshipKey(relationship),
+    }));
     // Obsidian-style ring sizing: with only a few supporting characters a
     // tight ring looks intentional, but the old fixed 150px starting radius
     // (plus a fixed 270px force target below) crammed every supporting
@@ -485,7 +508,12 @@ export default function RelationGraph({
       // character, otherwise evenly spaced around its ring (true angular
       // spacing instead of an arbitrary Lissajous cos/sin pattern, so the
       // starting layout is already organized before physics runs).
-      const remembered = nodePositionsRef.current.get(character.id);
+      const persistedPosition = novel.relationGraphLayout?.nodes?.[character.id];
+      const remembered = nodePositionsRef.current.get(character.id) ?? (
+        persistedPosition
+          ? { x: persistedPosition.x * width, y: persistedPosition.y * height }
+          : null
+      );
       const isMain = isMainTag(character);
       const ringRadius = isMain ? 0 : ringRadiusFor(character.id);
       const angle = isMain ? 0 : (nonMainIndex++ / nonMainCount) * Math.PI * 2;
@@ -497,7 +525,8 @@ export default function RelationGraph({
       const degree = adjacency.get(character.id)?.size ?? 0;
       const startX = remembered?.x ?? (isMain ? width / 2 : width / 2 + Math.cos(angle) * ringRadius);
       const startY = remembered?.y ?? (isMain ? height / 2 : height / 2 + Math.sin(angle) * ringRadius);
-      const isLocked = lockedNodeIdsRef.current.has(character.id);
+      const isLocked = Boolean(persistedPosition?.locked || lockedNodeIdsRef.current.has(character.id));
+      if (isLocked) lockedNodeIdsRef.current.add(character.id);
       return {
         ...character,
         tag,
@@ -555,7 +584,7 @@ export default function RelationGraph({
       .attr("filter", `url(#ink-${novel.id})`)
       .on("mouseenter", (_, relationship) => setHoverLinkKey(relationship.key))
       .on("mouseleave", () => setHoverLinkKey(""))
-      .on("click", selectRelationship);
+      .on("click", (event, relationship) => relationshipClickRef.current?.(event, relationship));
 
     const label = graphLayer
       .append("g")
@@ -568,7 +597,7 @@ export default function RelationGraph({
       )
       .on("mouseenter", (_, relationship) => setHoverLinkKey(relationship.key))
       .on("mouseleave", () => setHoverLinkKey(""))
-      .on("click", selectRelationship);
+      .on("click", (event, relationship) => relationshipClickRef.current?.(event, relationship));
 
     label
       .append("rect")
@@ -578,6 +607,40 @@ export default function RelationGraph({
       .attr("height", 24)
       .attr("rx", 12);
     label.append("text").text((relationship) => relationship.label).attr("text-anchor", "middle").attr("dy", "0.34em");
+
+    const previewLayer = graphLayer.append("g").attr("class", "graph-relationship-preview").style("display", "none");
+    const previewPath = previewLayer
+      .append("path")
+      .attr("class", "graph-link-preview")
+      .attr("fill", "none")
+      .attr("stroke", "#7E9A9A")
+      .attr("stroke-width", 2.2)
+      .attr("stroke-dasharray", "3 5");
+    const previewLabel = previewLayer.append("g").attr("class", "graph-link-preview-label");
+    previewLabel.append("rect").attr("height", 24).attr("y", -12).attr("rx", 12);
+    previewLabel.append("text").attr("text-anchor", "middle").attr("dy", "0.34em");
+
+    function updateRelationshipPreview() {
+      const relationshipDraft = relationshipDraftRef.current;
+      const source = nodesRef.current.find((node) => node.id === relationshipDraft.source);
+      const target = nodesRef.current.find((node) => node.id === relationshipDraft.target);
+      if (!source || !target || source.id === target.id) {
+        previewLayer.style("display", "none");
+        return;
+      }
+      const labelText = relationshipDraft.label || "关系";
+      const labelWidth = Math.max(38, String(labelText).length * 13);
+      const mx = (source.x + target.x) / 2;
+      const my = (source.y + target.y) / 2 - 10;
+      const angle = (Math.atan2(target.y - source.y, target.x - source.x) * 180) / Math.PI;
+      const safeAngle = angle > 90 || angle < -90 ? angle + 180 : angle;
+      previewLayer.style("display", null);
+      previewPath.attr("d", organicLinkPath({ source, target }, 0, 0));
+      previewLabel.attr("transform", `translate(${mx},${my}) rotate(${safeAngle})`);
+      previewLabel.select("rect").attr("x", -labelWidth / 2).attr("width", labelWidth);
+      previewLabel.select("text").text(labelText);
+    }
+    previewUpdateRef.current = updateRelationshipPreview;
 
     const simulation = d3
       .forceSimulation(nodes)
@@ -611,6 +674,7 @@ export default function RelationGraph({
       .data(nodes)
       .join("g")
       .attr("class", "graph-node")
+      .attr("data-character-id", (character) => character.id)
       .style("cursor", "grab")
       .on("mouseenter", (_, character) => setHoverId(character.id))
       .on("mouseleave", () => setHoverId(""))
@@ -619,7 +683,7 @@ export default function RelationGraph({
           suppressAreaClickRef.current = false;
           return;
         }
-        selectNodeForRelationship(event, character);
+        nodeClickRef.current?.(event, character);
         focusNode(svg, zoom, width, height, character);
       })
       .call(
@@ -648,6 +712,15 @@ export default function RelationGraph({
             event.sourceEvent?.stopPropagation();
             if (!event.active) simulation.alphaTarget(0);
             nodePositionsRef.current.set(event.subject.id, { x: event.subject.x, y: event.subject.y });
+            if (!readOnly) {
+              persistNovelRef.current?.({
+                relationGraphLayout: updateGraphLayoutNode(novel.relationGraphLayout, event.subject.id, {
+                  x: event.subject.x / width,
+                  y: event.subject.y / height,
+                  locked: lockedNodeIdsRef.current.has(event.subject.id),
+                }),
+              });
+            }
             // A locked node stays locked through a manual re-drag too - only
             // clear fx/fy (letting physics move it again) if it wasn't in
             // the locked set to begin with, otherwise every drag's own end
@@ -690,6 +763,7 @@ export default function RelationGraph({
       .attr("class", (character) => `planet-halo ${isMainTag(character) ? "is-celestial" : ""}`);
     node
       .append("circle")
+      .attr("class", "node-core")
       .attr("r", (character) => character.radius)
       .attr("fill", (character, index) => character.color ?? d3.interpolateRgb(novel.color, novel.accent)(index / Math.max(1, nodes.length - 1)))
       .attr("stroke", "#fff")
@@ -738,6 +812,7 @@ export default function RelationGraph({
         return `translate(${mx},${my}) rotate(${safeAngle})`;
       });
       node.attr("transform", (character) => `translate(${character.x},${character.y})`);
+      updateRelationshipPreview();
     });
 
     nodeSelectionRef.current = node;
@@ -748,22 +823,14 @@ export default function RelationGraph({
       simulation.stop();
       areaSelectCleanupRef.current?.();
       areaSelectCleanupRef.current = null;
+      previewUpdateRef.current = null;
     };
-  }, [
-    novel.id,
-    novel.characters,
-    novel.relationships,
-    novel.color,
-    novel.accent,
-    detailPane,
-    pendingNodeId,
-    connectFrom,
-    connectTo,
-    selectedRelationshipIndex,
-    activeRelationshipKey,
-    previewRelationshipKey,
-    layoutResetKey,
-  ]);
+    },
+  });
+
+  useEffect(() => {
+    previewUpdateRef.current?.();
+  }, [connectFrom, connectTo, connectLabel, selectedRelationshipId]);
 
   useEffect(() => {
     const label = labelSelectionRef.current;
@@ -774,8 +841,8 @@ export default function RelationGraph({
       const source = getNodeId(relationship.source);
       const target = getNodeId(relationship.target);
       const isSamePair = (source === connectFrom && target === connectTo) || (source === connectTo && target === connectFrom);
-      const isSelectedEdge = selectedRelationshipIndex !== null && relationship.index === selectedRelationshipIndex;
-      const isPreviewEdge = selectedRelationshipIndex === null && relationship.isPreview && isSamePair;
+      const isSelectedEdge = selectedRelationshipId && relationship.id === selectedRelationshipId;
+      const isPreviewEdge = !selectedRelationshipId && relationship.isPreview && isSamePair;
       if (isSelectedEdge || isPreviewEdge) relationship.label = nextLabel;
     });
 
@@ -784,7 +851,7 @@ export default function RelationGraph({
       .attr("x", (relationship) => -Math.max(38, String(relationship.label).length * 13) / 2)
       .attr("width", (relationship) => Math.max(38, String(relationship.label).length * 13));
     label.select("text").text((relationship) => relationship.label);
-  }, [connectLabel, connectFrom, connectTo, selectedRelationshipIndex]);
+  }, [connectLabel, connectFrom, connectTo, selectedRelationshipId]);
 
   useEffect(() => {
     const node = nodeSelectionRef.current;
@@ -794,6 +861,10 @@ export default function RelationGraph({
 
     const edgeFocusKey = activeRelationshipKey || previewRelationshipKey || hoverLinkKey;
     const focus = getFocusSets(linksRef.current, focusId, edgeFocusKey);
+    if (connectFrom && connectTo && connectFrom !== connectTo) {
+      focus.nodeIds.add(connectFrom);
+      focus.nodeIds.add(connectTo);
+    }
     const hasFocus = Boolean(focusId || edgeFocusKey);
     node
       .classed("is-selected", (character) => character.id === graphFocusId)
@@ -860,6 +931,9 @@ export default function RelationGraph({
     // some characters at their just-cleared old spot, which isn't a real
     // reset at all.
     lockedNodeIdsRef.current.clear();
+    if (!readOnly && typeof onNovelChange === "function") {
+      onNovelChange(novel.id, { relationGraphLayout: { version: 1, nodes: {} } });
+    }
     setAreaSelectedIds([]);
     setAreaContextMenu(null);
     setLayoutResetKey((current) => current + 1);
@@ -880,6 +954,18 @@ export default function RelationGraph({
       character.fx = character.x;
       character.fy = character.y;
     });
+    if (!readOnly && typeof onNovelChange === "function") {
+      const relationGraphLayout = ids.reduce((layout, id) => {
+        const character = nodesRef.current.find((node) => node.id === id);
+        if (!character) return layout;
+        return updateGraphLayoutNode(layout, id, {
+          x: character.x / dimsRef.current.width,
+          y: character.y / dimsRef.current.height,
+          locked: true,
+        });
+      }, novel.relationGraphLayout);
+      onNovelChange(novel.id, { relationGraphLayout });
+    }
     nodeSelectionRef.current
       ?.select(".node-lock-ring")
       .style("display", (character) => (lockedNodeIdsRef.current.has(character.id) ? null : "none"));
@@ -897,6 +983,10 @@ export default function RelationGraph({
       character.fx = null;
       character.fy = null;
     });
+    if (!readOnly && typeof onNovelChange === "function") {
+      const relationGraphLayout = ids.reduce((layout, id) => updateGraphLayoutNode(layout, id, { locked: false }), novel.relationGraphLayout);
+      onNovelChange(novel.id, { relationGraphLayout });
+    }
     nodeSelectionRef.current
       ?.select(".node-lock-ring")
       .style("display", (character) => (lockedNodeIdsRef.current.has(character.id) ? null : "none"));
@@ -923,7 +1013,7 @@ export default function RelationGraph({
     // save. Persisted against `selected` (the last-saved character), not
     // the full `draft`, so an in-progress unsaved text edit elsewhere on
     // the form isn't force-committed as a side effect.
-    if (isStructural && selected) onUpdateCharacter(novel.id, selected.id, { ...selected, focusPages: nextFocusPages });
+    if (isStructural && selected) onUpdateCharacter(novel.id, selected.id, { focusPages: nextFocusPages });
   }
 
   function requestDeleteCharacter() {
@@ -950,31 +1040,40 @@ export default function RelationGraph({
     if (readOnly) return;
     if (!connectFrom || !connectTo || connectFrom === connectTo) return;
     const relationship = { source: connectFrom, target: connectTo, label: connectLabel || "关系" };
-    if (selectedRelationshipIndex !== null) {
-      onUpdateRelationship(novel.id, selectedRelationshipIndex, relationship);
-      setHoverLinkKey(relationshipKey(relationship, selectedRelationshipIndex));
+    if (selectedRelationshipId) {
+      onUpdateRelationship(novel.id, selectedRelationshipId, relationship);
+      setHoverLinkKey(relationshipKey({ ...relationship, id: selectedRelationshipId }));
     } else {
-      const nextIndex = novel.relationships?.length ?? 0;
-      onAddRelationship(novel.id, relationship);
-      setSelectedRelationshipIndex(nextIndex);
-      setHoverLinkKey(relationshipKey(relationship, nextIndex));
-      setPendingNodeId("");
+      const id = createNewRelationshipId();
+      onAddRelationship(novel.id, { ...relationship, id });
+      setSelectedRelationshipId(id);
+      setHoverLinkKey(relationshipKey({ ...relationship, id }));
     }
   }
 
   function selectRelationship(event, relationship) {
     event.stopPropagation();
-    setSelectedRelationshipIndex(relationship.index);
-    setConnectFrom(getNodeId(relationship.source));
-    setConnectTo(getNodeId(relationship.target));
-    setConnectLabel(relationship.label || "关系");
-    setHoverLinkKey(relationship.key);
-    setPendingNodeId("");
+    const sourceId = getNodeId(relationship.source);
+    const applySelection = () => {
+      setSelectedId(sourceId);
+      setGraphFocusId(sourceId);
+      setSelectedRelationshipId(relationship.id);
+      setConnectFrom(sourceId);
+      setConnectTo(getNodeId(relationship.target));
+      setConnectLabel(relationship.label || "关系");
+      setHoverLinkKey(relationship.key);
+    };
+    if (sourceId !== selectedIdRef.current && isDraftDirtyRef.current) {
+      setPendingCharacterSwitch(() => applySelection);
+      return;
+    }
+    applySelection();
   }
 
   function selectNodeForRelationship(event, character) {
     event.stopPropagation();
-    if (character.id !== selectedIdRef.current && isDraftDirtyRef.current) {
+    const isChoosingTarget = Boolean(connectFrom && !connectTo && connectFrom !== character.id);
+    if (!isChoosingTarget && character.id !== selectedIdRef.current && isDraftDirtyRef.current) {
       setPendingCharacterSwitch(() => () => applyNodeSelection(character));
       return;
     }
@@ -982,12 +1081,11 @@ export default function RelationGraph({
   }
 
   function applyNodeSelection(character) {
-    character.fx = character.x;
-    character.fy = character.y;
-    setSelectedId(character.id);
-    setGraphFocusId(character.id);
-
     if (readOnly) {
+      setSelectedId(character.id);
+      setGraphFocusId(character.id);
+      character.fx = character.x;
+      character.fy = character.y;
       window.setTimeout(() => {
         character.fx = null;
         character.fy = null;
@@ -995,25 +1093,21 @@ export default function RelationGraph({
       return;
     }
 
-    if (pendingNodeId && pendingNodeId !== character.id) {
-      selectRelationshipBetween(pendingNodeId, character.id);
-      setPendingNodeId("");
+    if (connectFrom && !connectTo && connectFrom !== character.id) {
+      selectRelationshipBetween(connectFrom, character.id);
     } else {
-      setPendingNodeId(character.id);
-      if (selectedRelationshipIndex !== null) {
-        setSelectedRelationshipIndex(null);
-        setHoverLinkKey("");
-      }
+      setSelectedId(character.id);
+      setGraphFocusId(character.id);
+      setSelectedRelationshipId("");
+      setConnectFrom(character.id);
+      setConnectTo("");
+      setConnectLabel("关系");
+      setHoverLinkKey("");
     }
-
-    window.setTimeout(() => {
-      character.fx = null;
-      character.fy = null;
-    }, 900);
   }
 
   function selectRelationshipBetween(sourceId, targetId) {
-    const relationshipIndex = (novel.relationships ?? []).findIndex((relationship) => {
+    const relationship = (novel.relationships ?? []).find((relationship) => {
       const source = getNodeId(relationship.source);
       const target = getNodeId(relationship.target);
       return (source === sourceId && target === targetId) || (source === targetId && target === sourceId);
@@ -1021,15 +1115,14 @@ export default function RelationGraph({
 
     setConnectFrom(sourceId);
     setConnectTo(targetId);
-    if (relationshipIndex >= 0) {
-      const relationship = novel.relationships[relationshipIndex];
-      setSelectedRelationshipIndex(relationshipIndex);
+    if (relationship) {
+      setSelectedRelationshipId(relationship.id);
       setConnectFrom(getNodeId(relationship.source));
       setConnectTo(getNodeId(relationship.target));
       setConnectLabel(relationship.label || "");
-      setHoverLinkKey(relationshipKey(relationship, relationshipIndex));
+      setHoverLinkKey(relationshipKey(relationship));
     } else {
-      setSelectedRelationshipIndex(null);
+      setSelectedRelationshipId("");
       setConnectLabel("");
       setHoverLinkKey("");
     }
@@ -1041,20 +1134,19 @@ export default function RelationGraph({
     setConnectFrom(next.source);
     setConnectTo(next.target);
     setConnectLabel(next.label);
-    if (selectedRelationshipIndex === null && next.source && next.target && next.source !== next.target) {
-      const existingIndex = findRelationshipIndex(next.source, next.target);
-      if (existingIndex >= 0) {
-        const existing = novel.relationships[existingIndex];
-        setSelectedRelationshipIndex(existingIndex);
+    if (!selectedRelationshipId && next.source && next.target && next.source !== next.target) {
+      const existing = findRelationship(next.source, next.target);
+      if (existing) {
+        setSelectedRelationshipId(existing.id);
         setConnectLabel(existing.label || next.label || "");
-        setHoverLinkKey(relationshipKey(existing, existingIndex));
+        setHoverLinkKey(relationshipKey(existing));
         return;
       }
     }
   }
 
-  function findRelationshipIndex(sourceId, targetId) {
-    return (novel.relationships ?? []).findIndex((relationship) => {
+  function findRelationship(sourceId, targetId) {
+    return (novel.relationships ?? []).find((relationship) => {
       const source = getNodeId(relationship.source);
       const target = getNodeId(relationship.target);
       return (source === sourceId && target === targetId) || (source === targetId && target === sourceId);
@@ -1062,18 +1154,17 @@ export default function RelationGraph({
   }
 
   function clearRelationshipSelection() {
-    setSelectedRelationshipIndex(null);
+    setSelectedRelationshipId("");
     setConnectFrom("");
     setConnectTo("");
     setConnectLabel("关系");
-    setPendingNodeId("");
     setHoverLinkKey("");
     setConfirmClearRelationship(false);
   }
 
   function clearSelectedRelationship() {
-    if (selectedRelationshipIndex !== null) {
-      onDeleteRelationship?.(novel.id, selectedRelationshipIndex);
+    if (selectedRelationshipId) {
+      onDeleteRelationship?.(novel.id, selectedRelationshipId);
     }
     clearRelationshipSelection();
   }
@@ -1085,6 +1176,37 @@ export default function RelationGraph({
     dismissAreaSelection();
   }
 
+  function toggleSelectedNodeLock() {
+    if (!selectedId || readOnly) return;
+    const node = nodesRef.current.find((character) => character.id === selectedId);
+    const currentlyLocked = lockedNodeIdsRef.current.has(selectedId);
+    if (currentlyLocked) {
+      lockedNodeIdsRef.current.delete(selectedId);
+      if (node) {
+        node.fx = null;
+        node.fy = null;
+      }
+    } else {
+      lockedNodeIdsRef.current.add(selectedId);
+      if (node) {
+        node.fx = node.x;
+        node.fy = node.y;
+      }
+    }
+    nodeSelectionRef.current
+      ?.select(".node-lock-ring")
+      .style("display", (character) => (lockedNodeIdsRef.current.has(character.id) ? null : "none"));
+    const { width, height } = dimsRef.current;
+    const persisted = novel.relationGraphLayout?.nodes?.[selectedId];
+    onNovelChange?.(novel.id, {
+      relationGraphLayout: updateGraphLayoutNode(novel.relationGraphLayout, selectedId, {
+        x: node && width ? node.x / width : persisted?.x ?? 0.5,
+        y: node && height ? node.y / height : persisted?.y ?? 0.5,
+        locked: !currentlyLocked,
+      }),
+    });
+  }
+
   // Multi-select: a character can carry several tags. `tags` is the source of
   // truth; `tag` is kept as the derived primary (a main-character tag wins,
   // else the first) so the graph node label and main-character detection -
@@ -1093,7 +1215,7 @@ export default function RelationGraph({
     if (!draft || readOnly) return;
     const nextDraft = { ...draft, tags: nextTags, tag: derivePrimaryTag(nextTags) };
     setDraft(nextDraft);
-    onUpdateCharacter(novel.id, nextDraft.id, nextDraft);
+    onUpdateCharacter(novel.id, nextDraft.id, { tags: nextDraft.tags, tag: nextDraft.tag });
   }
 
   function toggleTag(tag) {
@@ -1142,15 +1264,14 @@ export default function RelationGraph({
     const draftTagsNow = getCharacterTags(draft);
     if (draftTagsNow.includes(tag)) {
       const remaining = draftTagsNow.filter((item) => item !== tag);
-      setDraft({ ...draft, tags: remaining, tag: derivePrimaryTag(remaining) });
+      setDraft((current) => mergeCharacterDraft(current, { tags: remaining, tag: derivePrimaryTag(remaining) }));
     }
   }
 
   function chooseNodeColor(color) {
     if (!draft || readOnly) return;
-    const nextDraft = { ...draft, color };
-    setDraft(nextDraft);
-    onUpdateCharacter(novel.id, nextDraft.id, { color });
+    setDraft((current) => mergeCharacterDraft(current, { color }));
+    onUpdateCharacter(novel.id, draft.id, { color });
   }
 
   return (
@@ -1195,173 +1316,43 @@ export default function RelationGraph({
       {showGraph && showDetails && (
         <div className="relation-split-handle" onMouseDown={() => setResizing(true)} role="separator" aria-orientation="vertical" aria-label="调整星图和人物详情宽度" />
       )}
-
-      {showDetails && <aside className="inspector-card">
-        {draft ? (
-          <>
-            <div className="inspector-head" data-tour="detail-panel-head">
-              <Sparkles size={18} />
-              <div>
-                <span>人物详情</span>
-                <h3>{draft.name}</h3>
-              </div>
-            </div>
-            <div className="inspector-scroll">
-              <div className="character-editor-top">
-                <MediaCarousel label="人物图片" images={draft.images ?? []} onChange={(images) => setDraft({ ...draft, images })} readOnly={readOnly} />
-                <div className="character-quick-fields character-attribute-grid">
-                  <label>
-                    姓名
-                    <input value={draft.name} readOnly={readOnly} onChange={(event) => setDraft({ ...draft, name: event.target.value })} />
-                  </label>
-                  <label>
-                    年龄
-                    <input value={draft.age ?? ""} readOnly={readOnly} onChange={(event) => setDraft({ ...draft, age: event.target.value })} />
-                  </label>
-                  <label>
-                    身份 / 属性
-                    <input value={draft.role} readOnly={readOnly} onChange={(event) => setDraft({ ...draft, role: event.target.value })} />
-                  </label>
-                  <div className="tag-composer">
-                    <span>标签（可多选）</span>
-                    <div className="tag-chip-board" ref={tagBoardRef}>
-                      {boardTags.map((tag) => (
-                        <button
-                          type="button"
-                          key={tag}
-                          data-tag={tag}
-                          className={draftTags.includes(tag) ? "is-selected" : ""}
-                          onClick={() => toggleTag(tag)}
-                          disabled={readOnly}
-                        >
-                          {tag}
-                          {!readOnly && (
-                            <i
-                              className="tag-chip-remove"
-                              role="button"
-                              tabIndex={-1}
-                              onClick={(event) => removeTagFromPalette(tag, event)}
-                              onPointerDown={(event) => event.stopPropagation()}
-                              aria-label={`删除标签 ${tag}`}
-                            >
-                              ×
-                            </i>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                    {!readOnly && (
-                      <div className="tag-compose-row">
-                        <input
-                          value={tagText}
-                          onChange={(event) => setTagText(event.target.value)}
-                          onKeyDown={(event) => {
-                            if (event.key === "Enter") {
-                              event.preventDefault();
-                              addTag();
-                            }
-                          }}
-                          placeholder="输入标签，回车生成"
-                        />
-                        <button type="button" onClick={addTag} disabled={!tagText.trim() || tagPalette.length >= 12}>
-                          <Plus size={14} />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="node-color-picker is-wide">
-                <span>星球颜色</span>
-                <div>
-                  {NODE_COLORS.map((color) => (
-                    <button
-                      type="button"
-                      key={color}
-                      className={draft.color === color ? "is-selected" : ""}
-                      style={{ "--swatch": color }}
-                      onClick={() => chooseNodeColor(color)}
-                      disabled={readOnly}
-                      aria-label={`选择颜色 ${color}`}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div className="character-long-fields">
-                <FocusTextarea
-                  label="背景故事"
-                  value={draft.background}
-                  pages={draft.focusPages?.background}
-                  onPagesChange={(pages, meta) => updateDraftFocusPages("background", pages, meta)}
-                  onChange={(background) => setDraft((current) => (current ? { ...current, background } : current))}
-                  onSave={handleSaveCharacter}
-                  readOnly={readOnly}
-                />
-                {!readOnly && (
-                  <FocusTextarea
-                    label="隐藏设定"
-                    value={draft.secret}
-                    pages={draft.focusPages?.secret}
-                    onPagesChange={(pages, meta) => updateDraftFocusPages("secret", pages, meta)}
-                    onChange={(secret) => setDraft((current) => (current ? { ...current, secret } : current))}
-                    onSave={handleSaveCharacter}
-                    readOnly={readOnly}
-                  />
-                )}
-              </div>
-              {!readOnly && (
-                <div className="character-action-row">
-                  <button type="button" className="primary-button" onClick={handleSaveCharacter}>
-                    <Save size={16} />
-                    保存人物
-                  </button>
-                  <button type="button" className="danger-lite-button" onClick={requestDeleteCharacter}>
-                    <Trash2 size={15} />
-                    删除人物
-                  </button>
-                </div>
-              )}
-              {!readOnly && <div className="connect-box">
-                <div className="panel-title">
-                  <Link2 size={17} />
-                  <h4>{selectedRelationshipIndex === null ? "建立关系" : "编辑关系"}</h4>
-                </div>
-                <select value={connectFrom} onChange={(event) => updateRelationshipDraft({ source: event.target.value })}>
-                  <option value="">起点人物</option>
-                  {novel.characters.map((character) => (
-                    <option key={character.id} value={character.id}>
-                      {character.name}
-                    </option>
-                  ))}
-                </select>
-                <select value={connectTo} onChange={(event) => updateRelationshipDraft({ target: event.target.value })}>
-                  <option value="">终点人物</option>
-                  {novel.characters.map((character) => (
-                    <option key={character.id} value={character.id}>
-                      {character.name}
-                    </option>
-                  ))}
-                </select>
-                <input value={connectLabel} onChange={(event) => updateRelationshipDraft({ label: event.target.value })} placeholder="关系标签" />
-                <div className="relation-action-row">
-                  <button type="button" className="primary-button relation-save-button" onClick={handleAddRelationship}>
-                    <Check size={15} />
-                    {selectedRelationshipIndex === null ? "添加连线" : "保存关系"}
-                  </button>
-                  <button type="button" className="danger-lite-button relation-clear-button" onClick={() => setConfirmClearRelationship(true)}>
-                    <X size={14} />
-                    清空所选关系
-                  </button>
-                </div>
-              </div>}
-            </div>
-          </>
-        ) : (
-          <p>暂无人物。</p>
-        )}
-      </aside>}
+      {showDetails && (
+        <CharacterInspector
+          novel={novel}
+          draft={draft}
+          readOnly={readOnly}
+          character={{
+            colors: NODE_COLORS,
+            locked: Boolean(novel.relationGraphLayout?.nodes?.[selectedId]?.locked),
+            patch: (patch) => setDraft((current) => mergeCharacterDraft(current, patch)),
+            chooseColor: chooseNodeColor,
+            updateFocusPages: updateDraftFocusPages,
+            save: handleSaveCharacter,
+            requestDelete: requestDeleteCharacter,
+            toggleLock: toggleSelectedNodeLock,
+          }}
+          tags={{
+            boardRef: tagBoardRef,
+            available: boardTags,
+            selected: draftTags,
+            text: tagText,
+            setText: setTagText,
+            paletteSize: tagPalette.length,
+            toggle: toggleTag,
+            add: addTag,
+            remove: removeTagFromPalette,
+          }}
+          relationship={{
+            id: selectedRelationshipId,
+            source: connectFrom,
+            target: connectTo,
+            label: connectLabel,
+            patch: updateRelationshipDraft,
+            save: handleAddRelationship,
+            requestClear: () => setConfirmClearRelationship(true),
+          }}
+        />
+      )}
       {areaContextMenu &&
         createPortal(
           <>
@@ -1435,7 +1426,7 @@ export default function RelationGraph({
               <p className="eyebrow">Clear selected relation</p>
               <h2 id="clear-relation-title">清空所选关系？</h2>
               <p>
-                {selectedRelationshipIndex !== null
+                {selectedRelationshipId
                   ? "这会删除当前选中的关系线，并清空右侧正在编辑的起点、终点和羁绊描述。"
                   : "当前没有选中已保存的关系线，只会清空右侧正在编辑的起点、终点和羁绊描述。"}
               </p>
@@ -1484,8 +1475,8 @@ function getNodeId(node) {
   return typeof node === "object" ? node.id : node;
 }
 
-function relationshipKey(relationship, index) {
-  return `${getNodeId(relationship.source)}-${getNodeId(relationship.target)}-${index}`;
+function relationshipKey(relationship) {
+  return relationship.id || `${getNodeId(relationship.source)}-${getNodeId(relationship.target)}`;
 }
 
 function getFocusSets(links, focusId, hoverLinkKey) {

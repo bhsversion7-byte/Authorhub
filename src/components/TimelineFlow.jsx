@@ -79,7 +79,7 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
   useEffect(() => {
     if (!selected) return;
     setDraft({ ...selected });
-  }, [selected]);
+  }, [novel.id, selected?.id]);
 
   useEffect(() => {
     if (selectedIndex < 0) return;
@@ -140,7 +140,7 @@ export default function TimelineFlow({ novel, onAddEvent, onUpdateEvent, onDelet
     // above until an explicit save, persisted against `selected`
     // (last-saved event) so unsaved plain-text edits elsewhere on the
     // form aren't force-committed as a side effect.
-    if (isStructural && selected) onUpdateEvent(novel.id, selected.id, { ...selected, focusPages: nextFocusPages });
+    if (isStructural && selected) onUpdateEvent(novel.id, selected.id, { focusPages: nextFocusPages });
   }
 
   function requestDeleteEvent(event = draft) {

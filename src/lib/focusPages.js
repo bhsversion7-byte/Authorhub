@@ -7,3 +7,7 @@ export function patchFocusPageMap(current, key, pages) {
   }
   return Object.keys(next).length ? next : undefined;
 }
+
+export function appendFocusPage(pages, page) {
+  return [...(pages ?? []), page];
+}
