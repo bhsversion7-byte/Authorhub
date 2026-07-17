@@ -87,13 +87,28 @@ jobs:
       - run: supabase db reset
       - run: supabase db lint --local --level warning
 
+  quality_gate:
+    if: always()
+    needs: [quality, secrets, codeql, supabase]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every applicable check
+        env:
+          QUALITY_RESULT: ${{ needs.quality.result }}
+          SECRETS_RESULT: ${{ needs.secrets.result }}
+          CODEQL_RESULT: ${{ needs.codeql.result }}
+          SUPABASE_RESULT: ${{ needs.supabase.result }}
+        run: |
+          test "$QUALITY_RESULT" = "success"
+          test "$SECRETS_RESULT" = "success"
+          test "$CODEQL_RESULT" = "success"
+          test "$SUPABASE_RESULT" = "success" || test "$SUPABASE_RESULT" = "skipped"
+
   deploy-production:
     if: >-
       always() && github.event_name == 'push' && github.ref == 'refs/heads/master' &&
-      needs.quality.result == 'success' && needs.secrets.result == 'success' &&
-      needs.codeql.result == 'success' &&
-      (needs.supabase.result == 'success' || needs.supabase.result == 'skipped')
-    needs: [quality, secrets, codeql, supabase]
+      needs.quality_gate.result == 'success'
+    needs: [quality_gate]
     runs-on: ubuntu-latest
     environment: production
     env:
