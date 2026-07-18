@@ -47,6 +47,12 @@
 }
 
 .graph-node.is-selected .planet-halo {
+  opacity: 0.22;
+  filter: none;
+  animation: selectedSupportHaloPulse 1.45s ease-in-out infinite;
+}
+
+.graph-node.is-selected .planet-halo.is-celestial {
   opacity: 0.82;
   filter: drop-shadow(0 0 0.7rem rgba(201, 95, 90, 0.58));
   animation: selectedHaloPulse 1.45s ease-in-out infinite;
@@ -108,6 +114,16 @@
   50% {
     opacity: 0.9;
     transform: scale(1.08);
+  }
+}
+
+@keyframes selectedSupportHaloPulse {
+  0%,
+  100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.26;
   }
 }
 

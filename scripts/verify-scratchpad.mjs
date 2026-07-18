@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { JSDOM } from "jsdom";
 import {
   getScratchpadNodeColor,
@@ -41,5 +42,9 @@ assert.deepEqual(
 );
 assert.equal(getScratchpadNodeColor("#e7eee8", false), "#e7eee8", "light mode must render the persisted node color unchanged");
 assert.equal(getScratchpadNodeColor("#e7eee8", true), "#2d465d", "dark mode must render a navy-safe node color without changing persisted data");
+
+const scratchpadCss = readFileSync(new URL("../src/rich-text-editor.css", import.meta.url), "utf8");
+assert.match(scratchpadCss, /\.scratchpad-map-pane[\s\S]*?texture-card-2\.jpg/, "mind-map mode must retain the same paper-fibre texture as the text scratchpad");
+assert.doesNotMatch(scratchpadCss.match(/\.scratchpad-map-pane \{[\s\S]*?\}/)?.[0] ?? "", /repeating-linear-gradient/, "mind-map paper texture must not add notebook rules");
 
 console.log("scratchpad persistence checks passed");

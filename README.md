@@ -46,11 +46,12 @@ The interface stays warm, papery, and low-distraction on purpose. The features c
 | | |
 |---|---|
 | 📚 **Multi-novel workspace** | Every novel keeps its own outline, settings, tags, cover color, and publishing links. |
-| 🌌 **Character relation star-map** | A D3 force graph with draggable nodes, focus/reset, main-character centering, relationship labels, and a highlighted main-pair line. Shift+drag to box-select stars, then right-click to lock their position - new characters won't reshuffle them. |
+| 🌌 **Character relation star-map** | A D3 force graph with draggable nodes, zoom-safe placement, focus/reset, main-character centering, and a fixed red main-pair line plus label. Shift+drag to box-select stars, then right-click to lock their position - new characters won't reshuffle them. |
 | 🧑‍🎨 **Rich character cards** | Images, age, role, **multi-select tags**, background, and a private hidden-settings field only you can see. |
 | 🕰️ **Interactive timeline** | Drag events into narrative order — organized by story beats, not just dates. |
 | 🏷️ **Themes & references** | Theme tags, world settings, reference images, and text cards, all drag-to-reorder in one place. |
-| 🖋️ **Focus editor** | Expand outline/settings into an immersive full-page view, with optional page-by-page navigation for long documents, in-editor search, and a live word count. |
+| 🖋️ **Focus editor** | Expand outline/settings into an immersive full-page view, with optional page-by-page navigation for long documents, in-editor search, and a live word count. Compact card editors keep a user-resizable, refresh-persistent height and scroll long prose inside the card. |
+| 🗒️ **Private scratchpad** | An auto-saved ruled-paper rich-text notebook and a responsive, paper-fibre mind map that follow the global reading font, size, and light/dark theme. |
 | 🔗 **Sharing & collaboration** | Generate a co-edit or read-only link, revoke it at any time, and see who's actively co-editing with you — readers only ever see the sections you choose to expose. |
 | 🛡️ **Server-side privacy filtering** | Read-only shares strip hidden/secret fields and author-identifying links *on the server* — not just hidden in the client. |
 | 📤 **Export your data** | One-click JSON and Markdown export so your archive always belongs to you. |

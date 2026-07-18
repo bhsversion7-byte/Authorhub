@@ -25,6 +25,7 @@ const FocusTextarea = forwardRef(function FocusTextarea(
     onDraftClear,
     pages,
     onPagesChange,
+    storageKey,
   },
   ref,
 ) {
@@ -45,6 +46,7 @@ const FocusTextarea = forwardRef(function FocusTextarea(
   const [zenReadingStyle, setZenReadingStyle] = useState({});
   const [zenScrollCompact, setZenScrollCompact] = useState(false);
   const [zenEditor, setZenEditor] = useState(null);
+  const [compactHeight, setCompactHeight] = useState(() => getCompactHeight(storageKey || label, rows));
   const zenSurfaceRef = useRef(null);
   const zenStyleButtonRef = useRef(null);
   const pageRailRef = useRef(null);
@@ -53,6 +55,7 @@ const FocusTextarea = forwardRef(function FocusTextarea(
   const titleId = useId();
   const exitTitleId = useId();
   const textValue = String(value ?? "");
+  const compactHeightKey = getCompactHeightKey(storageKey || label);
   const hasPageNavigation = typeof onPagesChange === "function";
   const externalPages = useMemo(
     () => normalizeFocusPages(pages, textValue, richText, label),
@@ -75,6 +78,10 @@ const FocusTextarea = forwardRef(function FocusTextarea(
     if (!workingPages.length) return;
     if (!activePageId || !workingPages.some((page) => page.id === activePageId)) setActivePageId(workingPages[0].id);
   }, [activePageId, workingPages]);
+
+  useEffect(() => {
+    setCompactHeight(getCompactHeight(storageKey || label, rows));
+  }, [storageKey, label, rows]);
 
   useEffect(() => {
     if (!focused) return undefined;
@@ -179,6 +186,17 @@ const FocusTextarea = forwardRef(function FocusTextarea(
     if (serializeFocusPages(externalPages).length) onPagesChange?.([], { isStructural: true });
     setCursorIndex(nextCursorIndex);
     onDraftChange?.(nextValue, { cursorIndex: nextCursorIndex });
+  }
+
+  function persistCompactHeight(nextHeight) {
+    const height = clampCompactHeight(nextHeight, rows);
+    if (height === compactHeight) return;
+    setCompactHeight(height);
+    try {
+      window.localStorage.setItem(compactHeightKey, String(height));
+    } catch {
+      // The editor stays usable when local storage is unavailable.
+    }
   }
 
   function updateZenValue(nextDocument, nextValue, nextCursorIndex) {
@@ -289,7 +307,8 @@ const FocusTextarea = forwardRef(function FocusTextarea(
           readOnly={readOnly}
           className="compact-rich-text-surface"
           ariaLabel={label}
-          style={{ minHeight: `${rows * 1.5}em` }}
+          style={{ height: `${compactHeight}px`, minHeight: `${rows * 1.5}em` }}
+          onPointerUp={(event) => persistCompactHeight(event.currentTarget.offsetHeight)}
         />
       </div>
       <DraftPreviewList drafts={remoteDrafts} />
@@ -568,4 +587,23 @@ function getSearchMatches(value, query) {
 
 function createPageId() {
   return `page-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+function getCompactHeightKey(key) {
+  return `author-hub-compact-editor-height:${String(key || "default").slice(0, 120)}`;
+}
+
+function clampCompactHeight(value, rows) {
+  const minimum = Math.max(150, Number(rows || 5) * 26);
+  const maximum = Math.min(560, Math.max(minimum, window.innerHeight * 0.62));
+  return Math.round(Math.max(minimum, Math.min(maximum, Number(value) || minimum)));
+}
+
+function getCompactHeight(key, rows) {
+  const minimum = Math.max(150, Number(rows || 5) * 26);
+  try {
+    return clampCompactHeight(window.localStorage.getItem(getCompactHeightKey(key)), rows);
+  } catch {
+    return minimum;
+  }
 }

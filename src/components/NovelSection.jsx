@@ -161,6 +161,7 @@ export default function NovelSection({
               <FocusTextarea
                 ref={outlineEditorRef}
                 label="大纲"
+                storageKey={`novel:${novel.id}:outline`}
                 hideLabel
                 value={novel.outline}
                 richText={novel.richText?.outline}
@@ -194,6 +195,7 @@ export default function NovelSection({
               <FocusTextarea
                 ref={settingEditorRef}
                 label="设定集"
+                storageKey={`novel:${novel.id}:setting`}
                 hideLabel
                 value={novel.setting}
                 richText={novel.richText?.setting}

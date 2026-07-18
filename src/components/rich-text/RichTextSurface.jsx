@@ -61,6 +61,7 @@ const RichTextSurface = forwardRef(function RichTextSurface(
     className = "",
     ariaLabel,
     style,
+    onPointerUp,
     onEditorReady,
     contextMenuExpanded = false,
   },
@@ -153,7 +154,7 @@ const RichTextSurface = forwardRef(function RichTextSurface(
 
   return (
     <>
-      <div className={`rich-text-surface ${className}`.trim()} style={style} onContextMenu={openContextMenu} onScroll={onScroll}>
+      <div className={`rich-text-surface ${className}`.trim()} style={style} onContextMenu={openContextMenu} onScroll={onScroll} onPointerUp={onPointerUp}>
         <EditorContent editor={editor} />
       </div>
       {contextMenu && (

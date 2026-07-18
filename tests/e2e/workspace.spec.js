@@ -190,17 +190,39 @@ test("scratchpad uses the global reading theme in dark mode", async ({ page }) =
   await expect(scratchpad).toHaveCSS("background-color", "rgb(23, 43, 68)");
   await expect(scratchpad.locator(".scratchpad-rich-surface .ProseMirror")).toHaveCSS("color", "rgb(245, 248, 255)");
   await scratchpad.getByRole("tab", { name: "思维图" }).click();
-  await expect(scratchpad.locator(".scratchpad-flow")).toHaveCSS("background-color", "rgb(23, 43, 68)");
+  await expect(scratchpad.locator(".scratchpad-map-pane")).toHaveCSS("background-color", "rgb(23, 43, 68)");
 });
 
 test("tour demonstrates the outline focus editor instead of highlighting the timeline", async ({ page }) => {
   await page.getByRole("button", { name: "作者主页" }).click();
   await page.getByRole("button", { name: "重看引导" }).click();
-  for (let index = 0; index < 5; index += 1) await page.getByRole("button", { name: "下一步" }).click();
+  for (let index = 0; index < 3; index += 1) await page.getByRole("button", { name: "下一步" }).click();
+
+  await expect(page.getByRole("heading", { name: "浮动工具区" })).toBeVisible();
+  const toolTarget = page.locator(".tour-target-outline");
+  await expect(toolTarget).toBeVisible();
+  const [targetBox, musicBox, scratchpadBox] = await Promise.all([
+    toolTarget.boundingBox(),
+    page.locator(".floating-music").boundingBox(),
+    page.getByRole("button", { name: "打开草稿本" }).boundingBox(),
+  ]);
+  expect(targetBox).not.toBeNull();
+  expect(musicBox).not.toBeNull();
+  expect(scratchpadBox).not.toBeNull();
+  expect(targetBox.x).toBeLessThanOrEqual(Math.min(musicBox.x, scratchpadBox.x));
+  expect(targetBox.x + targetBox.width).toBeGreaterThanOrEqual(Math.max(musicBox.x + musicBox.width, scratchpadBox.x + scratchpadBox.width));
+
+  await page.getByRole("button", { name: "下一步" }).click();
+  await expect(page.getByRole("heading", { name: "小说信息与分享" })).toBeVisible();
+  await expect(page.locator(".novel-share-popover")).toBeVisible();
+  await page.getByRole("button", { name: "下一步" }).click();
 
   await expect(page.getByRole("heading", { name: "打开大纲专注编辑器" })).toBeVisible();
   await expect(page.getByRole("dialog", { name: "大纲", exact: true })).toBeVisible();
   await expect(page.locator(".tour-target-outline")).toHaveCount(1);
+  await page.getByRole("button", { name: "下一步" }).click();
+  await expect(page.getByRole("dialog", { name: "大纲", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "人物星图与详情" })).toBeVisible();
 });
 
 test("graph clicks sync the inspector, select A to B, and clear on blank space", async ({ page }, testInfo) => {
@@ -294,6 +316,26 @@ test("rich text tools format content and protect unsaved focus edits", async ({ 
   await reopenedZen.getByRole("button", { name: "退出专注编辑" }).click();
   await page.getByRole("button", { name: "保存并退出" }).click();
   await expect(compactEditor).toContainText("保存后的排版");
+});
+
+test("compact writing cards keep a fixed, persisted viewport for long prose", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Height persistence only needs one browser project.");
+
+  const outline = page.locator(".story-card").filter({ hasText: "大纲" }).first();
+  const compactSurface = outline.locator(".compact-rich-text-surface");
+  await expect(compactSurface).toHaveCSS("overflow-y", "auto");
+  await expect(compactSurface).toHaveCSS("resize", "vertical");
+  await expect(compactSurface).toHaveCSS("height", "150px");
+
+  await compactSurface.evaluate((surface) => {
+    surface.style.height = "244px";
+    surface.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
+  });
+  await expect(compactSurface).toHaveCSS("height", "244px");
+  await page.reload();
+
+  const restoredOutline = page.locator(".story-card").filter({ hasText: "大纲" }).first();
+  await expect(restoredOutline.locator(".compact-rich-text-surface")).toHaveCSS("height", "244px");
 });
 
 test("timeline media can collapse and scratchpad keeps note and map tools reachable", async ({ page }) => {
