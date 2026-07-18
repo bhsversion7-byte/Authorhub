@@ -17,6 +17,7 @@ import {
 import {
   SHARE_ROLES,
   createShareLink as createSharedNovelLink,
+  deleteOwnedSharedNovel,
   decorateSharedNovel,
   ensureSharedNovel,
   getActiveShareLink,
@@ -69,6 +70,7 @@ export default function App() {
   const [activeView, setActiveView] = useState(() => localStorage.getItem(ACTIVE_VIEW_KEY) || "author");
   const [sharedNovelsReady, setSharedNovelsReady] = useState(false);
   const [deleteCandidate, setDeleteCandidate] = useState(null);
+  const [deletingNovel, setDeletingNovel] = useState(false);
   const [tourStep, setTourStep] = useState(null);
   const [authUser, setAuthUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
@@ -509,6 +511,12 @@ export default function App() {
   }, [data?.novels, sharedSourceIds, sharedWorkspaceNovels]);
   const activeNovel = useMemo(() => novels.find((novel) => novel.id === activeView), [activeView, novels]);
   const appearance = data?.appearance ?? { fontFamily: "sans", fontSize: 14 };
+  const deleteCandidateIsSharedOwner = Boolean(
+    deleteCandidate?.sharedMeta?.id && deleteCandidate.sharedMeta.role === SHARE_ROLES.OWNER,
+  );
+  const deleteCandidateIsSharedCollaborator = Boolean(
+    deleteCandidate?.sharedMeta?.id && !deleteCandidateIsSharedOwner,
+  );
 
   useEffect(() => {
     if (!data || activeView === "author" || activeView === "user") return;
@@ -982,10 +990,42 @@ export default function App() {
     if (novel) setDeleteCandidate(novel);
   }
 
-  function confirmDeleteNovel() {
-    if (!deleteCandidate) return;
-    if (deleteCandidate.sharedMeta?.id) {
-      const sharedId = deleteCandidate.sharedMeta.id;
+  async function confirmDeleteNovel() {
+    if (!deleteCandidate || deletingNovel) return;
+    const candidate = deleteCandidate;
+    const sharedId = candidate.sharedMeta?.id;
+    const isSharedOwner = deleteCandidateIsSharedOwner;
+
+    if (isSharedOwner) {
+      setDeletingNovel(true);
+      // Prevent a delayed/in-flight shared save from recreating client state
+      // after the server has deleted the workspace.
+      sharedSaveDebouncerRef.current.cancel(sharedId);
+      detachedSharedIdsRef.current.add(sharedId);
+      try {
+        await deleteOwnedSharedNovel(sharedId);
+        const nextSharedNovels = sharedNovels.filter((row) => row.id !== sharedId);
+        const nextData = {
+          ...data,
+          novels: data.novels.filter((novel) => novel.id !== candidate.sourceNovelId),
+        };
+        deleteImagesForNovel(candidate);
+        setSharedNovels(nextSharedNovels);
+        setData(nextData);
+        setActiveView(nextSharedNovels[0] ? `shared-${nextSharedNovels[0].id}` : nextData.novels[0]?.id ?? "author");
+        setDeleteCandidate(null);
+        showShareNotice("小说、协作空间与全部分享链接已永久删除。", 2600);
+      } catch (error) {
+        detachedSharedIdsRef.current.delete(sharedId);
+        console.warn("AuthorHub could not permanently delete the owner shared novel.", error);
+        showShareNotice("删除失败，小说与协作空间均未移除，请检查网络后重试。", 3000);
+      } finally {
+        setDeletingNovel(false);
+      }
+      return;
+    }
+
+    if (sharedId) {
       // Drop any edit still waiting out its 900ms debounce for this novel -
       // otherwise it fires after we've already removed the row and its
       // .then() re-adds the just-detached novel right back into
@@ -1256,27 +1296,27 @@ export default function App() {
       )}
       {shareNotice && <div className="share-sync-toast" role="status">{shareNotice}</div>}
       {deleteCandidate && (
-        <div className="modal-backdrop" role="presentation" onMouseDown={() => setDeleteCandidate(null)}>
+        <div className="modal-backdrop" role="presentation" onMouseDown={() => { if (!deletingNovel) setDeleteCandidate(null); }}>
           <section className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-novel-title" onMouseDown={(event) => event.stopPropagation()}>
-            {deleteCandidate.sharedMeta?.id ? (
+            {deleteCandidateIsSharedCollaborator ? (
               <>
                 <p className="eyebrow">Remove shared novel</p>
-                <h2 id="delete-novel-title">是否从手稿列表中移除该共享小说？</h2>
+                <h2 id="delete-novel-title">是否删除此共享小说？</h2>
                 <p>这只会把《{deleteCandidate.title}》从你的手稿列表中移除；云端协作空间和其他协作者的内容不受影响。</p>
               </>
             ) : (
               <>
-                <p className="eyebrow">Remove novel</p>
-                <h2 id="delete-novel-title">是否从手稿列表中移除该小说？</h2>
-                <p>移除后将永久清空《{deleteCandidate.title}》相关的全部星图、人物卡片及设定数据，且无法恢复。请谨慎确认。</p>
+                <p className="eyebrow">Delete novel</p>
+                <h2 id="delete-novel-title">是否删除此小说？</h2>
+                <p>删除后将永久清空《{deleteCandidate.title}》相关的全部星图、人物卡片及设定数据；若已共享，也会撤销全部协作与分享链接，且无法恢复。</p>
               </>
             )}
             <div className="confirm-actions">
-              <button type="button" className="ghost-button" onClick={() => setDeleteCandidate(null)}>
+              <button type="button" className="ghost-button" onClick={() => setDeleteCandidate(null)} disabled={deletingNovel}>
                 取消
               </button>
-              <button type="button" className="danger-button" onClick={confirmDeleteNovel}>
-                {deleteCandidate.sharedMeta?.id ? "确定移除" : "确定删除"}
+              <button type="button" className="danger-button" onClick={confirmDeleteNovel} disabled={deletingNovel}>
+                {deletingNovel ? "正在删除…" : deleteCandidateIsSharedCollaborator ? "确定移除" : "确定删除"}
               </button>
             </div>
           </section>
