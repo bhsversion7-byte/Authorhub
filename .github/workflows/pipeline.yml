@@ -6,29 +6,57 @@ on:
   push:
     branches: [master]
   workflow_dispatch:
+    inputs:
+      release_production:
+        description: Run the protected production release path
+        required: true
+        default: false
+        type: boolean
+      migration_mode:
+        description: Validate only, or run the protected database and app release
+        required: true
+        default: validate-only
+        type: choice
+        options:
+          - validate-only
+          - release
 
 permissions:
   contents: read
 
 concurrency:
-  group: authorhub-${{ github.ref }}
-  cancel-in-progress: true
+  group: authorhub-${{ github.event_name == 'workflow_dispatch' && inputs.release_production && 'production-release' || github.ref }}
+  cancel-in-progress: ${{ !(github.event_name == 'workflow_dispatch' && inputs.release_production) }}
 
 jobs:
   quality:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22
+          node-version-file: .node-version
           cache: npm
+      - name: Lint GitHub Actions workflow
+        run: |
+          curl --fail --silent --show-error --location --output /tmp/actionlint.tar.gz https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  /tmp/actionlint.tar.gz" | sha256sum --check
+          tar -xzf /tmp/actionlint.tar.gz -C /tmp actionlint
+          /tmp/actionlint -color .github/workflows/pipeline.yml
       - run: npm ci
       - run: npm run verify
-      - run: npm run build
-      - run: npm audit --audit-level=high
+      - name: Build application
+        env:
+          VITE_SUPABASE_URL: ${{ github.event_name != 'pull_request' && secrets.VITE_SUPABASE_URL || '' }}
+          VITE_SUPABASE_ANON_KEY: ${{ github.event_name != 'pull_request' && secrets.VITE_SUPABASE_ANON_KEY || '' }}
+        run: npm run build
+      - name: Verify production-connected bundle
+        if: github.event_name != 'pull_request'
+        run: npm run verify:production-bundle
+      - run: npm audit --audit-level=moderate
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -40,6 +68,7 @@ jobs:
 
   secrets:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -50,6 +79,7 @@ jobs:
 
   codeql:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
       security-events: write
@@ -62,6 +92,7 @@ jobs:
 
   migration-changes:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       supabase: ${{ steps.filter.outputs.supabase }}
     steps:
@@ -78,6 +109,7 @@ jobs:
     needs: migration-changes
     if: needs.migration-changes.outputs.supabase == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # v3
@@ -89,27 +121,56 @@ jobs:
 
   quality_gate:
     if: always()
-    needs: [quality, secrets, codeql, supabase]
+    needs: [quality, secrets, codeql, migration-changes, supabase]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Require every applicable check
         env:
           QUALITY_RESULT: ${{ needs.quality.result }}
           SECRETS_RESULT: ${{ needs.secrets.result }}
           CODEQL_RESULT: ${{ needs.codeql.result }}
+          MIGRATION_CHANGES_RESULT: ${{ needs.migration-changes.result }}
           SUPABASE_RESULT: ${{ needs.supabase.result }}
         run: |
           test "$QUALITY_RESULT" = "success"
           test "$SECRETS_RESULT" = "success"
           test "$CODEQL_RESULT" = "success"
+          test "$MIGRATION_CHANGES_RESULT" = "success"
           test "$SUPABASE_RESULT" = "success" || test "$SUPABASE_RESULT" = "skipped"
+
+  production-database:
+    if: >-
+      github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master' &&
+      inputs.release_production == true && needs.quality_gate.result == 'success'
+    needs: [quality_gate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # v3
+        with:
+          version: 2.109.1
+      - run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+      - name: Show pending production migrations
+        run: supabase db push --dry-run --linked
+      - name: Apply production migrations
+        if: inputs.migration_mode == 'release'
+        run: supabase db push --linked
 
   deploy-production:
     if: >-
-      always() && github.event_name == 'push' && github.ref == 'refs/heads/master' &&
-      needs.quality_gate.result == 'success'
-    needs: [quality_gate]
+      github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master' &&
+      inputs.release_production == true && inputs.migration_mode == 'release' &&
+      needs.quality_gate.result == 'success' && needs.production-database.result == 'success'
+    needs: [quality_gate, production-database]
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     environment: production
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -119,27 +180,52 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22
+          node-version-file: .node-version
           cache: npm
       - run: npm ci
+      - name: Require approved GitHub release actor
+        env:
+          VERCEL_ALLOWED_ACTORS: ${{ secrets.VERCEL_ALLOWED_ACTORS }}
+        run: |
+          if [ -z "$VERCEL_ALLOWED_ACTORS" ]; then
+            echo "VERCEL_ALLOWED_ACTORS is required for production deploys."
+            exit 1
+          fi
+          case ",$VERCEL_ALLOWED_ACTORS," in
+            *,"$GITHUB_ACTOR",*) ;;
+            *)
+              echo "The triggering GitHub actor is not allowed to release production."
+              exit 1
+              ;;
+          esac
       - name: Remember current production
         run: |
           CURRENT=$(curl --fail --silent --show-error -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v6/deployments?projectId=$VERCEL_PROJECT_ID&teamId=$VERCEL_ORG_ID&target=production&limit=1" | jq -r '.deployments[0].url // empty')
           echo "PREVIOUS_PRODUCTION=$CURRENT" >> "$GITHUB_ENV"
-      - run: npx vercel@48.8.0 pull --yes --environment=production --token="$VERCEL_TOKEN"
-      - run: npx vercel@48.8.0 build --prod --token="$VERCEL_TOKEN"
+      - run: npx vercel@56.3.1 pull --yes --environment=production --token="$VERCEL_TOKEN"
+      - run: node scripts/verify-production-bundle-env.mjs --env-only
+      - run: npx vercel@56.3.1 build --prod --token="$VERCEL_TOKEN"
+      - run: npm run verify:production-bundle
+      - name: Record immutable build evidence
+        run: |
+          EXPECTED_ASSET=$(sed -n 's/.*\(assets\/index-[^"]*\.js\).*/\1/p' .vercel/output/static/index.html | head -n 1)
+          test -n "$EXPECTED_ASSET"
+          read -r ARTIFACT_SHA256 _ < <(find .vercel/output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum)
+          echo "EXPECTED_ASSET=$EXPECTED_ASSET" >> "$GITHUB_ENV"
+          echo "ARTIFACT_SHA256=$ARTIFACT_SHA256" >> "$GITHUB_ENV"
+          printf '### Production evidence\n\n- Commit: %s\n- Artifact SHA-256: %s\n- Entry asset: %s\n' "$GITHUB_SHA" "$ARTIFACT_SHA256" "$EXPECTED_ASSET" >> "$GITHUB_STEP_SUMMARY"
       - name: Deploy prebuilt production artifact
         id: deploy
         run: |
-          URL=$(npx vercel@48.8.0 deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          URL=$(npx vercel@56.3.1 deploy --prebuilt --prod --archive=tgz --token="$VERCEL_TOKEN")
           echo "url=$URL" >> "$GITHUB_OUTPUT"
       - name: Production smoke test and rollback
         env:
           DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
         run: |
-          if ! curl --fail --silent --show-error --retry 5 --retry-delay 4 "$DEPLOYMENT_URL" >/dev/null; then
+          if ! npx vercel@56.3.1 inspect "$DEPLOYMENT_URL" --token="$VERCEL_TOKEN" || ! node scripts/verify-production-url.mjs https://authorhub.cn "$EXPECTED_ASSET" || ! node scripts/verify-production-url.mjs https://www.authorhub.cn "$EXPECTED_ASSET"; then
             if [ -n "$PREVIOUS_PRODUCTION" ]; then
-              npx vercel@48.8.0 rollback "https://$PREVIOUS_PRODUCTION" --yes --token="$VERCEL_TOKEN"
+              npx vercel@56.3.1 rollback "https://$PREVIOUS_PRODUCTION" --yes --token="$VERCEL_TOKEN"
             fi
             exit 1
           fi

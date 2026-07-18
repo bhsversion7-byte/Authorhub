@@ -39,12 +39,10 @@ const TRACKS = [
   },
 ];
 
-export default function FloatingMusicPlayer() {
+export default function FloatingMusicPlayer({ enabled = true, onPositionChange }) {
   const [playing, setPlaying] = useState(false);
   const [trackIndex, setTrackIndex] = useState(0);
-  // Start collapsed: the player is a "低干扰" (low-interference) box, and its
-  // default top-right rest spot otherwise covers the novel hero's word-count
-  // value. Collapsed it's a small pill clear of that content; one tap expands it.
+  // Keep the default footprint clear of the novel header's word-count controls.
   const [collapsed, setCollapsed] = useState(true);
   const [playbackIssue, setPlaybackIssue] = useState("");
   const [dragging, setDragging] = useState(false);
@@ -62,8 +60,15 @@ export default function FloatingMusicPlayer() {
   }, []);
 
   useEffect(() => {
+    if (enabled) return;
+    audioRef.current?.pause();
+    setPlaying(false);
+  }, [enabled]);
+
+  useEffect(() => {
     if (!dragging) localStorage.setItem(STORAGE_KEY, JSON.stringify({ y: top }));
-  }, [top, dragging]);
+    if (!dragging) onPositionChange?.(top);
+  }, [top, dragging, onPositionChange]);
 
   useEffect(() => {
     function clampIntoViewport() {
@@ -202,6 +207,8 @@ export default function FloatingMusicPlayer() {
       setTop(pendingTopRef.current);
     });
   }
+
+  if (!enabled) return null;
 
   return (
     <div

@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { CaseSensitive, EyeOff, Feather, Library, Moon, PenLine, Type } from "lucide-react";
+import { Baseline, CaseSensitive, CircleHelp, EyeOff, Feather, Languages, Library, Moon, Music2, NotebookPen, PenLine, Type } from "lucide-react";
 import EditableField from "./EditableField.jsx";
 
 export default function AuthorDashboard({
@@ -10,6 +10,7 @@ export default function AuthorDashboard({
   onAuthorChange,
   onAppearanceChange,
   onPrivacyBlurChange,
+  onRestartTour,
 }) {
   const totalCurrent = novels.reduce((sum, novel) => sum + Number(novel.currentWords || 0), 0);
   const totalTarget = novels.reduce((sum, novel) => sum + Number(novel.targetWords || 0), 0);
@@ -99,28 +100,48 @@ export default function AuthorDashboard({
           <h2>全站阅读设置</h2>
         </div>
         <div className="appearance-controls">
-          <label>
-            字号
-            <input
-              type="range"
-              min="10"
-              max="20"
-              value={appearance.fontSize ?? 14}
-              onChange={(event) => onAppearanceChange({ fontSize: Number(event.target.value) })}
-            />
-            <strong>{appearance.fontSize ?? 14}px</strong>
-          </label>
-          <label>
-            字体
-            <select value={appearance.fontFamily ?? "sans"} onChange={(event) => onAppearanceChange({ fontFamily: event.target.value })}>
-              <option value="sans">清爽无衬线</option>
-              <option value="serif">阅读衬线</option>
-              <option value="mono">设定文档等宽</option>
-              <option value="yahei">系统雅黑</option>
-              <option value="songti">传统宋体</option>
-              <option value="mimeograph">油印仿真</option>
-            </select>
-          </label>
+          <div className="appearance-primary-grid">
+            <label className="appearance-setting-item">
+              <span className="appearance-setting-label"><Baseline size={16} />字号</span>
+              <span className="font-size-setting-control">
+                <input
+                  type="range"
+                  min="10"
+                  max="20"
+                  value={appearance.fontSize ?? 14}
+                  onChange={(event) => onAppearanceChange({ fontSize: Number(event.target.value) })}
+                />
+                <strong>{appearance.fontSize ?? 14}px</strong>
+              </span>
+            </label>
+            <label className="appearance-setting-item">
+              <span className="appearance-setting-label"><Languages size={16} />字体</span>
+              <select value={appearance.fontFamily ?? "sans"} onChange={(event) => onAppearanceChange({ fontFamily: event.target.value })}>
+                <option value="sans">清爽无衬线</option>
+                <option value="serif">阅读衬线</option>
+                <option value="mono">设定文档等宽</option>
+                <option value="yahei">系统雅黑</option>
+                <option value="songti">传统宋体</option>
+                <option value="mimeograph">油印仿真</option>
+              </select>
+            </label>
+            <div className="appearance-setting-item is-toggle-setting">
+              <span className="appearance-setting-label"><Music2 size={16} />音乐播放器</span>
+              <ToggleSwitch
+                checked={appearance.musicPlayerEnabled !== false}
+                onChange={(checked) => onAppearanceChange({ musicPlayerEnabled: checked })}
+                label="音乐播放器"
+              />
+            </div>
+            <div className="appearance-setting-item is-toggle-setting">
+              <span className="appearance-setting-label"><NotebookPen size={16} />草稿本</span>
+              <ToggleSwitch
+                checked={appearance.scratchpadEnabled !== false}
+                onChange={(checked) => onAppearanceChange({ scratchpadEnabled: checked })}
+                label="草稿本"
+              />
+            </div>
+          </div>
           <div className="privacy-control-row">
             <button type="button" className={appearance.darkMode ? "toggle-pill is-active" : "toggle-pill"} onClick={() => onAppearanceChange({ darkMode: !appearance.darkMode })}>
               <Moon size={14} />
@@ -129,6 +150,10 @@ export default function AuthorDashboard({
             <button type="button" className={privacyBlur ? "toggle-pill is-active" : "toggle-pill"} onClick={() => onPrivacyBlurChange(!privacyBlur)}>
               <EyeOff size={14} />
               隐私模糊
+            </button>
+            <button type="button" className="toggle-pill" onClick={onRestartTour}>
+              <CircleHelp size={14} />
+              重看引导
             </button>
           </div>
           <div className="font-preview">
@@ -140,5 +165,20 @@ export default function AuthorDashboard({
 
       <p className="global-disclaimer">请让创作保有边界与尊重：留意法律、版权和他人权益；AuthorHub 负责帮你梳理结构，具体内容由你安心掌握。</p>
     </section>
+  );
+}
+
+function ToggleSwitch({ checked, onChange, label }) {
+  return (
+    <button
+      type="button"
+      className={`setting-switch${checked ? " is-on" : ""}`}
+      role="switch"
+      aria-checked={checked}
+      aria-label={`${checked ? "关闭" : "开启"}${label}`}
+      onClick={() => onChange(!checked)}
+    >
+      <span aria-hidden="true" />
+    </button>
   );
 }

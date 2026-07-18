@@ -1,5 +1,6 @@
 import React from "react";
 import { Check, Link2, Plus, Save, Sparkles, Trash2, X } from "lucide-react";
+import { patchFocusPageMap } from "../../lib/focusPages.js";
 import FocusTextarea from "../FocusTextarea.jsx";
 import MediaCarousel from "../MediaCarousel.jsx";
 
@@ -113,20 +114,32 @@ export default function CharacterInspector({
           <FocusTextarea
             label="背景故事"
             value={draft.background}
+            richText={draft.richText?.background}
             pages={draft.focusPages?.background}
             onPagesChange={(pages, meta) => character.updateFocusPages("background", pages, meta)}
             onChange={(background) => character.patch({ background })}
-            onSave={character.save}
+            onRichTextChange={(background) => character.patch({ richText: { ...(draft.richText ?? {}), background } })}
+            onSave={({ value, richText, pages }) => character.save({
+              background: value,
+              richText: { ...(draft.richText ?? {}), background: richText },
+              focusPages: patchFocusPageMap(draft.focusPages, "background", pages),
+            })}
             readOnly={readOnly}
           />
           {!readOnly && (
             <FocusTextarea
               label="隐藏设定"
               value={draft.secret}
+              richText={draft.richText?.secret}
               pages={draft.focusPages?.secret}
               onPagesChange={(pages, meta) => character.updateFocusPages("secret", pages, meta)}
               onChange={(secret) => character.patch({ secret })}
-              onSave={character.save}
+              onRichTextChange={(secret) => character.patch({ richText: { ...(draft.richText ?? {}), secret } })}
+              onSave={({ value, richText, pages }) => character.save({
+                secret: value,
+                richText: { ...(draft.richText ?? {}), secret: richText },
+                focusPages: patchFocusPageMap(draft.focusPages, "secret", pages),
+              })}
               readOnly={readOnly}
             />
           )}
@@ -134,7 +147,7 @@ export default function CharacterInspector({
 
         {!readOnly && (
           <div className="character-action-row">
-            <button type="button" className="primary-button" onClick={character.save}>
+            <button type="button" className="primary-button" onClick={() => character.save()}>
               <Save size={16} />
               保存人物
             </button>
@@ -142,10 +155,6 @@ export default function CharacterInspector({
               <Trash2 size={15} />
               删除人物
             </button>
-            <label className="relation-lock-toggle">
-              <input type="checkbox" checked={character.locked} onChange={character.toggleLock} />
-              <span>锁定星球位置</span>
-            </label>
           </div>
         )}
 

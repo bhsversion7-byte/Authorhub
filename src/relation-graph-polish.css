@@ -68,24 +68,6 @@
   font-weight: 800;
 }
 
-.relation-lock-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 34px;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 750;
-  cursor: pointer;
-}
-
-.relation-lock-toggle input {
-  width: 16px;
-  height: 16px;
-  margin: 0;
-  accent-color: #7e9a9a;
-}
-
 .inspector-card {
   container-type: inline-size;
 }

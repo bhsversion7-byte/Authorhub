@@ -44,7 +44,7 @@ export function getPresenceInitial(label) {
   return String(label || "协").trim().slice(0, 1).toUpperCase();
 }
 
-export function createSharedDraftPreview({ sharedNovelId, fieldPath, value, cursorIndex, user }) {
+export function createSharedDraftPreview({ sharedNovelId, fieldPath, value, cursorIndex, user, actorRole }) {
   if (!sharedNovelId || !SHARED_DRAFT_FIELD_SET.has(fieldPath) || !user?.id) return null;
   const text = String(value ?? "");
   const cursor = clampNumber(cursorIndex, 0, text.length);
@@ -57,6 +57,7 @@ export function createSharedDraftPreview({ sharedNovelId, fieldPath, value, curs
     sharedNovelId,
     fieldPath,
     userId: user.id,
+    actorRole: normalizeActorRole(actorRole),
     label: formatPresenceLabel({
       name: user.user_metadata?.username ?? user.user_metadata?.name,
       email: user.email,
@@ -68,29 +69,32 @@ export function createSharedDraftPreview({ sharedNovelId, fieldPath, value, curs
   };
 }
 
-export function createSharedSaveNotice({ sharedNovelId, label, snippet, userId }) {
+export function createSharedSaveNotice({ sharedNovelId, label, snippet, userId, actorRole }) {
   const cleanSnippet = getSharedSaveSnippet(snippet);
   if (!sharedNovelId || !cleanSnippet || !userId) return null;
   return {
     type: "save-notice",
     sharedNovelId,
     userId,
+    actorRole: normalizeActorRole(actorRole),
     label: String(label ?? "协作者").trim().slice(0, 32) || "协作者",
     snippet: cleanSnippet,
     updatedAt: new Date().toISOString(),
   };
 }
 
-export function normalizeSharedSaveNotice(payload, { currentUserId } = {}) {
+export function normalizeSharedSaveNotice(payload, { currentUserId, currentRole } = {}) {
   if (!payload || payload.type !== "save-notice") return null;
   const sharedNovelId = String(payload.sharedNovelId ?? "").trim();
   const userId = String(payload.userId ?? "").trim();
   const snippet = getSharedSaveSnippet(payload.snippet);
-  if (!sharedNovelId || !userId || userId === currentUserId || !snippet) return null;
+  const actorRole = normalizeActorRole(payload.actorRole);
+  if (!sharedNovelId || !userId || isOwnCollaborationEvent({ userId, actorRole }, { currentUserId, currentRole }) || !snippet) return null;
   return {
     type: "save-notice",
     sharedNovelId,
     userId,
+    actorRole,
     label: String(payload.label ?? "协作者").trim().slice(0, 32) || "协作者",
     snippet,
   };
@@ -102,9 +106,10 @@ export function getSharedSaveSnippet(value) {
     .slice(0, SHARED_SAVE_SNIPPET_LIMIT);
 }
 
-export function formatSharedSaveNotice({ label, snippet }) {
+export function formatSharedSaveNotice({ label, snippet, userId, actorRole }) {
   const cleanSnippet = getSharedSaveSnippet(snippet);
-  return cleanSnippet ? `${label || "协作者"}已保存：${cleanSnippet}......` : SHARED_SYNC_NOTICE;
+  const actor = formatCollaborationActor({ label, userId, actorRole });
+  return cleanSnippet ? `${actor}已保存：${cleanSnippet}......` : SHARED_SYNC_NOTICE;
 }
 
 // Top-level novel keys the "edited while you were away" catch-up notice can
@@ -135,19 +140,20 @@ export function diffNovelSections(previousNovel, nextNovel) {
   return sections;
 }
 
-export function formatSharedEditCatchUpNotice({ editorName, sections }) {
-  const label = String(editorName ?? "").trim() || "协作者";
+export function formatSharedEditCatchUpNotice({ editorName, editorId, editorRole, sections }) {
+  const label = formatCollaborationActor({ label: editorName, userId: editorId, actorRole: editorRole });
   const cleanSections = Array.isArray(sections) ? sections.filter(Boolean) : [];
   if (!cleanSections.length) return `${label}已编辑此小说。`;
   return `${label}已编辑：${cleanSections.join("、")}`;
 }
 
-export function normalizeSharedDraftPreview(payload, { currentUserId, now = Date.now() } = {}) {
+export function normalizeSharedDraftPreview(payload, { currentUserId, currentRole, now = Date.now() } = {}) {
   if (!payload || payload.type !== "draft-preview") return null;
   const sharedNovelId = String(payload.sharedNovelId ?? "").trim();
   const fieldPath = String(payload.fieldPath ?? "").trim();
   const userId = String(payload.userId ?? "").trim();
-  if (!sharedNovelId || !SHARED_DRAFT_FIELD_SET.has(fieldPath) || !userId || userId === currentUserId) return null;
+  const actorRole = normalizeActorRole(payload.actorRole);
+  if (!sharedNovelId || !SHARED_DRAFT_FIELD_SET.has(fieldPath) || !userId || isOwnCollaborationEvent({ userId, actorRole }, { currentUserId, currentRole })) return null;
 
   const tail = normalizeDraftTail(payload.tail).slice(0, SHARED_DRAFT_TAIL_LIMIT);
   if (!tail) return null;
@@ -157,6 +163,7 @@ export function normalizeSharedDraftPreview(payload, { currentUserId, now = Date
     sharedNovelId,
     fieldPath,
     userId,
+    actorRole,
     label: String(payload.label ?? "协作者").trim().slice(0, 32) || "协作者",
     avatarUrl: String(payload.avatarUrl ?? "").trim().slice(0, 512),
     tail,
@@ -166,13 +173,31 @@ export function normalizeSharedDraftPreview(payload, { currentUserId, now = Date
   };
 }
 
-export function normalizeSharedDraftClear(payload, { currentUserId } = {}) {
+export function normalizeSharedDraftClear(payload, { currentUserId, currentRole } = {}) {
   if (!payload || payload.type !== "draft-clear") return null;
   const sharedNovelId = String(payload.sharedNovelId ?? "").trim();
   const fieldPath = String(payload.fieldPath ?? "").trim();
   const userId = String(payload.userId ?? "").trim();
-  if (!sharedNovelId || !SHARED_DRAFT_FIELD_SET.has(fieldPath) || !userId || userId === currentUserId) return null;
-  return { type: "draft-clear", sharedNovelId, fieldPath, userId };
+  const actorRole = normalizeActorRole(payload.actorRole);
+  if (!sharedNovelId || !SHARED_DRAFT_FIELD_SET.has(fieldPath) || !userId || isOwnCollaborationEvent({ userId, actorRole }, { currentUserId, currentRole })) return null;
+  return { type: "draft-clear", sharedNovelId, fieldPath, userId, actorRole };
+}
+
+export function formatCollaborationActor({ label, userId, actorRole } = {}) {
+  const roleLabel = normalizeActorRole(actorRole) === "owner" ? "作者" : "协作者";
+  const cleanLabel = String(label ?? "").trim().slice(0, 32);
+  const cleanId = String(userId ?? "").trim();
+  const idLabel = cleanId ? `ID ${cleanId.slice(0, 8)}` : "ID 未知";
+  return `${roleLabel}${cleanLabel ? ` ${cleanLabel}` : ""}（${idLabel}）`;
+}
+
+function isOwnCollaborationEvent(event, current) {
+  if (event.userId && current.currentUserId && event.userId === current.currentUserId) return true;
+  return normalizeActorRole(event.actorRole) === "owner" && normalizeActorRole(current.currentRole) === "owner";
+}
+
+function normalizeActorRole(role) {
+  return role === "owner" ? "owner" : "editor";
 }
 
 export function pruneExpiredSharedDrafts(draftsByField, now = Date.now()) {

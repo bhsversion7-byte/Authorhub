@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22.12.0 <23",
+    "npm": ">=10 <12"
+  },
   "scripts": {
     "dev": "vite --host localhost --port 6173 --strictPort",
     "dev:any": "vite --host 127.0.0.1",
@@ -12,10 +16,17 @@
     "verify:collab": "node scripts/verify-shared-collaboration-rules.mjs",
     "verify:graph": "node scripts/verify-relation-graph-rules.mjs",
     "verify:persistence": "node scripts/verify-persistence-rules.mjs",
-    "verify": "npm run verify:markdown && npm run verify:share && npm run verify:collab && npm run verify:graph && npm run verify:persistence",
+    "verify:rich-text": "node scripts/verify-rich-text.mjs",
+    "verify:scratchpad": "node scripts/verify-scratchpad.mjs",
+    "verify:announcements": "node scripts/verify-announcement-pagination.mjs",
+    "verify:playwright-runtime": "node scripts/verify-playwright-runtime.mjs",
+    "verify:production-bundle": "node scripts/verify-production-bundle-env.mjs",
+    "verify:production-url": "node scripts/verify-production-url.mjs",
+    "verify": "npm run verify:markdown && npm run verify:share && npm run verify:collab && npm run verify:graph && npm run verify:persistence && npm run verify:rich-text && npm run verify:scratchpad && npm run verify:announcements && npm run verify:playwright-runtime",
+    "doctor": "node scripts/doctor.mjs",
     "test:e2e": "playwright test",
     "test:e2e:desktop": "playwright test --project=desktop",
-    "check": "npm run verify && npm run build && npm run test:e2e",
+    "check": "npm run verify && npm run build && npm run verify:production-bundle && npm run test:e2e",
     "email:update:dry-run": "node scripts/send-user-update-email.mjs --dry-run",
     "email:update:daily-dry-run": "node scripts/send-user-update-email.mjs --dry-run --resume --daily-limit 100",
     "email:update:daily": "node scripts/send-user-update-email.mjs --send --all --resume --daily-limit 100",
@@ -23,18 +34,30 @@
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^1.1.8",
     "@react-three/fiber": "^9.0.0",
     "@supabase/supabase-js": "^2.108.1",
+    "@tiptap/extension-color": "^3.28.0",
+    "@tiptap/extension-text-align": "^3.28.0",
+    "@tiptap/extension-text-style": "^3.28.0",
+    "@tiptap/extension-underline": "^3.28.0",
+    "@tiptap/pm": "^3.28.0",
+    "@tiptap/react": "^3.28.0",
+    "@tiptap/starter-kit": "^3.28.0",
     "@vitejs/plugin-react": "^6.0.2",
+    "@xyflow/react": "^12.11.2",
     "d3": "^7.9.0",
+    "dompurify": "^3.4.12",
     "lucide-react": "^0.561.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "sortablejs": "^1.15.7",
     "three": "^0.180.0",
+    "turndown": "^7.2.4",
     "vite": "^8.0.16"
   },
   "devDependencies": {
-    "@playwright/test": "^1.55.1"
+    "@playwright/test": "^1.55.1",
+    "jsdom": "^29.1.1"
   }
 }

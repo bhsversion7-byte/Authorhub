@@ -219,6 +219,8 @@ export async function markSharedNovelSeen(sharedNovelId) {
   if (!row?.missed_edit) return null;
   return {
     editorName: row.editor_name,
+    editorId: row.editor_id,
+    editorRole: row.editor_role,
     sections: Array.isArray(row.sections) ? row.sections : [],
   };
 }
@@ -287,7 +289,7 @@ export function subscribeToSharedNovelPresence(sharedNovelId, user, onChange) {
   };
 }
 
-export function subscribeToSharedDraftPreviews(sharedNovelId, user, onPreview) {
+export function subscribeToSharedDraftPreviews(sharedNovelId, user, currentRole, onPreview) {
   if (!hasSupabaseConfig || !supabase || !sharedNovelId || !user?.id) {
     return {
       sendDraft: () => {},
@@ -316,15 +318,15 @@ export function subscribeToSharedDraftPreviews(sharedNovelId, user, onPreview) {
 
   channel
     .on("broadcast", { event: "draft-preview" }, ({ payload }) => {
-      const preview = normalizeSharedDraftPreview(payload, { currentUserId: user.id });
+      const preview = normalizeSharedDraftPreview(payload, { currentUserId: user.id, currentRole });
       if (preview) onPreview?.(preview);
     })
     .on("broadcast", { event: "draft-clear" }, ({ payload }) => {
-      const clearEvent = normalizeSharedDraftClear(payload, { currentUserId: user.id });
+      const clearEvent = normalizeSharedDraftClear(payload, { currentUserId: user.id, currentRole });
       if (clearEvent) onPreview?.(clearEvent);
     })
     .on("broadcast", { event: "save-notice" }, ({ payload }) => {
-      const saveNotice = normalizeSharedSaveNotice(payload, { currentUserId: user.id });
+      const saveNotice = normalizeSharedSaveNotice(payload, { currentUserId: user.id, currentRole });
       if (saveNotice) onPreview?.(saveNotice);
     })
     .subscribe((status) => {
@@ -348,6 +350,7 @@ export function subscribeToSharedDraftPreviews(sharedNovelId, user, onPreview) {
         sharedNovelId,
         fieldPath,
         userId: user.id,
+        actorRole: currentRole,
         updatedAt: new Date().toISOString(),
       });
     },

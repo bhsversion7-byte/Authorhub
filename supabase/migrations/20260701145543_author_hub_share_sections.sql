@@ -92,6 +92,11 @@ as $$
   from selected, cleaned;
 $$;
 
+-- PostgreSQL cannot change a table-returning function's OUT columns with
+-- CREATE OR REPLACE. Drop the six-column version from the sharing migration
+-- before recreating it with public_sections as the seventh column.
+drop function if exists public.get_author_hub_shared_novel_by_token(text);
+
 create or replace function public.get_author_hub_shared_novel_by_token(p_token text)
 returns table (
   id uuid,

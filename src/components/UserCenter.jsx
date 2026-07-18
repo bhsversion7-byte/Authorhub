@@ -42,6 +42,7 @@ export default function UserCenter({
       </div>
 
       <div className="user-center-page-grid">
+        <AnnouncementCenter />
         <article className="panel user-account-panel">
           <div className="panel-title spacious-title">
             <ShieldCheck size={16} />
@@ -164,7 +165,6 @@ export default function UserCenter({
             {!qrUnlocked && <span className="donation-unlock-copy">☕ 点击图片，解锁赞助通道</span>}
           </button>
         </article>
-        <AnnouncementCenter />
       </div>
 
       {passwordOpen &&

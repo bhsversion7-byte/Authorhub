@@ -33,7 +33,14 @@ export function buildMarkdownExport(data) {
       `- 完结时间：${novel.finishDate}`,
       "",
     );
-    sections.push("### 大纲", novel.outline, "", "### 设定集", novel.setting, "");
+    sections.push(
+      "### 大纲",
+      richTextToMarkdown(novel.richText?.outline, novel.outline),
+      "",
+      "### 设定集",
+      richTextToMarkdown(novel.richText?.setting, novel.setting),
+      "",
+    );
     sections.push("### 主题", ...(novel.themes ?? []).map((theme) => `- ${theme}`), "");
     sections.push(
       "### 人物",
@@ -53,3 +60,4 @@ export function buildMarkdownExport(data) {
 
   return sections.join("\n");
 }
+import { richTextToMarkdown } from "./richTextModel.js";

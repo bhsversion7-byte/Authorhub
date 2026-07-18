@@ -108,6 +108,45 @@
   margin-top: 0 !important;
 }
 
+.announcement-history-toggle {
+  color: rgba(82, 65, 96, 0.82) !important;
+}
+
+.announcement-pagination {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  min-height: 30px !important;
+  color: rgba(70, 61, 76, 0.72) !important;
+  font-size: 11px !important;
+  font-weight: 760 !important;
+}
+
+.announcement-pagination button {
+  display: grid !important;
+  place-items: center !important;
+  width: 28px !important;
+  height: 28px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  color: rgba(82, 65, 96, 0.72) !important;
+  box-shadow: none !important;
+}
+
+.announcement-pagination button:hover:not(:disabled),
+.announcement-pagination button:focus-visible:not(:disabled) {
+  background: rgba(255, 253, 248, 0.52) !important;
+  color: rgba(64, 48, 80, 0.92) !important;
+}
+
+.announcement-pagination button:disabled {
+  cursor: default !important;
+  opacity: 0.28 !important;
+}
+
 .announcement-item {
   display: grid !important;
   grid-template-columns: auto minmax(0, 1fr) auto !important;
@@ -475,6 +514,18 @@ body[data-theme="dark"] .announcement-copy {
 
 body[data-theme="dark"] .announcement-item > svg {
   color: rgba(238, 228, 235, 0.5) !important;
+}
+
+body[data-theme="dark"] .announcement-history-toggle,
+body[data-theme="dark"] .announcement-pagination,
+body[data-theme="dark"] .announcement-pagination button {
+  color: rgba(238, 228, 235, 0.72) !important;
+}
+
+body[data-theme="dark"] .announcement-pagination button:hover:not(:disabled),
+body[data-theme="dark"] .announcement-pagination button:focus-visible:not(:disabled) {
+  background: rgba(255, 248, 239, 0.12) !important;
+  color: rgba(255, 248, 239, 0.92) !important;
 }
 
 body[data-theme="dark"] .announcement-modal-close {

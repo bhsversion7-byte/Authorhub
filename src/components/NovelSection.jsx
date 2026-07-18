@@ -163,10 +163,12 @@ export default function NovelSection({
                 label="大纲"
                 hideLabel
                 value={novel.outline}
+                richText={novel.richText?.outline}
                 pages={novel.focusPages?.outline}
                 onPagesChange={(pages) => patchFocusPages("outline", pages)}
                 readOnly={readOnly}
                 onChange={(value) => patchNovel({ outline: value })}
+                onRichTextChange={(outline) => patchNovel({ richText: { ...(novel.richText ?? {}), outline } })}
                 onSave={() => {}}
                 remoteDrafts={draftPreviews.outline ?? []}
                 onDraftChange={(value, meta) => onDraftPreviewChange?.(novel.id, "outline", value, meta?.cursorIndex)}
@@ -194,10 +196,12 @@ export default function NovelSection({
                 label="设定集"
                 hideLabel
                 value={novel.setting}
+                richText={novel.richText?.setting}
                 pages={novel.focusPages?.setting}
                 onPagesChange={(pages) => patchFocusPages("setting", pages)}
                 readOnly={readOnly}
                 onChange={(value) => patchNovel({ setting: value })}
+                onRichTextChange={(setting) => patchNovel({ richText: { ...(novel.richText ?? {}), setting } })}
                 onSave={() => {}}
                 remoteDrafts={draftPreviews.setting ?? []}
                 onDraftChange={(value, meta) => onDraftPreviewChange?.(novel.id, "setting", value, meta?.cursorIndex)}

@@ -84,10 +84,10 @@ export const mockAuthorHubData = {
         },
       ],
       relationships: [
-        { source: "demo-x", target: "demo-y", label: "互相信任" },
-        { source: "demo-y", target: "demo-z", label: "目标冲突" },
-        { source: "demo-x", target: "demo-z", label: "合作调查" },
-        { source: "demo-a", target: "demo-x", label: "隐藏阻拦" },
+        { id: "demo-relation-x-y", source: "demo-x", target: "demo-y", label: "互相信任" },
+        { id: "demo-relation-y-z", source: "demo-y", target: "demo-z", label: "目标冲突" },
+        { id: "demo-relation-x-z", source: "demo-x", target: "demo-z", label: "合作调查" },
+        { id: "demo-relation-a-x", source: "demo-a", target: "demo-x", label: "隐藏阻拦" },
       ],
       timeline: [
         {

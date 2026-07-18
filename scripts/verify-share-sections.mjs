@@ -37,7 +37,7 @@ assert.deepEqual(
 const STRIP_MIGRATION_PATH = join(
   dirname(fileURLToPath(import.meta.url)),
   "..",
-  "supabase/migrations/20260707003000_author_hub_strip_focus_pages_from_public_share.sql",
+  "supabase/migrations/20260718090100_author_hub_public_rich_text.sql",
 );
 const stripMigrationSource = readFileSync(STRIP_MIGRATION_PATH, "utf8");
 const stripChainMatch = stripMigrationSource.match(/((?:-\s*'[^']+'\s*)+)as novel/);
