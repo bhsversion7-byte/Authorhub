@@ -1,11 +1,28 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
-import { Bell, ChevronRight, Megaphone, X } from "lucide-react";
-import { ANNOUNCEMENTS, LATEST_ANNOUNCEMENT } from "../data/announcements.js";
+import {
+  Bell,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsDown,
+  ChevronsUp,
+  Megaphone,
+  X,
+} from "lucide-react";
+import { ANNOUNCEMENTS, getAnnouncementPage, LATEST_ANNOUNCEMENT } from "../data/announcements.js";
 import { useEscapeToClose } from "../lib/useEscapeToClose.js";
 
 export default function AnnouncementCenter() {
   const [openAnnouncement, setOpenAnnouncement] = useState(null);
+  const [historyExpanded, setHistoryExpanded] = useState(false);
+  const [requestedPage, setRequestedPage] = useState(0);
+  const announcementPage = getAnnouncementPage(ANNOUNCEMENTS, requestedPage);
+  const visibleAnnouncements = historyExpanded ? announcementPage.items : ANNOUNCEMENTS.slice(0, 1);
+
+  const toggleHistory = () => {
+    setRequestedPage(0);
+    setHistoryExpanded((expanded) => !expanded);
+  };
 
   return (
     <article className="panel announcement-center-panel">
@@ -16,9 +33,14 @@ export default function AnnouncementCenter() {
           <span>产品更新 / 维护提醒</span>
         </div>
       </div>
-      <div className="announcement-list" aria-label="公告列表">
-        {ANNOUNCEMENTS.map((announcement) => (
-          <button type="button" key={announcement.id} className="announcement-item" onClick={() => setOpenAnnouncement(announcement)}>
+      <div id="announcement-history-list" className="announcement-list" aria-label="公告列表">
+        {visibleAnnouncements.map((announcement) => (
+          <button
+            type="button"
+            key={announcement.id}
+            className="announcement-item"
+            onClick={() => setOpenAnnouncement(announcement)}
+          >
             <time dateTime={announcement.date} className="announcement-date">
               {announcement.date}
             </time>
@@ -27,6 +49,41 @@ export default function AnnouncementCenter() {
           </button>
         ))}
       </div>
+      {ANNOUNCEMENTS.length > 1 && (
+        <button
+          type="button"
+          className={`edge-collapse-toggle announcement-history-toggle${historyExpanded ? "" : " is-collapsed"}`}
+          onClick={toggleHistory}
+          aria-controls="announcement-history-list"
+          aria-expanded={historyExpanded}
+          aria-label={historyExpanded ? "收起历史公告" : "展开历史公告"}
+        >
+          {historyExpanded ? <ChevronsUp size={18} /> : <ChevronsDown size={18} />}
+        </button>
+      )}
+      {historyExpanded && (
+        <nav className="announcement-pagination" aria-label="公告分页">
+          <button
+            type="button"
+            onClick={() => setRequestedPage(announcementPage.page - 1)}
+            disabled={announcementPage.page === 0}
+            aria-label="上一页公告"
+          >
+            <ChevronLeft size={15} />
+          </button>
+          <span aria-live="polite">
+            {announcementPage.page + 1} / {announcementPage.totalPages} 页
+          </span>
+          <button
+            type="button"
+            onClick={() => setRequestedPage(announcementPage.page + 1)}
+            disabled={announcementPage.page === announcementPage.totalPages - 1}
+            aria-label="下一页公告"
+          >
+            <ChevronRight size={15} />
+          </button>
+        </nav>
+      )}
       {openAnnouncement &&
         createPortal(
           <AnnouncementModal announcement={openAnnouncement} onClose={() => setOpenAnnouncement(null)} />,
@@ -97,6 +154,18 @@ function AnnouncementModal({ announcement, onClose }) {
         <div className="announcement-modal-body">
           {(announcement.body ?? []).map((paragraph, index) => (
             <p key={`${announcement.id}-p-${index}`}>{paragraph}</p>
+          ))}
+          {(announcement.sections ?? []).map((section, index) => (
+            <section className="announcement-detail-section" key={`${announcement.id}-section-${section.title}`}>
+              <h3>{index + 1}. {section.title}</h3>
+              {section.why && <p><strong>为什么加入：</strong>{section.why}</p>}
+              {section.description && <p>{section.description}</p>}
+              {section.steps?.length > 0 && (
+                <ol>
+                  {section.steps.map((step) => <li key={step}>{step}</li>)}
+                </ol>
+              )}
+            </section>
           ))}
           {(announcement.images ?? []).map((image) => (
             <figure key={image.src}>

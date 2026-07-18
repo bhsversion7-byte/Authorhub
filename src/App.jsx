@@ -1,7 +1,7 @@
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { AnnouncementTicker } from "./components/AnnouncementCenter.jsx";
-import FloatingMusicPlayer from "./components/FloatingMusicPlayer.jsx";
+import FloatingToolDock from "./components/FloatingToolDock.jsx";
 import Sidebar from "./components/Sidebar.jsx";
 import TourProvider from "./components/TourProvider.jsx";
 import { createKeyedDebouncer } from "./lib/debounce.js";
@@ -319,7 +319,7 @@ export default function App() {
     setSharedDraftsById((current) => Object.fromEntries(Object.entries(current).filter(([sharedNovelId]) => editableIds.has(sharedNovelId))));
 
     const cleanups = editableRows.map((row) => {
-      const controller = subscribeToSharedDraftPreviews(row.id, authUser, (event) => {
+      const controller = subscribeToSharedDraftPreviews(row.id, authUser, row.role, (event) => {
         if (event?.type === "save-notice") {
           recentSharedSaveNoticeRef.current.set(event.sharedNovelId, Date.now());
           showShareNotice(formatSharedSaveNotice(event), 5000);
@@ -737,6 +737,7 @@ export default function App() {
   }
 
   function announceSharedSave(sharedNovelId, novel) {
+    const sharedRow = sharedNovels.find((row) => row.id === sharedNovelId);
     const latestDraft = latestSharedDraftSnippetsRef.current.get(sharedNovelId);
     const snippet = getSharedSaveSnippet(latestDraft?.snippet) || getSharedSaveSnippet(novel?.outline) || getSharedSaveSnippet(novel?.setting);
     const notice = createSharedSaveNotice({
@@ -747,6 +748,7 @@ export default function App() {
       }),
       snippet,
       userId: authUser?.id,
+      actorRole: sharedRow?.role,
     });
     if (!notice) return;
     recentSharedSaveNoticeRef.current.set(sharedNovelId, Date.now());
@@ -781,6 +783,7 @@ export default function App() {
       value,
       cursorIndex,
       user: authUser,
+      actorRole: sharedRow.role,
     });
     if (!preview) return;
 
@@ -1182,6 +1185,7 @@ export default function App() {
               onAuthorChange={updateAuthor}
               onAppearanceChange={updateAppearance}
               onPrivacyBlurChange={setPrivacyBlur}
+              onRestartTour={() => setTourStep(0)}
             />
           )}
           {activeView === "user" && (
@@ -1240,7 +1244,7 @@ export default function App() {
           ) : null}
         </Suspense>
       </main>
-      <FloatingMusicPlayer />
+      <FloatingToolDock user={authUser} appearance={appearance} />
       {!shareNotice && !isPublicShareRoute && <AnnouncementTicker onOpen={() => selectView("user")} />}
       {cloudSyncBlocked && !isPublicShareRoute && (
         <div className="cloud-sync-banner" role="alert">
@@ -1359,7 +1363,7 @@ function SharedNovelPublicPage({ state }) {
           visibleSections={novel.sharedMeta?.publicSections}
         />
       </main>
-      <FloatingMusicPlayer />
+      <FloatingToolDock appearance={{ scratchpadEnabled: false }} showScratchpad={false} />
     </div>
   );
 }

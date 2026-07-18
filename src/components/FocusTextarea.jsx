@@ -3,12 +3,18 @@ import { createPortal } from "react-dom";
 import Sortable from "sortablejs";
 import { ChevronLeft, ChevronRight, Maximize2, Minimize2, Plus, Save, Search, X } from "lucide-react";
 import { appendFocusPage } from "../lib/focusPages.js";
+import { createRichTextDocument, richTextToPlainText, sanitizeRichTextHtml } from "../lib/richTextModel.js";
+import { formatCollaborationActor } from "../lib/sharedCollaboration.js";
+import RichTextSurface from "./rich-text/RichTextSurface.jsx";
+import TextStylePopover from "./rich-text/TextStylePopover.jsx";
 
 const FocusTextarea = forwardRef(function FocusTextarea(
   {
     label,
     value,
+    richText,
     onChange,
+    onRichTextChange,
     onSave,
     rows = 5,
     placeholder,
@@ -23,110 +29,82 @@ const FocusTextarea = forwardRef(function FocusTextarea(
   ref,
 ) {
   const [focused, setFocused] = useState(false);
+  const [zenStylesOpen, setZenStylesOpen] = useState(false);
+  const [unsavedExitOpen, setUnsavedExitOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [cursorIndex, setCursorIndex] = useState(0);
   const [activeMatchIndex, setActiveMatchIndex] = useState(0);
   const [activePageId, setActivePageId] = useState("");
+  const [zenPages, setZenPages] = useState([]);
+  const [zenBaseSignature, setZenBaseSignature] = useState("");
   const [newPageTitle, setNewPageTitle] = useState("");
   const [addingPage, setAddingPage] = useState(false);
   const [editingPageId, setEditingPageId] = useState("");
   const [editingPageTitle, setEditingPageTitle] = useState("");
   const [deletePageCandidate, setDeletePageCandidate] = useState(null);
-  // The zen overlay is portaled to <body>, outside .content-shell where the
-  // 阅读设置 CSS vars live, so it can't inherit them. Copy the current reading
-  // font size + family onto the .zen-editor element when it opens so the
-  // 放大 view matches the reading settings exactly (see reading-scale-fixes.css).
   const [zenReadingStyle, setZenReadingStyle] = useState({});
-  // Scrolling down into the text hides the search bar / page-tab row so the
-  // textarea gets the freed-up space - restored once scrolled back near the
-  // top. Thresholds are offset (24 to collapse, 4 to restore) so it doesn't
-  // flicker right at the boundary.
   const [zenScrollCompact, setZenScrollCompact] = useState(false);
-  const textareaRef = useRef(null);
+  const [zenEditor, setZenEditor] = useState(null);
+  const zenSurfaceRef = useRef(null);
+  const zenStyleButtonRef = useRef(null);
   const pageRailRef = useRef(null);
   const reorderPagesRef = useRef(null);
-  const composingRef = useRef(false);
   const searchJumpTimerRef = useRef(null);
   const titleId = useId();
+  const exitTitleId = useId();
   const textValue = String(value ?? "");
   const hasPageNavigation = typeof onPagesChange === "function";
-  const normalizedPages = useMemo(() => normalizeFocusPages(pages, textValue, label), [pages, textValue, label]);
-  const persistedPages = useMemo(() => serializeFocusPages(normalizedPages), [normalizedPages]);
+  const externalPages = useMemo(
+    () => normalizeFocusPages(pages, textValue, richText, label),
+    [pages, textValue, richText?.version, richText?.html, label],
+  );
+  const workingPages = focused ? zenPages : externalPages;
+  const persistedPages = serializeFocusPages(workingPages);
   const hasCustomPages = hasPageNavigation && persistedPages.length > 0;
   const showPageOutline = hasPageNavigation && (addingPage || hasCustomPages);
-  const activePage = normalizedPages.find((page) => page.id === activePageId) ?? normalizedPages[0];
-  const editorValue = focused && hasPageNavigation ? activePage?.value ?? "" : textValue;
+  const activePage = workingPages.find((page) => page.id === activePageId) ?? workingPages[0];
+  const editorValue = activePage?.value ?? textValue;
+  const editorDocument = activePage?.richText ?? createRichTextDocument(richText, editorValue);
   const stats = getTextStats(editorValue, cursorIndex);
   const matches = getSearchMatches(editorValue, searchQuery);
+  const zenDirty = focused && createPagesSignature(zenPages) !== zenBaseSignature;
 
-  useImperativeHandle(ref, () => ({ open: () => setFocused(true) }), []);
-
-  useEffect(() => {
-    if (!focused) setZenScrollCompact(false);
-  }, [focused]);
+  useImperativeHandle(ref, () => ({ open: openZenEditor }), [externalPages]);
 
   useEffect(() => {
-    if (!normalizedPages.length) return;
-    if (!activePageId || !normalizedPages.some((page) => page.id === activePageId)) {
-      setActivePageId(normalizedPages[0].id);
-    }
-  }, [activePageId, normalizedPages]);
+    if (!workingPages.length) return;
+    if (!activePageId || !workingPages.some((page) => page.id === activePageId)) setActivePageId(workingPages[0].id);
+  }, [activePageId, workingPages]);
 
   useEffect(() => {
-    if (!focused) return;
-    const previous = document.body.style.overflow;
-
-    const shell = document.querySelector(".content-shell");
-    if (shell) {
-      const cs = getComputedStyle(shell);
-      const fontSize = cs.getPropertyValue("--editor-font-size").trim();
-      const fontFamily = cs.getPropertyValue("--reading-font-family").trim();
-      const defaultNovelFont = shell.classList.contains("font-sans")
-        ? '"Nimbus Roman", "Nimbus Roman No9 L", "Times New Roman", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", serif'
-        : fontFamily;
-      setZenReadingStyle({
-        ...(fontSize ? { "--editor-font-size": fontSize, "--field-font-size": fontSize } : {}),
-        ...(defaultNovelFont ? { "--reading-font-family": defaultNovelFont } : {}),
-      });
-    }
-
+    if (!focused) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    copyReadingStyle();
     function onKeyDown(event) {
       if (event.key !== "Escape") return;
       event.preventDefault();
       event.stopPropagation();
-      if (deletePageCandidate) {
-        setDeletePageCandidate(null);
-        return;
-      }
-      setFocused(false);
+      if (deletePageCandidate) return setDeletePageCandidate(null);
+      if (unsavedExitOpen) return setUnsavedExitOpen(false);
+      requestCloseZen();
     }
-
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKeyDown, true);
-    const focusTimer = window.setTimeout(() => textareaRef.current?.focus(), 60);
+    const timer = window.setTimeout(() => zenSurfaceRef.current?.focus(), 80);
     return () => {
-      window.clearTimeout(focusTimer);
-      document.body.style.overflow = previous;
+      window.clearTimeout(timer);
+      document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown, true);
     };
-  }, [focused, deletePageCandidate]);
+  }, [focused, deletePageCandidate, unsavedExitOpen, zenDirty]);
+
+  useEffect(() => setActiveMatchIndex(0), [searchQuery]);
 
   useEffect(() => {
-    setActiveMatchIndex(0);
-  }, [searchQuery]);
-
-  useEffect(() => {
-    const trimmedQuery = searchQuery.trim();
-    if (!focused || trimmedQuery.length < 2 || !matches.length) return undefined;
-    searchJumpTimerRef.current = window.setTimeout(() => {
-      const match = matches[0];
-      setActiveMatchIndex(0);
-      jumpToIndex(match.index, trimmedQuery.length);
-    }, 650);
-    return () => {
-      window.clearTimeout(searchJumpTimerRef.current);
-      searchJumpTimerRef.current = null;
-    };
+    const needle = searchQuery.trim();
+    if (!focused || needle.length < 2 || !matches.length) return undefined;
+    searchJumpTimerRef.current = window.setTimeout(() => jumpToIndex(matches[0].index, needle.length), 500);
+    return () => window.clearTimeout(searchJumpTimerRef.current);
   }, [focused, searchQuery, editorValue]);
 
   useEffect(() => {
@@ -146,157 +124,149 @@ const FocusTextarea = forwardRef(function FocusTextarea(
       },
     });
     return () => sortable.destroy();
-  }, [focused, hasPageNavigation, readOnly, normalizedPages.length]);
+  }, [focused, hasPageNavigation, readOnly, workingPages.length]);
 
   reorderPagesRef.current = (order) => {
-    const byId = new Map(normalizedPages.map((page) => [page.id, page]));
+    const byId = new Map(zenPages.map((page) => [page.id, page]));
     const ordered = order.map((id) => byId.get(id)).filter(Boolean);
-    const missing = normalizedPages.filter((page) => !order.includes(page.id));
-    commitPages([...ordered, ...missing], activePageId);
+    const missing = zenPages.filter((page) => !order.includes(page.id));
+    updateZenPages([...ordered, ...missing], activePageId);
   };
 
-  function updateCursorFrom(event) {
-    setCursorIndex(event.target.selectionStart ?? 0);
+  function openZenEditor() {
+    const snapshot = externalPages.map(cloneFocusPage);
+    setZenPages(snapshot);
+    setZenBaseSignature(createPagesSignature(snapshot));
+    setActivePageId(snapshot[0]?.id ?? "page-main");
+    setSearchQuery("");
+    setCursorIndex(0);
+    setFocused(true);
   }
 
-  function updateCompactValue(event) {
-    if (readOnly) return;
-    const nextValue = event.target.value;
+  function requestCloseZen() {
+    if (!readOnly && zenDirty) setUnsavedExitOpen(true);
+    else closeZen();
+  }
+
+  function closeZen() {
+    setFocused(false);
+    setUnsavedExitOpen(false);
+    setDeletePageCandidate(null);
+    setAddingPage(false);
+    setZenStylesOpen(false);
+    setZenScrollCompact(false);
+    setZenPages([]);
+    onDraftClear?.();
+  }
+
+  function saveZen() {
+    if (readOnly) return closeZen();
+    const cleaned = normalizeFocusPages(zenPages, "", undefined, label);
+    const nextPages = serializeFocusPages(cleaned);
+    const nextValue = combineFocusPages(cleaned);
+    const nextRichText = combineFocusPageDocuments(cleaned);
+    if (hasPageNavigation) onPagesChange?.(nextPages, { isStructural: true });
     onChange?.(nextValue);
-    if (hasCustomPages) {
-      onPagesChange?.([], { isStructural: true });
-    }
-    updateCursorFrom(event);
-    if (!composingRef.current) {
-      onDraftChange?.(nextValue, { cursorIndex: event.target.selectionStart ?? nextValue.length });
-    }
+    onRichTextChange?.(nextRichText);
+    onSave?.({ value: nextValue, richText: nextRichText, pages: nextPages });
+    closeZen();
   }
 
-  function updateZenValue(event) {
+  function updateCompactValue(nextDocument, nextValue, nextCursorIndex) {
     if (readOnly) return;
-    const nextValue = event.target.value;
-    if (hasPageNavigation) {
-      const nextPages = normalizedPages.map((page) => (page.id === activePage?.id ? { ...page, value: nextValue } : page));
-      commitPages(nextPages, activePage?.id, false);
-    } else {
-      onChange?.(nextValue);
-    }
-    updateCursorFrom(event);
-    if (!composingRef.current) {
-      onDraftChange?.(nextValue, { cursorIndex: event.target.selectionStart ?? nextValue.length });
-    }
+    onChange?.(nextValue);
+    onRichTextChange?.(nextDocument);
+    if (serializeFocusPages(externalPages).length) onPagesChange?.([], { isStructural: true });
+    setCursorIndex(nextCursorIndex);
+    onDraftChange?.(nextValue, { cursorIndex: nextCursorIndex });
   }
 
-  function handleCompositionStart() {
-    composingRef.current = true;
+  function updateZenValue(nextDocument, nextValue, nextCursorIndex) {
+    if (readOnly || !activePage) return;
+    const nextPages = zenPages.map((page) => page.id === activePage.id
+      ? { ...page, value: nextValue, richText: nextDocument }
+      : page);
+    setZenPages(nextPages);
+    setCursorIndex(nextCursorIndex);
+    onDraftChange?.(nextValue, { cursorIndex: nextCursorIndex });
   }
 
-  function handleCompositionEnd(event) {
-    composingRef.current = false;
-    if (!readOnly) onDraftChange?.(event.target.value, { cursorIndex: event.target.selectionStart ?? event.target.value.length });
+  function updateZenPages(nextPages, preferredActiveId) {
+    const cleaned = normalizeFocusPages(nextPages, "", undefined, label);
+    setZenPages(cleaned);
+    setActivePageId(preferredActiveId || cleaned[0]?.id || "");
   }
 
-  function handleZenScroll(event) {
-    const top = event.target.scrollTop;
-    if (top > 24) {
-      setZenScrollCompact(true);
-    } else if (top <= 4) {
-      setZenScrollCompact(false);
-    }
+  function createPage() {
+    if (readOnly || !hasPageNavigation) return;
+    const customPageCount = zenPages.filter((page) => page.id !== "page-main").length;
+    const title = newPageTitle.trim() || `小标题 ${customPageCount + 1}`;
+    const id = createPageId();
+    const nextPages = appendFocusPage(zenPages, {
+      id,
+      title: title.slice(0, 36),
+      value: "",
+      richText: createRichTextDocument(undefined, ""),
+    });
+    updateZenPages(nextPages, id);
+    setNewPageTitle("");
+    setAddingPage(false);
+    window.setTimeout(() => zenSurfaceRef.current?.focus(), 50);
+  }
+
+  function confirmDeletePage() {
+    if (!deletePageCandidate || readOnly) return;
+    const deleteIndex = zenPages.findIndex((page) => page.id === deletePageCandidate.id);
+    const nextPages = zenPages.filter((page) => page.id !== deletePageCandidate.id);
+    const nextActive = deletePageCandidate.id === activePage?.id
+      ? nextPages[Math.min(Math.max(deleteIndex, 0), nextPages.length - 1)]
+      : activePage;
+    updateZenPages(nextPages, nextActive?.id);
+    setDeletePageCandidate(null);
+  }
+
+  function finishRenamePage(pageId) {
+    if (readOnly) return;
+    const title = editingPageTitle.trim();
+    if (title) updateZenPages(zenPages.map((page) => page.id === pageId ? { ...page, title: title.slice(0, 36) } : page), pageId);
+    setEditingPageId("");
+    setEditingPageTitle("");
+  }
+
+  function jumpPage(direction) {
+    const index = Math.max(0, zenPages.findIndex((page) => page.id === activePage?.id));
+    const nextIndex = Math.min(zenPages.length - 1, Math.max(0, index + direction));
+    setActivePageId(zenPages[nextIndex]?.id ?? "");
+    setCursorIndex(0);
+    setZenScrollCompact(false);
+    window.setTimeout(() => zenSurfaceRef.current?.focus(), 50);
   }
 
   function jumpToIndex(index, length = 0) {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    textarea.focus();
-    textarea.setSelectionRange(index, index + length);
+    zenSurfaceRef.current?.jumpToText(index, length);
     setCursorIndex(index);
-    const line = editorValue.slice(0, index).split("\n").length;
-    const lineHeight = Number.parseFloat(getComputedStyle(textarea).lineHeight) || 24;
-    textarea.scrollTop = Math.max(0, (line - 5) * lineHeight);
   }
 
   function jumpToMatch(direction) {
     if (!matches.length) return;
     const nextIndex = (activeMatchIndex + direction + matches.length) % matches.length;
     setActiveMatchIndex(nextIndex);
-    const match = matches[nextIndex];
-    jumpToIndex(match.index, searchQuery.trim().length);
+    jumpToIndex(matches[nextIndex].index, searchQuery.trim().length);
   }
 
-  // isStructural distinguishes "the page list itself changed" (add/rename/
-  // reorder/delete a 小标题) from "the user is just typing inside a page" -
-  // callers with an explicit-save draft model (RelationGraph/TimelineFlow)
-  // use this to decide whether a change must sync immediately (structural,
-  // matching the delete confirmation's "并同步到云端保存" promise) or can
-  // stay local until the user clicks 保存, same as every other field on
-  // that form. Found 2026-07-09: without this flag, typing a single
-  // character inside any 小标题 subpage was indistinguishable from
-  // structural changes, so it silently bypassed the explicit-save button
-  // and re-saved the whole character/event object on every keystroke.
-  function commitPages(nextPages, preferredActiveId, isStructural = true) {
-    const cleaned = normalizeFocusPages(nextPages, "", label);
-    const nextPersistedPages = serializeFocusPages(cleaned);
-    onPagesChange?.(nextPersistedPages, { isStructural });
-    onChange?.(combineFocusPages(cleaned));
-    setActivePageId(preferredActiveId || nextPersistedPages[0]?.id || cleaned[0]?.id || "");
-  }
-
-  function createPage() {
-    if (readOnly || !hasPageNavigation) return;
-    const customPageCount = normalizedPages.filter((page) => page.id !== "page-main").length;
-    const title = newPageTitle.trim() || `小标题 ${customPageCount + 1}`;
-    const id = createPageId();
-    const nextPages = appendFocusPage(normalizedPages, { id, title: title.slice(0, 36), value: "" });
-    commitPages(nextPages, id);
-    setNewPageTitle("");
-    setAddingPage(false);
-    window.setTimeout(() => textareaRef.current?.focus(), 50);
-  }
-
-  function requestDeletePage(event, page) {
-    event.stopPropagation();
-    if (readOnly || !hasPageNavigation) return;
-    setDeletePageCandidate(page);
-  }
-
-  function confirmDeletePage() {
-    if (!deletePageCandidate || readOnly || !hasPageNavigation) return;
-    const deleteIndex = normalizedPages.findIndex((page) => page.id === deletePageCandidate.id);
-    const nextPages = normalizedPages.filter((page) => page.id !== deletePageCandidate.id);
-    const nextActivePage = deletePageCandidate.id === activePage?.id ? nextPages[Math.min(Math.max(deleteIndex, 0), nextPages.length - 1)] : activePage;
-    commitPages(nextPages, nextActivePage?.id);
-    setDeletePageCandidate(null);
-  }
-
-  function beginRenamePage(page) {
-    if (readOnly || !hasPageNavigation) return;
-    setEditingPageId(page.id);
-    setEditingPageTitle(page.title);
-  }
-
-  function finishRenamePage(pageId) {
-    if (readOnly || !hasPageNavigation) return;
-    const title = editingPageTitle.trim();
-    if (title) {
-      commitPages(normalizedPages.map((page) => (page.id === pageId ? { ...page, title: title.slice(0, 36) } : page)), pageId);
-    }
-    setEditingPageId("");
-    setEditingPageTitle("");
-  }
-
-  function jumpPage(direction) {
-    if (!normalizedPages.length) return;
-    const index = Math.max(0, normalizedPages.findIndex((page) => page.id === activePage?.id));
-    const nextIndex = Math.min(normalizedPages.length - 1, Math.max(0, index + direction));
-    setActivePageId(normalizedPages[nextIndex].id);
-    setCursorIndex(0);
-    setZenScrollCompact(false);
-    window.setTimeout(() => {
-      textareaRef.current?.focus();
-      textareaRef.current?.setSelectionRange(0, 0);
-      if (textareaRef.current) textareaRef.current.scrollTop = 0;
-    }, 50);
+  function copyReadingStyle() {
+    const shell = document.querySelector(".content-shell");
+    if (!shell) return;
+    const styles = getComputedStyle(shell);
+    const fontSize = styles.getPropertyValue("--editor-font-size").trim();
+    const fontFamily = styles.getPropertyValue("--reading-font-family").trim();
+    const defaultNovelFont = shell.classList.contains("font-sans")
+      ? '"Nimbus Roman", "Nimbus Roman No9 L", "Times New Roman", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", serif'
+      : fontFamily;
+    setZenReadingStyle({
+      ...(fontSize ? { "--editor-font-size": fontSize, "--field-font-size": fontSize } : {}),
+      ...(defaultNovelFont ? { "--reading-font-family": defaultNovelFont } : {}),
+    });
   }
 
   return (
@@ -304,228 +274,203 @@ const FocusTextarea = forwardRef(function FocusTextarea(
       {!hideLabel && (
         <div className="focus-textarea-label">
           <span>{label}</span>
-          <button type="button" onClick={() => setFocused(true)} aria-label={readOnly ? `查看${label}` : `专注编辑${label}`}>
+          <button type="button" onClick={openZenEditor} aria-label={readOnly ? `查看${label}` : `专注编辑${label}`}>
             <Maximize2 size={14} />
           </button>
         </div>
       )}
-      <textarea
-        value={value}
-        rows={rows}
-        placeholder={placeholder}
-        readOnly={readOnly}
-        onChange={updateCompactValue}
-        onSelect={updateCursorFrom}
-        onKeyUp={updateCursorFrom}
-        onClick={updateCursorFrom}
-        onBlur={() => onDraftClear?.()}
-        onCompositionStart={handleCompositionStart}
-        onCompositionEnd={handleCompositionEnd}
-      />
+      <div className="compact-rich-editor">
+        <RichTextSurface
+          documentValue={richText}
+          fallbackText={textValue}
+          onChange={updateCompactValue}
+          onBlur={onDraftClear}
+          placeholder={placeholder}
+          readOnly={readOnly}
+          className="compact-rich-text-surface"
+          ariaLabel={label}
+          style={{ minHeight: `${rows * 1.5}em`, maxHeight: `${Math.max(rows, 5) * 1.9}em` }}
+        />
+      </div>
       <DraftPreviewList drafts={remoteDrafts} />
-      {focused &&
-        createPortal(
-          <div className="zen-overlay" role="presentation" onMouseDown={() => setFocused(false)}>
-            <div
-              className={`zen-editor${showPageOutline ? "" : " has-no-outline"}${zenScrollCompact ? " is-scroll-compact" : ""}`}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby={titleId}
-              style={zenReadingStyle}
-              onMouseDown={(event) => event.stopPropagation()}
-            >
-              <div className="zen-editor-head">
-                <div>
-                  <p className="eyebrow">Focus editor</p>
-                  <h3 id={titleId}>{label}</h3>
-                </div>
-                <div className="zen-editor-actions">
-                  <button type="button" className="zen-exit-button" onClick={() => setFocused(false)} aria-label="退出专注编辑">
-                    <Minimize2 size={17} />
-                    退出
-                  </button>
-                  {!readOnly && (
-                    <button
-                      type="button"
-                      className="zen-save-button"
-                      onClick={() => {
-                        onSave?.();
-                        setFocused(false);
-                      }}
-                      aria-label={`保存${label}`}
-                    >
-                      <Save size={17} />
-                      保存
-                    </button>
-                  )}
-                </div>
+
+      {focused && createPortal(
+        <div className="zen-overlay" role="presentation" onMouseDown={requestCloseZen}>
+          <div
+            className={`zen-editor${showPageOutline ? "" : " has-no-outline"}${zenScrollCompact ? " is-scroll-compact" : ""}`}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            style={zenReadingStyle}
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className="zen-editor-head">
+              <div>
+                <p className="eyebrow">Focus editor</p>
+                <h3 id={titleId}>{label}</h3>
               </div>
-              <div className="zen-editor-tools" aria-label={`${label} 编辑辅助工具`}>
-                <label className="zen-search">
-                  <Search size={14} />
-                  <input
-                    value={searchQuery}
-                    onChange={(event) => setSearchQuery(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key !== "Enter") return;
-                      event.preventDefault();
-                      jumpToMatch(1);
-                    }}
-                    placeholder="搜索当前内容"
-                  />
-                  <span>{matches.length ? `${Math.min(activeMatchIndex + 1, matches.length)}/${matches.length}` : "0/0"}</span>
-                </label>
-                {!readOnly && hasPageNavigation && (
-                  <button type="button" className="zen-new-page-button" onClick={() => setAddingPage((current) => !current)}>
-                    <Plus size={14} />
-                    新建小标题
+              <div className="zen-editor-actions">
+                {!readOnly && (
+                  <button ref={zenStyleButtonRef} type="button" className="zen-style-button" onClick={() => setZenStylesOpen((open) => !open)} aria-expanded={zenStylesOpen}>
+                    <span aria-hidden="true">Aa</span>
+                    文本样式
                   </button>
                 )}
-                <div className="zen-editor-stats" aria-label="文本统计">
-                  <span>{stats.characters} 字</span>
-                  <span>{stats.lines} 行</span>
-                  <span>第 {stats.currentLine} 行</span>
-                </div>
-              </div>
-              {showPageOutline && (
-                <div className="zen-outline" aria-label={`${label} 小标题导航`}>
-                  {addingPage && !readOnly && (
-                    <form
-                      className="zen-new-page-form"
-                      onSubmit={(event) => {
-                        event.preventDefault();
-                        createPage();
-                      }}
-                    >
-                      <input value={newPageTitle} onChange={(event) => setNewPageTitle(event.target.value)} placeholder="输入小标题标题" autoFocus />
-                      <button type="submit">添加</button>
-                    </form>
-                  )}
-                  {hasCustomPages && (
-                    <div className="zen-page-strip">
-                      <button
-                        type="button"
-                        className="zen-page-edge-button"
-                        onClick={() => jumpPage(-1)}
-                        disabled={normalizedPages.length < 2 || normalizedPages[0]?.id === activePage?.id}
-                        aria-label="上一页"
-                      >
-                        <ChevronLeft size={14} />
-                      </button>
-                      <div className="zen-page-rail" ref={pageRailRef} aria-label="小标题页">
-                        {normalizedPages.map((page) => (
-                          <div
-                            key={page.id}
-                            role="button"
-                            tabIndex={0}
-                            data-page-id={page.id}
-                            className={`zen-page-tab${page.id === activePage?.id ? " is-active" : ""}`}
-                            onClick={(event) => {
-                              if (event.detail >= 2) {
-                                beginRenamePage(page);
-                                return;
-                              }
-                              setActivePageId(page.id);
-                            }}
-                            onDoubleClick={() => beginRenamePage(page)}
-                            onKeyDown={(event) => {
-                              if (event.key !== "Enter" && event.key !== " ") return;
-                              event.preventDefault();
-                              setActivePageId(page.id);
-                            }}
-                          >
-                            {editingPageId === page.id ? (
-                              <input
-                                value={editingPageTitle}
-                                onChange={(event) => setEditingPageTitle(event.target.value)}
-                                onClick={(event) => event.stopPropagation()}
-                                onDoubleClick={(event) => event.stopPropagation()}
-                                onBlur={() => finishRenamePage(page.id)}
-                                onKeyDown={(event) => {
-                                  if (event.key === "Enter") {
-                                    event.preventDefault();
-                                    finishRenamePage(page.id);
-                                  }
-                                  if (event.key === "Escape") {
-                                    event.preventDefault();
-                                    setEditingPageId("");
-                                    setEditingPageTitle("");
-                                  }
-                                }}
-                                autoFocus
-                              />
-                            ) : (
-                              <span>
-                                <i aria-hidden="true">·</i>
-                                {page.title}
-                              </span>
-                            )}
-                            {!readOnly && editingPageId !== page.id && (
-                              <button
-                                type="button"
-                                className="zen-page-remove"
-                                onClick={(event) => requestDeletePage(event, page)}
-                                aria-label={`删除小标题 ${page.title}`}
-                              >
-                                <X size={10} />
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                      <button
-                        type="button"
-                        className="zen-page-edge-button"
-                        onClick={() => jumpPage(1)}
-                        disabled={normalizedPages.length < 2 || normalizedPages[normalizedPages.length - 1]?.id === activePage?.id}
-                        aria-label="下一页"
-                      >
-                        <ChevronRight size={14} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-              <div className="zen-textarea-stack">
-                <textarea
-                  ref={textareaRef}
-                  value={editorValue}
-                  readOnly={readOnly}
-                  onChange={updateZenValue}
-                  onSelect={updateCursorFrom}
-                  onKeyUp={updateCursorFrom}
-                  onClick={updateCursorFrom}
-                  onBlur={() => onDraftClear?.()}
-                  onCompositionStart={handleCompositionStart}
-                  onCompositionEnd={handleCompositionEnd}
-                  onScroll={handleZenScroll}
-                />
-                <DraftPreviewList drafts={remoteDrafts} compact />
+                <button type="button" className="zen-exit-button" onClick={requestCloseZen} aria-label="退出专注编辑">
+                  <Minimize2 size={17} />退出
+                </button>
+                {!readOnly && (
+                  <button type="button" className="zen-save-button" onClick={saveZen} aria-label={`保存${label}`}>
+                    <Save size={17} />保存
+                  </button>
+                )}
               </div>
             </div>
-          </div>,
-          document.body,
-        )}
-      {focused &&
-        deletePageCandidate &&
-        createPortal(
-          <div className="modal-backdrop zen-delete-page-backdrop" role="presentation" onMouseDown={() => setDeletePageCandidate(null)}>
-            <section className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-focus-page-title" onMouseDown={(event) => event.stopPropagation()}>
-              <p className="eyebrow">删除小标题</p>
-              <h2 id="delete-focus-page-title">是否确定删除这个小标题？</h2>
-              <p>删除后，“{deletePageCandidate.title}”以及该小标题内的正文会从当前内容中移除，并同步到云端保存。</p>
-              <div className="confirm-actions">
-                <button type="button" className="ghost-button" onClick={() => setDeletePageCandidate(null)}>
-                  取消
+
+            <TextStylePopover
+              open={zenStylesOpen && !readOnly}
+              anchorRef={zenStyleButtonRef}
+              editor={zenEditor}
+              onClose={() => setZenStylesOpen(false)}
+              ariaLabel="完整文本样式"
+            />
+
+            <div className="zen-editor-tools" aria-label={`${label} 编辑辅助工具`}>
+              <label className="zen-search">
+                <Search size={14} />
+                <input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter") return;
+                    event.preventDefault();
+                    jumpToMatch(1);
+                  }}
+                  placeholder="搜索当前内容"
+                />
+                <span>{matches.length ? `${Math.min(activeMatchIndex + 1, matches.length)}/${matches.length}` : "0/0"}</span>
+              </label>
+              {!readOnly && hasPageNavigation && (
+                <button type="button" className="zen-new-page-button" onClick={() => setAddingPage((current) => !current)}>
+                  <Plus size={14} />新建小标题
                 </button>
-                <button type="button" className="danger-button" onClick={confirmDeletePage}>
-                  确定删除
-                </button>
+              )}
+              <div className="zen-editor-stats" aria-label="文本统计">
+                <span>{stats.characters} 字</span><span>{stats.lines} 行</span><span>第 {stats.currentLine} 行</span>
               </div>
-            </section>
-          </div>,
-          document.body,
-        )}
+            </div>
+
+            {showPageOutline && (
+              <div className="zen-outline" aria-label={`${label} 小标题导航`}>
+                {addingPage && !readOnly && (
+                  <form className="zen-new-page-form" onSubmit={(event) => { event.preventDefault(); createPage(); }}>
+                    <input value={newPageTitle} onChange={(event) => setNewPageTitle(event.target.value)} placeholder="输入小标题标题" autoFocus />
+                    <button type="submit">添加</button>
+                  </form>
+                )}
+                {hasCustomPages && (
+                  <div className="zen-page-strip">
+                    <button type="button" className="zen-page-edge-button" onClick={() => jumpPage(-1)} disabled={zenPages[0]?.id === activePage?.id} aria-label="上一页">
+                      <ChevronLeft size={14} />
+                    </button>
+                    <div className="zen-page-rail" ref={pageRailRef} aria-label="小标题页">
+                      {zenPages.map((page) => (
+                        <div
+                          key={page.id}
+                          role="button"
+                          tabIndex={0}
+                          data-page-id={page.id}
+                          className={`zen-page-tab${page.id === activePage?.id ? " is-active" : ""}`}
+                          onClick={(event) => event.detail >= 2 ? (setEditingPageId(page.id), setEditingPageTitle(page.title)) : setActivePageId(page.id)}
+                          onKeyDown={(event) => {
+                            if (event.key !== "Enter" && event.key !== " ") return;
+                            event.preventDefault();
+                            setActivePageId(page.id);
+                          }}
+                        >
+                          {editingPageId === page.id ? (
+                            <input
+                              value={editingPageTitle}
+                              onChange={(event) => setEditingPageTitle(event.target.value)}
+                              onClick={(event) => event.stopPropagation()}
+                              onBlur={() => finishRenamePage(page.id)}
+                              onKeyDown={(event) => {
+                                if (event.key === "Enter") { event.preventDefault(); finishRenamePage(page.id); }
+                                if (event.key === "Escape") { event.preventDefault(); setEditingPageId(""); setEditingPageTitle(""); }
+                              }}
+                              autoFocus
+                            />
+                          ) : <span><i aria-hidden="true">·</i>{page.title}</span>}
+                          {!readOnly && editingPageId !== page.id && (
+                            <button type="button" className="zen-page-remove" onClick={(event) => { event.stopPropagation(); setDeletePageCandidate(page); }} aria-label={`删除小标题 ${page.title}`}>
+                              <X size={10} />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <button type="button" className="zen-page-edge-button" onClick={() => jumpPage(1)} disabled={zenPages.at(-1)?.id === activePage?.id} aria-label="下一页">
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="zen-textarea-stack">
+              <RichTextSurface
+                key={activePage?.id}
+                ref={zenSurfaceRef}
+                documentValue={editorDocument}
+                fallbackText={editorValue}
+                onChange={updateZenValue}
+                onBlur={onDraftClear}
+                onScroll={(event) => {
+                  const top = event.currentTarget.scrollTop;
+                  if (top > 24) setZenScrollCompact(true);
+                  else if (top <= 4) setZenScrollCompact(false);
+                }}
+                readOnly={readOnly}
+                className="zen-rich-text-surface"
+                ariaLabel={`${label}正文`}
+                onEditorReady={setZenEditor}
+              />
+              <DraftPreviewList drafts={remoteDrafts} compact />
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )}
+
+      {focused && deletePageCandidate && createPortal(
+        <div className="modal-backdrop zen-delete-page-backdrop" role="presentation" onMouseDown={() => setDeletePageCandidate(null)}>
+          <section className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-focus-page-title" onMouseDown={(event) => event.stopPropagation()}>
+            <p className="eyebrow">删除小标题</p>
+            <h2 id="delete-focus-page-title">是否确定删除这个小标题？</h2>
+            <p>删除后，“{deletePageCandidate.title}”以及该小标题内的正文会被移除；保存本次编辑后同步到云端。</p>
+            <div className="confirm-actions">
+              <button type="button" className="ghost-button" onClick={() => setDeletePageCandidate(null)}>取消</button>
+              <button type="button" className="danger-button" onClick={confirmDeletePage}>确定删除</button>
+            </div>
+          </section>
+        </div>,
+        document.body,
+      )}
+
+      {focused && unsavedExitOpen && createPortal(
+        <div className="modal-backdrop zen-unsaved-backdrop" role="presentation" onMouseDown={() => setUnsavedExitOpen(false)}>
+          <section className="confirm-modal zen-unsaved-modal" role="dialog" aria-modal="true" aria-labelledby={exitTitleId} onMouseDown={(event) => event.stopPropagation()}>
+            <p className="eyebrow">尚未保存</p>
+            <h2 id={exitTitleId}>要保存这次修改吗？</h2>
+            <p>“取消并退出”会丢弃本次专注编辑中的全部更改；“保存并退出”会保存全部更改。</p>
+            <div className="confirm-actions">
+              <button type="button" className="ghost-button" onClick={closeZen}>取消并退出</button>
+              <button type="button" className="primary-button" onClick={saveZen}>保存并退出</button>
+            </div>
+          </section>
+        </div>,
+        document.body,
+      )}
     </div>
   );
 });
@@ -538,68 +483,87 @@ function DraftPreviewList({ drafts = [], compact = false }) {
   return (
     <div className={`collab-draft-preview${compact ? " is-compact" : ""}`} aria-live="polite" aria-label="协作者正在编辑的片段">
       {activeDrafts.slice(0, 3).map((draft) => (
-        <p key={`${draft.userId}-${draft.fieldPath}`} className="collab-draft-ghost" title={`${draft.label || "协作者"}正在编辑`}>
-          <em>{draft.tail}</em>
-          <i aria-hidden="true" />
+        <p
+          key={`${draft.userId}-${draft.fieldPath}`}
+          className="collab-draft-ghost"
+          title={`${formatCollaborationActor({ label: draft.label, userId: draft.userId, actorRole: draft.actorRole })}正在编辑`}
+        >
+          <em>{draft.tail}</em><i aria-hidden="true" />
         </p>
       ))}
     </div>
   );
 }
 
-function getTextStats(value, cursorIndex) {
-  const beforeCursor = value.slice(0, cursorIndex);
+function normalizeFocusPages(pages, fallbackValue, fallbackRichText, label) {
+  const validPages = Array.isArray(pages)
+    ? pages.map((page, index) => {
+        const value = String(page?.value ?? "");
+        return {
+          id: String(page?.id || `page-${index + 1}`),
+          title: String(page?.title || (index === 0 ? "全文" : `${label || "内容"} ${index + 1}`)).slice(0, 36),
+          value,
+          richText: createRichTextDocument(page?.richText, value),
+        };
+      }).filter((page) => page.id)
+    : [];
+  if (validPages.length) return validPages;
+  const value = String(fallbackValue ?? "");
+  return [{ id: "page-main", title: "全文", value, richText: createRichTextDocument(fallbackRichText, value) }];
+}
+
+function serializeFocusPages(pages) {
+  if (pages.length === 1 && pages[0].id === "page-main") return [];
+  return pages.map(cloneFocusPage);
+}
+
+function cloneFocusPage(page) {
   return {
-    characters: value.replace(/\s/g, "").length,
-    lines: value ? value.split("\n").length : 1,
+    id: page.id,
+    title: page.title,
+    value: String(page.value ?? ""),
+    richText: createRichTextDocument(page.richText, page.value),
+  };
+}
+
+function combineFocusPages(pages) {
+  return pages.map((page) => page.value).join("\n\n");
+}
+
+function combineFocusPageDocuments(pages) {
+  if (pages.length === 1) return createRichTextDocument(pages[0].richText, pages[0].value);
+  const html = pages.map((page) => createRichTextDocument(page.richText, page.value).html).join("<p><br></p>");
+  return { version: 1, html: sanitizeRichTextHtml(html) };
+}
+
+function createPagesSignature(pages) {
+  return JSON.stringify(pages.map((page) => [page.id, page.title, page.value, createRichTextDocument(page.richText, page.value).html]));
+}
+
+function getTextStats(value, cursorIndex) {
+  const text = String(value ?? "");
+  const beforeCursor = text.slice(0, cursorIndex);
+  return {
+    characters: text.replace(/\s/g, "").length,
+    lines: text ? text.split("\n").length : 1,
     currentLine: beforeCursor ? beforeCursor.split("\n").length : 1,
   };
 }
 
 function getSearchMatches(value, query) {
-  const needle = query.trim();
+  const needle = query.trim().toLowerCase();
   if (!needle) return [];
+  const haystack = String(value ?? "").toLowerCase();
   const matches = [];
   let fromIndex = 0;
-  const haystack = value.toLowerCase();
-  const lowerNeedle = needle.toLowerCase();
   while (fromIndex <= haystack.length) {
-    const index = haystack.indexOf(lowerNeedle, fromIndex);
+    const index = haystack.indexOf(needle, fromIndex);
     if (index < 0) break;
     matches.push({ index });
-    fromIndex = index + Math.max(1, lowerNeedle.length);
+    fromIndex = index + Math.max(1, needle.length);
     if (matches.length >= 200) break;
   }
   return matches;
-}
-
-function normalizeFocusPages(pages, fallbackValue, label) {
-  const validPages = Array.isArray(pages)
-    ? pages
-        .map((page, index) => ({
-          id: String(page?.id || `page-${index + 1}`),
-          title: String(page?.title || (index === 0 ? "全文" : `${label || "内容"} ${index + 1}`)).slice(0, 36),
-          value: String(page?.value ?? ""),
-        }))
-        .filter((page) => page.id)
-    : [];
-  return validPages.length ? validPages : [{ id: "page-main", title: "全文", value: String(fallbackValue ?? "") }];
-}
-
-// Both call sites always pass an already-`normalizeFocusPages`-processed
-// array, so re-running the full normalize pass here (map + filter over
-// every page, on every keystroke) was pure redundant work with no effect on
-// the result - just check the "still just the default placeholder" case
-// directly, found in the 2026-07-07 performance audit.
-function serializeFocusPages(pages) {
-  if (pages.length === 1 && pages[0].id === "page-main") return [];
-  return pages;
-}
-
-function combineFocusPages(pages) {
-  return normalizeFocusPages(pages, "", "")
-    .map((page) => page.value)
-    .join("\n\n");
 }
 
 function createPageId() {

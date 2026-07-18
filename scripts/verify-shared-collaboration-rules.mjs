@@ -4,6 +4,7 @@ import {
   SHARED_SAVE_SNIPPET_LIMIT,
   createSharedDraftPreview,
   createSharedSaveNotice,
+  formatSharedEditCatchUpNotice,
   formatSharedSaveNotice,
   getSharedSaveSnippet,
   formatPresenceLabel,
@@ -51,6 +52,11 @@ assert.deepEqual(
   }),
   { action: "ignore", notice: "" },
   "viewer rows should not show edit-sync notices",
+);
+assert.equal(
+  formatSharedEditCatchUpNotice({ editorName: "共同作者", editorId: "editor-123456", editorRole: "editor", sections: ["大纲"] }),
+  "协作者 共同作者（ID editor-1）已编辑：大纲",
+  "offline notices should identify the collaborator role and a stable id prefix",
 );
 
 assert.deepEqual(
@@ -102,6 +108,7 @@ const preview = createSharedDraftPreview({
   value: longDraft,
   cursorIndex: longDraft.length,
   user: authorUser,
+  actorRole: "owner",
 });
 assert.equal(preview.tail.length, SHARED_DRAFT_TAIL_LIMIT, "draft preview should send only a capped text tail, never the whole field");
 assert.equal(
@@ -114,12 +121,18 @@ assert.equal(
   null,
   "a user's own broadcast echo must be ignored",
 );
-const remotePreview = normalizeSharedDraftPreview(preview, { currentUserId: "friend-1", now: 1000 });
+assert.equal(
+  normalizeSharedDraftPreview(preview, { currentUserId: "stale-owner-id", currentRole: "owner" }),
+  null,
+  "an owner broadcast must not be shown back to the owner even if a stale session exposes a mismatched user id",
+);
+const remotePreview = normalizeSharedDraftPreview(preview, { currentUserId: "friend-1", currentRole: "editor", now: 1000 });
 assert.equal(remotePreview.userId, "author-1");
+assert.equal(remotePreview.actorRole, "owner");
 assert.equal(remotePreview.expiresAt, 13000, "remote draft previews should have a short TTL");
 assert.deepEqual(
-  normalizeSharedDraftClear({ type: "draft-clear", sharedNovelId: "shared-1", fieldPath: "outline", userId: "author-1" }, { currentUserId: "friend-1" }),
-  { type: "draft-clear", sharedNovelId: "shared-1", fieldPath: "outline", userId: "author-1" },
+  normalizeSharedDraftClear({ type: "draft-clear", sharedNovelId: "shared-1", fieldPath: "outline", userId: "author-1", actorRole: "owner" }, { currentUserId: "friend-1", currentRole: "editor" }),
+  { type: "draft-clear", sharedNovelId: "shared-1", fieldPath: "outline", userId: "author-1", actorRole: "owner" },
 );
 assert.deepEqual(
   pruneExpiredSharedDrafts({ outline: [{ ...remotePreview, expiresAt: 999 }, { ...remotePreview, userId: "author-2", expiresAt: 2000 }] }, 1000),
@@ -132,17 +145,18 @@ const saveNotice = createSharedSaveNotice({
   label: "作者A",
   snippet: "乖宝和石墨正在相爱",
   userId: "author-1",
+  actorRole: "owner",
 });
 assert.equal(saveNotice.snippet.length, SHARED_SAVE_SNIPPET_LIMIT, "save notice snippets should be capped at five characters");
-assert.equal(formatSharedSaveNotice(saveNotice), "作者A已保存：乖宝和石墨......");
+assert.equal(formatSharedSaveNotice(saveNotice), "作者 作者A（ID author-1）已保存：乖宝和石墨......");
 assert.equal(
   normalizeSharedSaveNotice(saveNotice, { currentUserId: "author-1" }),
   null,
   "a user's own save notice broadcast echo must be ignored",
 );
 assert.deepEqual(
-  normalizeSharedSaveNotice(saveNotice, { currentUserId: "friend-1" }),
-  { type: "save-notice", sharedNovelId: "shared-1", userId: "author-1", label: "作者A", snippet: "乖宝和石墨" },
+  normalizeSharedSaveNotice(saveNotice, { currentUserId: "friend-1", currentRole: "editor" }),
+  { type: "save-notice", sharedNovelId: "shared-1", userId: "author-1", actorRole: "owner", label: "作者A", snippet: "乖宝和石墨" },
 );
 
 console.log("shared collaboration rule checks passed");

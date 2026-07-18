@@ -1,19 +1,49 @@
 export const ANNOUNCEMENTS = [
   {
-    id: "2026-07-17-stability-roundup",
-    date: "2026-07-17",
-    summary: "7 月稳定性更新：长篇小标题、星图位置记忆与共同编辑继续完善",
-    title: "7 月更新小结：让宏大世界观更好整理，也让每次保存更可靠",
+    id: "2026-07-18-rich-text-scratchpad",
+    date: "2026-07-18",
+    summary: "富文本与草稿本更新：写作样式、思维导图和自动保存现已完善",
+    title: "7.18 更新：让临时灵感与长篇正文都能被可靠整理",
     body: [
-      "从 7 月 1 日开始，AuthorHub 陆续补齐了共同编辑与只读分享：每本小说都可以生成独立链接，权限可随时撤回；协作者保存、离线期间的修改提示和公开内容过滤也经过多轮校验，让分享更清楚、更安心。",
-      "大纲、设定集、人物背景、隐藏设定与时间线剧情都可以进入专注编辑器。小标题分页专门为超长大纲、庞大设定集、多线索伏笔和宏大世界观设计：新标题始终追加到末尾，搜索只查当前标题，原有正文不会在拆分页时丢失。",
-      "人物关系星图现在使用更稳定的选人和连线流程，拖好的星球位置与锁定状态会随小说同步保存；刷新、切换小说或新增人物后仍能恢复，重置视图则会清空整本小说的排布。人物颜色、标签和小标题更新也不会再覆盖尚未保存的文字草稿。",
-      "这段时间还处理了手机端底部内容不可达、长内容滚动、图片上传、时间线排序、阅读字体与多处操作反馈，持续减少卡顿、闪烁和意外覆盖。",
-      "后续会继续制作不同气质的创作主题。基础体验会保持完整，其中部分特别主题可能通过赞助解锁，用于支持长期维护、设计与服务器成本；具体方案会在上线前单独说明。谢谢每一位认真使用和反馈的 uu。",
+      "本次更新围绕两类真实创作场景展开：一类是长篇正文需要清楚的层级与重点标记；另一类是灵感出现时，需要一个不打断当前页面、且不容易丢失内容的记录空间。以下功能均可在电脑、平板与手机尺寸下使用。",
+    ],
+    sections: [
+      {
+        title: "富文本与专注编辑器",
+        why: "纯文本适合快速输入，但在大纲、设定集和线索密集的内容中，重点、层级与状态需要被明确区分。",
+        description: "大纲、设定集、人物背景、隐藏设定、时间线剧情与草稿本现在共用同一套安全富文本能力；专注编辑器保存后的排版会同步显示在原文本框中。",
+        steps: [
+          "点击文本框右上角的放大按钮进入专注编辑器，再使用顶部“Aa 文本样式”，可调整加粗、斜体、下划线、删除线、六种文字颜色、对齐、列表、缩进与字号；保存后原卡片会直接显示完整排版。",
+          "在桌面端选中文字后右键，可直接打开快捷样式栏；也可使用 Ctrl+B / I / U 与 Alt+D / R / Y / G / B / P。",
+          "退出专注编辑器时，选择“取消并退出”会丢弃本次全部更改；选择“保存并退出”会保存并同步全部更改。",
+        ],
+      },
+      {
+        title: "全局草稿本与思维导图",
+        why: "零散句子、临时线索与结构想法不应被迫塞进某一本小说，也不应因为关闭面板或刷新页面而消失。",
+        description: "右侧草稿本属于当前登录账号，不进入小说分享或导出。文本会先即时写入本地，再自动同步云端；思维导图与正文保存在同一份私人草稿中。",
+        steps: [
+          "点击右侧“草稿本”打开工作区；点击右上角“文本”或选中文字后右键即可打开完整样式，关闭、重新打开或刷新后仍会恢复内容。",
+          "切换到“思维图”，可新增根主题、子主题、同级主题和大子集（重点分支），并拖动、连线、修改文字样式或删除节点及其子级。",
+          "使用“横向重排”或“纵向重排”整理复杂结构；右侧音乐播放器与草稿入口均可拖动调整位置。",
+        ],
+      },
+      {
+        title: "阅读设置与低干扰工具",
+        why: "不同作者对辅助工具的使用频率不同，页面应只保留当前创作所需的信息。",
+        steps: [
+          "在作者主页的“全站阅读设置”中，可分别开启或关闭音乐播放器与草稿本；关闭功能不会删除数据。",
+          "时间线参考图片区在没有图片时默认收起，也可使用底部中央按钮手动展开或收起。",
+        ],
+      },
+      {
+        title: "星图、协作与交付稳定性",
+        description: "星图现按单节点或关系双端点精确聚焦，双击节点可放大定位；共同编辑提醒会区分作者与协作者，并标明对应 ID。修复已知bug，增强保密强度并创建标准化CICD流程。",
+      },
     ],
     images: [
-      { src: "/announcement-focus-editor.svg", alt: "专注编辑器与小标题分页", caption: "为长篇大纲、复杂设定和多线索故事准备的小标题分页" },
-      { src: "/announcement-share-link.svg", alt: "共同编辑与只读分享链接", caption: "按需要邀请共同编辑，或生成只读链接分享" },
+      { src: "/announcement-focus-editor.svg", alt: "专注编辑器与富文本样式入口", caption: "进入专注编辑器后使用 Aa 排版，保存结果会同步显示在原卡片" },
+      { src: "/announcement-area-lock.svg", alt: "人物星图选择与位置锁定", caption: "单节点聚焦、关系双端点与位置锁定继续保持" },
     ],
   },
   {
@@ -49,5 +79,21 @@ export const ANNOUNCEMENTS = [
     ],
   },
 ];
+
+export const ANNOUNCEMENT_PAGE_SIZE = 3;
+
+export function getAnnouncementPage(announcements, requestedPage, pageSize = ANNOUNCEMENT_PAGE_SIZE) {
+  const items = Array.isArray(announcements) ? announcements : [];
+  const numericSize = Number(pageSize);
+  const parsedSize = Number.isFinite(numericSize) ? Math.trunc(numericSize) : ANNOUNCEMENT_PAGE_SIZE;
+  const size = Math.max(1, parsedSize);
+  const totalPages = Math.max(1, Math.ceil(items.length / size));
+  const numericPage = Number(requestedPage);
+  const parsedPage = Number.isFinite(numericPage) ? Math.trunc(numericPage) : 0;
+  const page = Math.min(totalPages - 1, Math.max(0, parsedPage));
+  const start = page * size;
+
+  return { items: items.slice(start, start + size), page, totalPages };
+}
 
 export const LATEST_ANNOUNCEMENT = ANNOUNCEMENTS[0];

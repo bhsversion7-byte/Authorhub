@@ -145,8 +145,8 @@
 }
 
 .author-section .appearance-panel:hover {
-  background-color: #dde2dd !important;
-  background-image: linear-gradient(145deg, rgba(237, 242, 240, 0.68), rgba(221, 226, 221, 0.96)) !important;
+  background-color: #e9ece8 !important;
+  background-image: none !important;
 }
 
 .novel-section .novel-hero:hover {
@@ -169,7 +169,7 @@ body[data-theme="dark"] .author-section .progress-panel:hover {
 body[data-theme="dark"] .author-section .appearance-panel,
 body[data-theme="dark"] .author-section .appearance-panel:hover {
   background-color: #343d38 !important;
-  background-image: linear-gradient(145deg, rgba(55, 65, 59, 0.96), rgba(40, 48, 44, 0.98)) !important;
+  background-image: none !important;
 }
 
 body[data-theme="dark"] .content-shell :where(
@@ -473,7 +473,7 @@ body[data-theme="dark"] .zen-overlay {
 }
 
 body[data-theme="dark"] .zen-editor {
-  background: linear-gradient(145deg, rgba(55, 65, 59, 0.96), rgba(38, 43, 39, 0.98)) !important;
+  background: rgba(46, 54, 49, 0.98) !important;
   border-color: rgba(230, 210, 184, 0.26) !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 248, 232, 0.1),

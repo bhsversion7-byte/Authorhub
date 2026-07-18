@@ -4,6 +4,20 @@ export function getRelationshipEndpointId(endpoint) {
   return typeof endpoint === "object" ? endpoint?.id ?? "" : endpoint ?? "";
 }
 
+export function getRelationGraphFocus(relationships, focusId = "", relationshipKey = "") {
+  const nodeIds = new Set(focusId ? [focusId] : []);
+  const linkKeys = new Set();
+  (relationships ?? []).forEach((relationship) => {
+    const key = relationship.key ?? relationship.id ?? "";
+    if (!relationshipKey || key !== relationshipKey) return;
+    linkKeys.add(key);
+    nodeIds.add(getRelationshipEndpointId(relationship.source));
+    nodeIds.add(getRelationshipEndpointId(relationship.target));
+  });
+  nodeIds.delete("");
+  return { nodeIds, linkKeys };
+}
+
 export function createRelationshipId(novelId, relationship, index = 0) {
   const seed = [
     novelId ?? "novel",

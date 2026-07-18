@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronLeft, ChevronRight, ImagePlus, Link, Trash2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsDown, ChevronsUp, ImagePlus, Link, Trash2, X } from "lucide-react";
 import { deleteImageFromStorage, uploadImageToStorage } from "../lib/mediaStorage.js";
 
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
@@ -47,12 +47,29 @@ const previewHotspotStyle = {
   cursor: "zoom-in",
 };
 
-export default function MediaCarousel({ images = [], onChange, label = "参考图片", readOnly = false }) {
+export default function MediaCarousel({
+  images = [],
+  onChange,
+  label = "参考图片",
+  readOnly = false,
+  collapsible = false,
+  collapseStorageKey,
+}) {
   const [url, setUrl] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const [dragX, setDragX] = useState(0);
   const [mediaError, setMediaError] = useState("");
   const [previewImage, setPreviewImage] = useState(null);
+  const [collapsed, setCollapsed] = useState(() => {
+    if (!collapsible) return false;
+    try {
+      const saved = collapseStorageKey ? localStorage.getItem(collapseStorageKey) : null;
+      if (saved !== null) return saved === "true";
+    } catch {
+      // Local preference is optional; fall through to content-aware default.
+    }
+    return !(images?.length);
+  });
   const dragStart = useRef(null);
   const hasDragged = useRef(false);
   const fileInputRef = useRef(null);
@@ -72,6 +89,15 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
     const stillExists = safeImages.some((image) => getImageKey(image) === getImageKey(previewImage));
     if (!stillExists) setPreviewImage(null);
   }, [previewImage, safeImages]);
+
+  useEffect(() => {
+    if (!collapsible || !collapseStorageKey) return;
+    try {
+      localStorage.setItem(collapseStorageKey, String(collapsed));
+    } catch {
+      // Storage denial must not prevent the media area from working.
+    }
+  }, [collapsed, collapsible, collapseStorageKey]);
 
   useEffect(() => {
     if (!previewImage) return;
@@ -229,6 +255,10 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
     setPreviewImage(image);
   }
 
+  function toggleCollapsed() {
+    setCollapsed((current) => !current);
+  }
+
   return (
     <div className="media-carousel-block">
       <div className="media-carousel-head">
@@ -244,34 +274,35 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
         )}
       </div>
 
-      {!readOnly && (
-        <div className="media-url-row compact-media-url">
-          <input
-            value={url}
-            onChange={(event) => setUrl(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                addUrl();
-              }
-            }}
-            placeholder="粘贴图片 URL"
-          />
-          <button type="button" onClick={addUrl} aria-label="添加图片链接">
-            <Link size={15} />
-          </button>
-        </div>
-      )}
-      {mediaError && <p className="media-error">{mediaError}</p>}
+      {!collapsed && <>
+        {!readOnly && (
+          <div className="media-url-row compact-media-url">
+            <input
+              value={url}
+              onChange={(event) => setUrl(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  addUrl();
+                }
+              }}
+              placeholder="粘贴图片 URL"
+            />
+            <button type="button" onClick={addUrl} aria-label="添加图片链接">
+              <Link size={15} />
+            </button>
+          </div>
+        )}
+        {mediaError && <p className="media-error">{mediaError}</p>}
 
-      <div
-        className={`imessage-stack ${safeImages.length ? "" : "is-empty"}`}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
-        style={{ "--drag-x": `${dragX}px` }}
-      >
+        <div
+          className={`imessage-stack ${safeImages.length ? "" : "is-empty"}`}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          style={{ "--drag-x": `${dragX}px` }}
+        >
         {safeImages.length ? (
           <>
             {safeImages.map((image, index) => {
@@ -348,7 +379,20 @@ export default function MediaCarousel({ images = [], onChange, label = "参考�
             )}
           </div>
         )}
-      </div>
+        </div>
+      </>}
+
+      {collapsible && (
+        <button
+          type="button"
+          className={`edge-collapse-toggle media-collapse-toggle${collapsed ? " is-collapsed" : ""}`}
+          onClick={toggleCollapsed}
+          aria-expanded={!collapsed}
+          aria-label={collapsed ? `展开${label}` : `收起${label}`}
+        >
+          {collapsed ? <ChevronsDown size={18} /> : <ChevronsUp size={18} />}
+        </button>
+      )}
 
       {previewImage &&
         createPortal(

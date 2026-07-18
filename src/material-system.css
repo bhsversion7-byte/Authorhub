@@ -1294,8 +1294,8 @@ body,
 }
 
 .author-section .appearance-panel {
-  background-color: #dde2dd !important;
-  background-image: linear-gradient(145deg, rgba(237, 242, 240, 0.68), rgba(221, 226, 221, 0.96)) !important;
+  background-color: #e9ece8 !important;
+  background-image: none !important;
 }
 
 .novel-section .timeline-panel {

@@ -6,6 +6,7 @@ import { Plus, RotateCcw, ZoomIn } from "lucide-react";
 import { patchFocusPageMap } from "../lib/focusPages.js";
 import {
   createNewRelationshipId,
+  getRelationGraphFocus,
   mergeCharacterDraft,
   updateGraphLayoutNode,
 } from "../lib/relationGraphModel.js";
@@ -223,7 +224,7 @@ export default function RelationGraph({
       ? { id: "__preview", source: connectFrom, target: connectTo, label: connectLabel || "关系", isPreview: true }
       : null;
   const previewRelationshipKey = previewRelationship ? draftRelationshipKey : "";
-  const focusId = activeRelationshipKey || previewRelationshipKey ? "" : hoverId || graphFocusId || "";
+  const focusId = activeRelationshipKey || previewRelationshipKey ? "" : graphFocusId || hoverId || "";
   const selected = useMemo(
     () => novel.characters.find((character) => character.id === selectedId) ?? novel.characters[0],
     [novel.characters, selectedId],
@@ -667,6 +668,7 @@ export default function RelationGraph({
       .force("x", d3.forceX(width / 2).strength((character) => (isMainTag(character) ? 0.05 : 0.01)))
       .force("y", d3.forceY(height / 2).strength((character) => (isMainTag(character) ? 0.05 : 0.01)));
 
+    let nodeDragStart = null;
     const node = graphLayer
       .append("g")
       .attr("class", "graph-nodes")
@@ -678,12 +680,16 @@ export default function RelationGraph({
       .style("cursor", "grab")
       .on("mouseenter", (_, character) => setHoverId(character.id))
       .on("mouseleave", () => setHoverId(""))
-      .on("click", (event, character) => {
-        if (suppressAreaClickRef.current) {
-          suppressAreaClickRef.current = false;
-          return;
-        }
+      // D3 drag intentionally suppresses the native click event in some
+      // pointer sequences. Select on the primary pointer press instead so a
+      // real mouse/touch interaction always updates the inspector; dragging
+      // the same node remains available through the D3 handler below.
+      .on("pointerdown.select", (event, character) => {
+        if (event.button !== 0 || event.shiftKey || event.ctrlKey) return;
         nodeClickRef.current?.(event, character);
+      })
+      .on("dblclick", (event, character) => {
+        event.stopPropagation();
         focusNode(svg, zoom, width, height, character);
       })
       .call(
@@ -697,6 +703,7 @@ export default function RelationGraph({
           .filter((event) => !event.shiftKey && !event.ctrlKey && !event.button)
           .on("start", (event) => {
             event.sourceEvent?.stopPropagation();
+            nodeDragStart = { id: event.subject.id, x: event.x, y: event.y, moved: false };
             d3.select(event.sourceEvent?.target?.closest?.(".graph-node")).style("cursor", "grabbing");
             if (!event.active) simulation.alphaTarget(0.02).restart();
             event.subject.fx = event.subject.x;
@@ -704,6 +711,11 @@ export default function RelationGraph({
           })
           .on("drag", (event) => {
             event.sourceEvent?.stopPropagation();
+            if (nodeDragStart?.id === event.subject.id) {
+              const dx = event.x - nodeDragStart.x;
+              const dy = event.y - nodeDragStart.y;
+              if (dx * dx + dy * dy > 9) nodeDragStart.moved = true;
+            }
             event.subject.fx = event.x;
             event.subject.fy = event.y;
             nodePositionsRef.current.set(event.subject.id, { x: event.x, y: event.y });
@@ -711,8 +723,10 @@ export default function RelationGraph({
           .on("end", (event) => {
             event.sourceEvent?.stopPropagation();
             if (!event.active) simulation.alphaTarget(0);
-            nodePositionsRef.current.set(event.subject.id, { x: event.subject.x, y: event.subject.y });
-            if (!readOnly) {
+            const moved = nodeDragStart?.id === event.subject.id && nodeDragStart.moved;
+            nodeDragStart = null;
+            if (moved) nodePositionsRef.current.set(event.subject.id, { x: event.subject.x, y: event.subject.y });
+            if (moved && !readOnly) {
               persistNovelRef.current?.({
                 relationGraphLayout: updateGraphLayoutNode(novel.relationGraphLayout, event.subject.id, {
                   x: event.subject.x / width,
@@ -860,7 +874,7 @@ export default function RelationGraph({
     if (!node || !link || !label) return;
 
     const edgeFocusKey = activeRelationshipKey || previewRelationshipKey || hoverLinkKey;
-    const focus = getFocusSets(linksRef.current, focusId, edgeFocusKey);
+    const focus = getRelationGraphFocus(linksRef.current, focusId, edgeFocusKey);
     if (connectFrom && connectTo && connectFrom !== connectTo) {
       focus.nodeIds.add(connectFrom);
       focus.nodeIds.add(connectTo);
@@ -869,16 +883,32 @@ export default function RelationGraph({
     node
       .classed("is-selected", (character) => character.id === graphFocusId)
       .classed("is-dimmed", (character) => hasFocus && !focus.nodeIds.has(character.id))
+      .style("pointer-events", null)
       .transition()
       .duration(160)
-      .attr("opacity", (character) => (hasFocus ? (focus.nodeIds.has(character.id) ? 1 : 0.15) : 1));
-    // Relationship lines intentionally keep the same color/opacity/width
-    // before and after selection or hover (user preference) - the only line
-    // color distinction in this graph is the fixed main-pair red, set once
-    // at link creation and never touched here. Only the label text's
-    // visibility follows focus.
+      .attr("opacity", (character) => (hasFocus ? (focus.nodeIds.has(character.id) ? 1 : 0.18) : 1));
+    link
+      .style("pointer-events", (relationship) => (hasFocus && !focus.linkKeys.has(relationship.key) ? "none" : null))
+      .transition()
+      .duration(160)
+      .attr("stroke-opacity", (relationship) => {
+        if (hasFocus && !focus.linkKeys.has(relationship.key)) return 0;
+        return relationship.isPreview ? 0.82 : 0.48;
+      });
     label.transition().duration(160).attr("opacity", (relationship) => (focus.linkKeys.has(relationship.key) ? 1 : 0));
-  }, [focusId, hoverLinkKey, graphFocusId, activeRelationshipKey, previewRelationshipKey, connectFrom, connectTo, connectLabel]);
+  }, [
+    focusId,
+    hoverLinkKey,
+    graphFocusId,
+    activeRelationshipKey,
+    previewRelationshipKey,
+    connectFrom,
+    connectTo,
+    connectLabel,
+    novel.characters,
+    novel.relationships,
+    novel.relationGraphLayout,
+  ]);
 
   function handleAddCharacter() {
     if (readOnly) return;
@@ -993,27 +1023,18 @@ export default function RelationGraph({
     dismissAreaSelection();
   }
 
-  function handleSaveCharacter() {
+  function handleSaveCharacter(patch = {}) {
     if (!draft || readOnly) return;
-    onUpdateCharacter(novel.id, draft.id, draft);
+    const safePatch = patch && Object.getPrototypeOf(patch) === Object.prototype ? patch : {};
+    const nextDraft = mergeCharacterDraft(draft, safePatch);
+    setDraft(nextDraft);
+    onUpdateCharacter(novel.id, nextDraft.id, nextDraft);
   }
 
-  function updateDraftFocusPages(key, pages, { isStructural = true } = {}) {
+  function updateDraftFocusPages(key, pages) {
     if (!draft || readOnly) return;
     const nextFocusPages = patchFocusPageMap(draft.focusPages, key, pages);
     setDraft((current) => (current ? { ...current, focusPages: nextFocusPages } : current));
-    // Structural changes (add/rename/reorder/delete a 小标题) must reach
-    // Supabase right away, not sit gated behind the separate "保存人物"
-    // button - the delete confirmation copy already promises this ("并同步
-    // 到云端保存"). Plain typing inside a page is NOT structural (found
-    // 2026-07-09: FocusTextarea used to report every keystroke through this
-    // same callback, so typing silently bypassed 保存人物 and re-saved the
-    // whole character on every character typed) - it only updates `draft`
-    // above, same as every other field on this form, until an explicit
-    // save. Persisted against `selected` (the last-saved character), not
-    // the full `draft`, so an in-progress unsaved text edit elsewhere on
-    // the form isn't force-committed as a side effect.
-    if (isStructural && selected) onUpdateCharacter(novel.id, selected.id, { focusPages: nextFocusPages });
   }
 
   function requestDeleteCharacter() {
@@ -1117,8 +1138,6 @@ export default function RelationGraph({
     setConnectTo(targetId);
     if (relationship) {
       setSelectedRelationshipId(relationship.id);
-      setConnectFrom(getNodeId(relationship.source));
-      setConnectTo(getNodeId(relationship.target));
       setConnectLabel(relationship.label || "");
       setHoverLinkKey(relationshipKey(relationship));
     } else {
@@ -1174,37 +1193,6 @@ export default function RelationGraph({
     setHoverId("");
     clearRelationshipSelection();
     dismissAreaSelection();
-  }
-
-  function toggleSelectedNodeLock() {
-    if (!selectedId || readOnly) return;
-    const node = nodesRef.current.find((character) => character.id === selectedId);
-    const currentlyLocked = lockedNodeIdsRef.current.has(selectedId);
-    if (currentlyLocked) {
-      lockedNodeIdsRef.current.delete(selectedId);
-      if (node) {
-        node.fx = null;
-        node.fy = null;
-      }
-    } else {
-      lockedNodeIdsRef.current.add(selectedId);
-      if (node) {
-        node.fx = node.x;
-        node.fy = node.y;
-      }
-    }
-    nodeSelectionRef.current
-      ?.select(".node-lock-ring")
-      .style("display", (character) => (lockedNodeIdsRef.current.has(character.id) ? null : "none"));
-    const { width, height } = dimsRef.current;
-    const persisted = novel.relationGraphLayout?.nodes?.[selectedId];
-    onNovelChange?.(novel.id, {
-      relationGraphLayout: updateGraphLayoutNode(novel.relationGraphLayout, selectedId, {
-        x: node && width ? node.x / width : persisted?.x ?? 0.5,
-        y: node && height ? node.y / height : persisted?.y ?? 0.5,
-        locked: !currentlyLocked,
-      }),
-    });
   }
 
   // Multi-select: a character can carry several tags. `tags` is the source of
@@ -1323,13 +1311,11 @@ export default function RelationGraph({
           readOnly={readOnly}
           character={{
             colors: NODE_COLORS,
-            locked: Boolean(novel.relationGraphLayout?.nodes?.[selectedId]?.locked),
             patch: (patch) => setDraft((current) => mergeCharacterDraft(current, patch)),
             chooseColor: chooseNodeColor,
             updateFocusPages: updateDraftFocusPages,
             save: handleSaveCharacter,
             requestDelete: requestDeleteCharacter,
-            toggleLock: toggleSelectedNodeLock,
           }}
           tags={{
             boardRef: tagBoardRef,
@@ -1477,27 +1463,6 @@ function getNodeId(node) {
 
 function relationshipKey(relationship) {
   return relationship.id || `${getNodeId(relationship.source)}-${getNodeId(relationship.target)}`;
-}
-
-function getFocusSets(links, focusId, hoverLinkKey) {
-  const nodeIds = new Set();
-  const linkKeys = new Set();
-  if (focusId) nodeIds.add(focusId);
-  links.forEach((relationship) => {
-    const source = getNodeId(relationship.source);
-    const target = getNodeId(relationship.target);
-    if (hoverLinkKey && relationship.key === hoverLinkKey) {
-      linkKeys.add(relationship.key);
-      nodeIds.add(source);
-      nodeIds.add(target);
-    }
-    if (focusId && (source === focusId || target === focusId)) {
-      linkKeys.add(relationship.key);
-      nodeIds.add(source);
-      nodeIds.add(target);
-    }
-  });
-  return { nodeIds, linkKeys };
 }
 
 function isCoreRelationship(relationship, nodes) {

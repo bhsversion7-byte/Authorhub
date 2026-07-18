@@ -33,7 +33,7 @@ const GRAPH_CHARACTER_FIELDS = new Set(["id", "name", "role", "tag", "faction", 
 // Kept in lockstep with the identical `- '<field>'` chain in the
 // sanitize_author_hub_public_novel migration (the real anon-RPC security
 // boundary); scripts/verify-share-sections asserts they stay identical.
-export const PUBLIC_STRIPPED_NOVEL_FIELDS_LIST = ["urls", "sourceLinks", "currentWords", "targetWords", "finishDate", "focusPages"];
+export const PUBLIC_STRIPPED_NOVEL_FIELDS_LIST = ["urls", "sourceLinks", "currentWords", "targetWords", "finishDate", "focusPages", "richText"];
 const PUBLIC_STRIPPED_NOVEL_FIELDS = new Set(PUBLIC_STRIPPED_NOVEL_FIELDS_LIST);
 
 export function normalizePublicSections(sections, options = {}) {
@@ -56,6 +56,7 @@ export function filterNovelForSections(novel, sections) {
     ...publicNovel,
     outline: selected.has("outline") ? publicNovel.outline ?? "" : "",
     setting: selected.has("setting") ? publicNovel.setting ?? "" : "",
+    richText: publicNovelRichText(strippedNovel.richText, selected),
     themes: selected.has("themes") ? publicNovel.themes ?? [] : [],
     characters:
       includeCharacters || includeGraph
@@ -74,7 +75,22 @@ function sanitizeCharacter(character, options = {}) {
   if (options.graphOnly) {
     return Object.fromEntries(Object.entries(source).filter(([key, value]) => GRAPH_CHARACTER_FIELDS.has(key) && value !== undefined));
   }
-  return Object.fromEntries(Object.entries(source).filter(([key]) => !PRIVATE_CHARACTER_FIELDS.has(key)));
+  const publicCharacter = Object.fromEntries(Object.entries(source).filter(([key]) => !PRIVATE_CHARACTER_FIELDS.has(key) && key !== "richText"));
+  const richText = sanitizeCharacterRichText(source.richText);
+  return Object.keys(richText).length ? { ...publicCharacter, richText } : publicCharacter;
+}
+
+function publicNovelRichText(richText, selected) {
+  if (!richText || typeof richText !== "object") return undefined;
+  const safe = {};
+  if (selected.has("outline") && richText.outline) safe.outline = richText.outline;
+  if (selected.has("setting") && richText.setting) safe.setting = richText.setting;
+  return Object.keys(safe).length ? safe : undefined;
+}
+
+function sanitizeCharacterRichText(richText) {
+  if (!richText || typeof richText !== "object") return {};
+  return richText.background ? { background: richText.background } : {};
 }
 
 function removePrivateFields(value) {

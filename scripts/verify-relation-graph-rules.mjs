@@ -10,6 +10,7 @@ import {
   addRelationshipRecord,
   createEmptyRelationshipDraft,
   createRelationshipId,
+  getRelationGraphFocus,
   mergeCharacterDraft,
   normalizeGraphLayout,
   reduceRelationshipSelection,
@@ -92,6 +93,21 @@ const selectedB = reduceRelationshipSelection(selectedA, "character-b");
 assert.equal(selectedB.selectedCharacterId, "character-a", "the inspector must remain on the relationship source");
 assert.equal(selectedB.relationship.source, "character-a");
 assert.equal(selectedB.relationship.target, "character-b");
+
+const focusRelationships = [
+  { id: "relation-ab", key: "relation-ab", source: "character-a", target: "character-b" },
+  { id: "relation-ac", key: "relation-ac", source: "character-a", target: "character-c" },
+];
+assert.deepEqual(
+  [...getRelationGraphFocus(focusRelationships, "character-a").nodeIds],
+  ["character-a"],
+  "a single click should show only the selected planet, not every adjacent planet",
+);
+assert.deepEqual(
+  [...getRelationGraphFocus(focusRelationships, "", "relation-ab").nodeIds].sort(),
+  ["character-a", "character-b"],
+  "a selected relationship should show exactly its two endpoints",
+);
 
 const relationId = createRelationshipId("novel-a", { source: "character-a", target: "character-b" }, 0);
 assert.equal(relationId, createRelationshipId("novel-a", { source: "character-a", target: "character-b" }, 0));
