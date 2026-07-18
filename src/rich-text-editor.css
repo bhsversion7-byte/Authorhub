@@ -285,7 +285,7 @@
 .appearance-primary-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(320px, 1fr));
-  gap: 4px 22px;
+  gap: 3px 22px;
 }
 
 .appearance-setting-item {
@@ -293,8 +293,8 @@
   grid-template-columns: 132px minmax(180px, 1fr);
   align-items: center;
   gap: 14px;
-  min-height: 44px;
-  padding: 6px 0;
+  min-height: 42px;
+  padding: 5.5px 0;
   border-bottom: 0;
   color: var(--ink, #2b2723);
 }
@@ -567,10 +567,18 @@
   min-height: 100%;
   background-color: var(--scratch-paper);
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.88)),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(1.9em - 1px),
+      rgba(42, 69, 92, 0.12) calc(1.9em - 1px),
+      rgba(42, 69, 92, 0.12) 1.9em
+    ),
+    linear-gradient(rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.74)),
     url("/texture-card-2.jpg");
-  background-position: center;
-  background-size: cover;
+  background-position: 0 23px, center, center;
+  background-size: 100% 1.9em, 100% 100%, cover;
+  background-attachment: local, local, local;
 }
 
 .scratchpad-rich-surface .ProseMirror {
@@ -748,7 +756,14 @@
 
 .scratchpad-workspace.is-dark .scratchpad-rich-surface {
   background-image:
-    linear-gradient(rgba(23, 43, 68, 0.9), rgba(23, 43, 68, 0.9)),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(1.9em - 1px),
+      rgba(213, 229, 244, 0.13) calc(1.9em - 1px),
+      rgba(213, 229, 244, 0.13) 1.9em
+    ),
+    linear-gradient(rgba(23, 43, 68, 0.78), rgba(23, 43, 68, 0.78)),
     url("/texture-card-2.jpg");
 }
 
