@@ -182,5 +182,10 @@ assert.ok(
   ownerDeleteMigration.includes("owner_id = v_user_id") && ownerDeleteMigration.includes("update public.author_hub_documents"),
   "owner deletion must verify ownership and atomically remove the source document",
 );
+assert.ok(
+  ownerDeleteMigration.includes("revoke all on function public.delete_author_hub_owned_shared_novel(uuid) from public, anon")
+    && ownerDeleteMigration.includes("grant execute on function public.delete_author_hub_owned_shared_novel(uuid) to authenticated"),
+  "the destructive owner-delete RPC must remain unavailable to anonymous callers",
+);
 
 console.log("shared collaboration rule checks passed");
