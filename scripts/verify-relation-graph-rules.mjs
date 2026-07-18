@@ -76,6 +76,7 @@ assert.deepEqual(
 );
 
 const sceneHookSource = readFileSync(new URL("../src/components/relation-graph/useRelationGraphScene.js", import.meta.url), "utf8");
+const graphSource = readFileSync(new URL("../src/components/RelationGraph.jsx", import.meta.url), "utf8");
 [
   "selectedCharacterId",
   "selectedRelationshipId",
@@ -91,6 +92,10 @@ const sceneHookSource = readFileSync(new URL("../src/components/relation-graph/u
     `${transientState} must never restart the D3 scene`,
   );
 });
+
+assert.match(graphSource, /\.style\("fill", \(relationship\) => getRelationshipVisualStyle/, "relationship label colors must use an inline SVG style so later CSS cannot turn main-pair labels neutral");
+assert.match(graphSource, /\.container\(svg\.node\(\)\)/, "drag coordinates must originate in the SVG viewport");
+assert.match(graphSource, /zoomTransformRef\.current\.invert\(\[event\.x, event\.y\]\)/, "dragging while zoomed must convert viewport coordinates back to graph coordinates");
 
 const emptyRelationship = createEmptyRelationshipDraft();
 const selectedA = reduceRelationshipSelection(

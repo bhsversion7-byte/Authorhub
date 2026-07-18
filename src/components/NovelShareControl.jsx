@@ -125,7 +125,7 @@ export default function NovelShareControl({ novel, shareInfo, activeCollaborator
 
   return (
     <div className="novel-share-control">
-      <button ref={buttonRef} type="button" className="novel-share-button" onClick={() => setOpen(true)} aria-label={`分享《${novel.title}》`}>
+      <button ref={buttonRef} type="button" className="novel-share-button novel-share-trigger" onClick={() => setOpen(true)} aria-label={`分享《${novel.title}》`}>
         <Share2 size={17} />
       </button>
       {open && (

@@ -917,3 +917,91 @@ body[data-theme="dark"] .author-section .appearance-panel .appearance-setting-la
     transition: none;
   }
 }
+
+/* Compact cards intentionally keep a stable viewport; long prose scrolls inside. */
+.compact-rich-text-surface {
+  min-height: 150px;
+}
+
+.compact-rich-text-surface .ProseMirror {
+  min-height: 100%;
+}
+
+/* Reading settings mirror the active global reading typography and stay dense. */
+.appearance-primary-grid {
+  gap: 2px 22px;
+}
+
+.appearance-setting-item {
+  min-height: 36px;
+  padding-block: 4px;
+}
+
+.appearance-setting-label {
+  font-family: var(--reading-font-family, inherit);
+  font-size: var(--editor-font-size, 14px);
+}
+
+.appearance-setting-label svg {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.appearance-setting-item :where(input, select, strong, button) {
+  font-family: var(--reading-font-family, inherit);
+  font-size: var(--editor-font-size, inherit);
+}
+
+.appearance-setting-item select {
+  font: inherit;
+}
+
+/* The map uses the same quiet paper fibre as the note, without notebook rules. */
+.scratchpad-map-pane {
+  background-color: var(--scratch-pane);
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.68)),
+    url("/texture-card-2.jpg");
+  background-position: center;
+  background-size: 100% 100%, cover;
+}
+
+.scratchpad-flow {
+  background-color: transparent;
+}
+
+.scratchpad-workspace.is-dark .scratchpad-map-pane {
+  background-image:
+    linear-gradient(rgba(23, 43, 68, 0.78), rgba(23, 43, 68, 0.78)),
+    url("/texture-card-2.jpg");
+}
+
+/* Restore the embossed paper surface that a later hover reset had flattened. */
+.author-section .appearance-panel,
+.author-section .appearance-panel:hover {
+  background-color: #e9ece8 !important;
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.48), rgba(222, 229, 223, 0.86)) !important;
+}
+
+.author-section .appearance-panel::before {
+  opacity: 0.42 !important;
+}
+
+/* All card expand controls are deliberately 15% smaller than the former 30px control. */
+.panel-title-expand,
+.focus-textarea-label button {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+}
+
+.panel-title-expand svg,
+.focus-textarea-label button svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* Step 06 keeps its controls above the focus-editor overlay it is explaining. */
+.guided-tour-layer {
+  z-index: 2147482501 !important;
+}

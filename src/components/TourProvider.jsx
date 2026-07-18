@@ -1,4 +1,5 @@
 import React, { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronRight, X } from "lucide-react";
 
 const TOUR_STEPS = [
@@ -29,26 +30,27 @@ const TOUR_STEPS = [
   {
     eyebrow: "Step 04",
     title: "浮动工具区",
-    body: "右侧是低干扰音乐盒和草稿本入口，两者都可上下拖动。草稿本会自动保存：文本视图支持完整样式；思维图可新增根主题、子主题、同级主题和大子集（重点分支），并自动横向或纵向重排。",
-    selector: ".floating-music",
+    body: "右侧的音乐播放器和草稿本入口都可上下拖动。草稿本自动保存：文本支持完整样式，思维图可新增和重排主题。",
+    selectors: [".floating-music", ".floating-scratchpad-launch"],
     view: "novel",
     placement: "left",
   },
   {
     eyebrow: "Step 05",
     title: "小说信息与分享",
-    body: "这里记录书名、副标题、类型、字数、完结时间和平台入口；分享按钮可生成「共同编辑」或「只读查看」链接。协作提醒会区分作者和协作者，并显示对应 ID。",
-    selector: ".novel-section .story-grid",
+    body: "右侧分享按钮可生成「共同编辑」或「只读查看」链接；打开后可选择公开范围、复制或撤回链接。",
+    selector: ".novel-share-trigger",
     view: "novel",
-    placement: "top",
+    placement: "bottom",
+    action: "open-novel-share",
   },
   {
     eyebrow: "Step 06",
     title: "打开大纲专注编辑器",
-    body: "现在为你模拟点击“大纲”卡片右上角的放大按钮。这里是专注编辑器：用顶部 Aa 打开完整样式，选中文字后右键也能快速处理。Ctrl+B / I / U 控制加粗、斜体、下划线，Alt+D / R / Y / G / B / P 切换颜色；退出时可明确选择丢弃或保存全部更改。",
-    selector: ".zen-editor[role='dialog']",
+    body: "现在为你打开“大纲”的专注编辑器。顶部 Aa 提供完整样式，选中文字后右键也可快速编辑；退出时可选择保存或丢弃本次修改。",
+    selector: ".zen-editor .zen-editor-head",
     view: "novel",
-    placement: "left",
+    placement: "bottom",
     action: "open-outline-focus-editor",
   },
   {
@@ -89,6 +91,26 @@ export default function TourProvider({ step = 0, setStep, onDone, onSelectView, 
   }, [targetView, onSelectView]);
 
   useEffect(() => {
+    if (current.action === "open-novel-share") {
+      let retries = 0;
+      let timer = 0;
+
+      function openShare() {
+        const trigger = document.querySelector(".novel-share-trigger");
+        if (trigger) {
+          trigger.click();
+          return;
+        }
+        retries += 1;
+        if (retries < 8) timer = window.setTimeout(openShare, 90);
+      }
+
+      timer = window.setTimeout(openShare, 90);
+      return () => {
+        window.clearTimeout(timer);
+        document.querySelector(".novel-share-popover .share-close")?.click();
+      };
+    }
     if (current.action !== "open-outline-focus-editor") return undefined;
     let retries = 0;
     let timer = 0;
@@ -123,7 +145,7 @@ export default function TourProvider({ step = 0, setStep, onDone, onSelectView, 
     let timer = 0;
 
     function measure() {
-      const target = document.querySelector(current.selector);
+      const target = getTourTarget(current);
       if (!target) {
         setLayout({
           top: Math.max(24, window.innerHeight * 0.32),
@@ -157,14 +179,14 @@ export default function TourProvider({ step = 0, setStep, onDone, onSelectView, 
       window.removeEventListener("resize", measure);
       window.removeEventListener("scroll", measure);
     };
-  }, [current.selector, current.placement, targetView]);
+  }, [current.selector, current.selectors, current.placement, targetView]);
 
   function goNext() {
     if (isLast) onDone?.();
     else setStep?.(safeStep + 1);
   }
 
-  return (
+  return createPortal(
     <div className="tour-backdrop guided-tour-layer" role="presentation">
       {layout?.rect && (
         <span
@@ -206,7 +228,8 @@ export default function TourProvider({ step = 0, setStep, onDone, onSelectView, 
           </button>
         </div>
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -240,6 +263,19 @@ function getBubbleLayout(rect, placement) {
       height: Math.min(viewportHeight - 16, rect.height + 12),
     },
   };
+}
+
+function getTourTarget(step) {
+  const selectors = step.selectors?.length ? step.selectors : [step.selector];
+  const elements = selectors.filter(Boolean).map((selector) => document.querySelector(selector)).filter(Boolean);
+  if (!elements.length) return null;
+  if (elements.length === 1) return elements[0];
+  const rects = elements.map((element) => element.getBoundingClientRect());
+  const left = Math.min(...rects.map((rect) => rect.left));
+  const top = Math.min(...rects.map((rect) => rect.top));
+  const right = Math.max(...rects.map((rect) => rect.right));
+  const bottom = Math.max(...rects.map((rect) => rect.bottom));
+  return { getBoundingClientRect: () => ({ left, top, right, bottom, width: right - left, height: bottom - top }) };
 }
 
 function clamp(value, min, max) {

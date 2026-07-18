@@ -617,7 +617,7 @@ export default function RelationGraph({
     label
       .append("text")
       .text((relationship) => relationship.label)
-      .attr("fill", (relationship) => getRelationshipVisualStyle(relationship, nodes, getNodeId).labelColor)
+      .style("fill", (relationship) => getRelationshipVisualStyle(relationship, nodes, getNodeId).labelColor)
       .attr("text-anchor", "middle")
       .attr("dy", "0.34em");
 
@@ -642,23 +642,24 @@ export default function RelationGraph({
         return;
       }
       const labelText = relationshipDraft.label || "关系";
+      const visualStyle = getRelationshipVisualStyle({ source: source.id, target: target.id }, nodesRef.current, getNodeId);
       const labelWidth = Math.max(38, String(labelText).length * 13);
       const mx = (source.x + target.x) / 2;
       const my = (source.y + target.y) / 2 - 10;
       const angle = (Math.atan2(target.y - source.y, target.x - source.x) * 180) / Math.PI;
       const safeAngle = angle > 90 || angle < -90 ? angle + 180 : angle;
       previewLayer.style("display", null);
-      previewPath.attr("d", organicLinkPath({ source, target }, 0, 0));
+      previewPath.attr("d", organicLinkPath({ source, target }, 0, 0)).attr("stroke", visualStyle.lineColor);
       previewLabel.attr("transform", `translate(${mx},${my}) rotate(${safeAngle})`);
       previewLabel.select("rect").attr("x", -labelWidth / 2).attr("width", labelWidth);
-      previewLabel.select("text").text(labelText);
+      previewLabel.select("text").text(labelText).style("fill", visualStyle.labelColor);
     }
     previewUpdateRef.current = updateRelationshipPreview;
 
     const simulation = d3
       .forceSimulation(nodes)
-      .velocityDecay(0.42)
-      .alphaDecay(0.078)
+      .velocityDecay(0.38)
+      .alphaDecay(0.065)
       .alphaMin(0.003)
       .force(
         "link",
@@ -707,7 +708,7 @@ export default function RelationGraph({
       .call(
         d3
           .drag()
-          .container(graphLayer.node())
+          .container(svg.node())
           // Shift+mousedown on a node must start an area-select box (see the
           // svg-level mousedown handler above), not drag that one node - the
           // default filter only excludes ctrl/secondary-button, so Shift was
@@ -715,22 +716,24 @@ export default function RelationGraph({
           .filter((event) => !event.shiftKey && !event.ctrlKey && !event.button)
           .on("start", (event) => {
             event.sourceEvent?.stopPropagation();
-            nodeDragStart = { id: event.subject.id, x: event.x, y: event.y, moved: false };
+            const [graphX, graphY] = zoomTransformRef.current.invert([event.x, event.y]);
+            nodeDragStart = { id: event.subject.id, x: graphX, y: graphY, moved: false };
             d3.select(event.sourceEvent?.target?.closest?.(".graph-node")).style("cursor", "grabbing");
-            if (!event.active) simulation.alphaTarget(0.02).restart();
-            event.subject.fx = event.subject.x;
-            event.subject.fy = event.subject.y;
+            if (!event.active) simulation.alphaTarget(0.045).restart();
+            event.subject.fx = graphX;
+            event.subject.fy = graphY;
           })
           .on("drag", (event) => {
             event.sourceEvent?.stopPropagation();
+            const [graphX, graphY] = zoomTransformRef.current.invert([event.x, event.y]);
             if (nodeDragStart?.id === event.subject.id) {
-              const dx = event.x - nodeDragStart.x;
-              const dy = event.y - nodeDragStart.y;
+              const dx = graphX - nodeDragStart.x;
+              const dy = graphY - nodeDragStart.y;
               if (dx * dx + dy * dy > 9) nodeDragStart.moved = true;
             }
-            event.subject.fx = event.x;
-            event.subject.fy = event.y;
-            nodePositionsRef.current.set(event.subject.id, { x: event.x, y: event.y });
+            event.subject.fx = graphX;
+            event.subject.fy = graphY;
+            nodePositionsRef.current.set(event.subject.id, { x: graphX, y: graphY });
           })
           .on("end", (event) => {
             event.sourceEvent?.stopPropagation();
