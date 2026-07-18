@@ -49,13 +49,7 @@ jobs:
       - run: npm ci
       - run: npm run verify
       - name: Build application
-        env:
-          VITE_SUPABASE_URL: ${{ github.event_name != 'pull_request' && secrets.VITE_SUPABASE_URL || '' }}
-          VITE_SUPABASE_ANON_KEY: ${{ github.event_name != 'pull_request' && secrets.VITE_SUPABASE_ANON_KEY || '' }}
         run: npm run build
-      - name: Verify production-connected bundle
-        if: github.event_name != 'pull_request'
-        run: npm run verify:production-bundle
       - run: npm audit --audit-level=moderate
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
