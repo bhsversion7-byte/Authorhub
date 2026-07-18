@@ -158,6 +158,7 @@ test("editor workspaces stay inside every supported viewport", async ({ page }) 
   const scratchpadStyles = page.getByRole("toolbar", { name: "草稿本完整文本样式" });
   await expectElementInsideViewport(scratchpadStyles, page);
   await page.getByRole("button", { name: "关闭文本样式" }).click();
+  await expect(scratchpad.locator(".scratchpad-rich-surface")).toHaveCSS("background-image", /repeating-linear-gradient/);
   await expect(scratchpad.locator(".scratchpad-rich-surface")).toHaveCSS("background-image", /linear-gradient/);
   await expect(scratchpad.locator(".scratchpad-rich-surface")).toHaveCSS("background-image", /texture-card-2/);
   await expect(scratchpad.locator(".scratchpad-rich-surface")).not.toHaveCSS("background-image", /texture-card-1/);
@@ -198,7 +199,7 @@ test("tour demonstrates the outline focus editor instead of highlighting the tim
   for (let index = 0; index < 5; index += 1) await page.getByRole("button", { name: "下一步" }).click();
 
   await expect(page.getByRole("heading", { name: "打开大纲专注编辑器" })).toBeVisible();
-  await expect(page.getByRole("dialog", { name: "大纲" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "大纲", exact: true })).toBeVisible();
   await expect(page.locator(".tour-target-outline")).toHaveCount(1);
 });
 
