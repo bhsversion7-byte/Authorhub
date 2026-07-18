@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   MAIN_PAIR_RELATION_COLOR,
   getCharacterRelationTag,
+  getRelationshipVisualStyle,
   isMainCharacter,
   isMainPairRelationship,
   normalizeRelationTag,
@@ -49,6 +50,17 @@ assert.equal(isMainPairRelationship({ source: "a", target: "b" }, nodes, getNode
 assert.equal(isMainPairRelationship({ source: "a", target: "c" }, nodes, getNodeId), false);
 assert.equal(isMainPairRelationship({ source: "missing", target: "b" }, nodes, getNodeId), false);
 assert.equal(isMainPairRelationship(null, nodes, getNodeId), false);
+
+assert.deepEqual(
+  getRelationshipVisualStyle({ source: "a", target: "b" }, nodes, getNodeId),
+  { lineColor: MAIN_PAIR_RELATION_COLOR, labelColor: MAIN_PAIR_RELATION_COLOR },
+  "a main-character pair must use the fixed red line and red relationship label",
+);
+assert.deepEqual(
+  getRelationshipVisualStyle({ source: "a", target: "c" }, nodes, getNodeId),
+  { lineColor: "#8BA09C", labelColor: "#72584a" },
+  "ordinary relationships must retain their existing neutral visual style",
+);
 
 const unsavedDraft = {
   id: "character-a",

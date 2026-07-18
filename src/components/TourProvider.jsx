@@ -44,11 +44,12 @@ const TOUR_STEPS = [
   },
   {
     eyebrow: "Step 06",
-    title: "文本样式与专注编辑",
-    body: "点击文本框右上角的放大按钮进入专注编辑器，再用顶部 Aa 打开完整样式面板；选中文字后右键也能快速处理。Ctrl+B / I / U 控制加粗、斜体、下划线，Alt+D / R / Y / G / B / P 切换颜色。保存后，排版会直接显示在原卡片中；退出时可明确选择丢弃或保存全部更改。",
-    selector: ".focus-textarea-label button",
+    title: "打开大纲专注编辑器",
+    body: "现在为你模拟点击“大纲”卡片右上角的放大按钮。这里是专注编辑器：用顶部 Aa 打开完整样式，选中文字后右键也能快速处理。Ctrl+B / I / U 控制加粗、斜体、下划线，Alt+D / R / Y / G / B / P 切换颜色；退出时可明确选择丢弃或保存全部更改。",
+    selector: ".zen-editor[role='dialog']",
     view: "novel",
-    placement: "top",
+    placement: "left",
+    action: "open-outline-focus-editor",
   },
   {
     eyebrow: "Step 07",
@@ -86,6 +87,29 @@ export default function TourProvider({ step = 0, setStep, onDone, onSelectView, 
   useEffect(() => {
     if (targetView) onSelectView?.(targetView);
   }, [targetView, onSelectView]);
+
+  useEffect(() => {
+    if (current.action !== "open-outline-focus-editor") return undefined;
+    let retries = 0;
+    let timer = 0;
+
+    function openOutlineFocusEditor() {
+      if (document.querySelector(".zen-editor[role='dialog']")) return;
+      const trigger = document.querySelector("button[aria-label='专注编辑大纲']");
+      if (trigger) {
+        trigger.click();
+        return;
+      }
+      retries += 1;
+      if (retries < 8) timer = window.setTimeout(openOutlineFocusEditor, 90);
+    }
+
+    timer = window.setTimeout(openOutlineFocusEditor, 90);
+    return () => {
+      window.clearTimeout(timer);
+      document.querySelector(".zen-editor .zen-exit-button")?.click();
+    };
+  }, [current.action, targetView]);
 
   useEffect(() => {
     document.body.dataset.tourActive = "true";

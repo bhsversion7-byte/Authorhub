@@ -289,7 +289,7 @@ const FocusTextarea = forwardRef(function FocusTextarea(
           readOnly={readOnly}
           className="compact-rich-text-surface"
           ariaLabel={label}
-          style={{ minHeight: `${rows * 1.5}em`, maxHeight: `${Math.max(rows, 5) * 1.9}em` }}
+          style={{ minHeight: `${rows * 1.5}em` }}
         />
       </div>
       <DraftPreviewList drafts={remoteDrafts} />

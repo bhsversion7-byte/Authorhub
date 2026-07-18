@@ -65,6 +65,10 @@
 }
 
 .compact-rich-text-surface {
+  min-height: 7.5em;
+  max-height: min(560px, 62vh);
+  overflow-y: auto;
+  resize: vertical;
   border: 1px solid rgba(107, 91, 71, 0.18);
   border-radius: 8px;
   background: rgba(255, 253, 248, 0.8);
@@ -281,18 +285,18 @@
 .appearance-primary-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(320px, 1fr));
-  gap: 12px 28px;
+  gap: 4px 22px;
 }
 
 .appearance-setting-item {
   display: grid;
   grid-template-columns: 132px minmax(180px, 1fr);
   align-items: center;
-  gap: 18px;
-  min-height: 58px;
-  padding: 10px 12px;
-  border-bottom: 1px solid rgba(95, 89, 82, 0.14);
-  color: #716b63;
+  gap: 14px;
+  min-height: 44px;
+  padding: 6px 0;
+  border-bottom: 0;
+  color: var(--ink, #2b2723);
 }
 
 .appearance-setting-label,
@@ -308,8 +312,12 @@
   font-weight: 700;
 }
 
+.author-section .appearance-panel .appearance-setting-label {
+  color: #2c2621 !important;
+}
+
 .appearance-setting-label svg {
-  color: #657384;
+  color: currentColor;
 }
 
 .font-size-setting-control {
@@ -319,7 +327,13 @@
 .font-size-setting-control input {
   min-width: 180px;
   flex: 1;
-  accent-color: #607f96;
+}
+
+.appearance-panel .privacy-control-row,
+.appearance-panel .font-preview,
+.appearance-panel .font-preview p {
+  font-family: var(--reading-font-family, inherit);
+  font-size: var(--editor-font-size, inherit);
 }
 
 .appearance-setting-item select {
@@ -434,7 +448,12 @@
 }
 
 .scratchpad-workspace {
-  --scratch-navy: #27384c;
+  --scratch-navy: #172b44;
+  --scratch-paper: #ffffff;
+  --scratch-pane: #ffffff;
+  --scratch-text: #172b44;
+  --scratch-muted: #53657c;
+  --scratch-border: rgba(23, 43, 68, 0.18);
   --scratch-green: #486457;
   --scratch-cinnabar: #a34f43;
   --scratch-ochre: #9a7639;
@@ -445,8 +464,10 @@
   overflow: hidden;
   border: 1px solid rgba(106, 91, 69, 0.2);
   border-radius: 8px;
-  background-color: #faf9f3;
-  color: var(--scratch-navy);
+  background-color: var(--scratch-paper);
+  color: var(--scratch-text);
+  font-family: var(--reading-font-family, inherit);
+  font-size: var(--editor-font-size, 14px);
   box-shadow: 0 18px 64px rgba(43, 37, 30, 0.2);
 }
 
@@ -463,8 +484,8 @@
   justify-content: space-between;
   gap: 16px;
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(61, 73, 88, 0.16);
-  background: #f1f2ee;
+  border-bottom: 1px solid var(--scratch-border);
+  background: var(--scratch-paper);
 }
 
 .scratchpad-head h2,
@@ -473,12 +494,12 @@
 }
 
 .scratchpad-head h2 {
-  font-size: 22px;
+  font-size: calc(var(--editor-font-size, 14px) * 1.45);
   color: var(--scratch-navy);
 }
 
 .scratchpad-head .eyebrow {
-  color: #637184;
+  color: var(--scratch-muted);
 }
 
 .scratchpad-actions {
@@ -489,9 +510,9 @@
 .scratchpad-mode-switch {
   gap: 2px;
   padding: 3px;
-  border: 1px solid rgba(61, 73, 88, 0.2);
+  border: 1px solid var(--scratch-border);
   border-radius: 7px;
-  background: #fbfbf7;
+  background: var(--scratch-paper);
 }
 
 .scratchpad-mode-switch button,
@@ -505,7 +526,7 @@
   border-radius: 5px;
   background: transparent;
   color: var(--scratch-navy);
-  font-size: 13px;
+  font: inherit;
   white-space: nowrap;
 }
 
@@ -514,7 +535,7 @@
 }
 
 .scratchpad-mode-switch button[aria-selected="true"] {
-  background: #e4e7e3;
+  background: rgba(23, 43, 68, 0.1);
   color: var(--scratch-navy);
 }
 
@@ -539,17 +560,17 @@
 }
 
 .scratchpad-note-pane {
-  background: #f6f5f0;
+  background: var(--scratch-pane);
 }
 
 .scratchpad-rich-surface {
   min-height: 100%;
-  background-color: rgba(255, 254, 250, 0.94);
+  background-color: var(--scratch-paper);
   background-image:
-    linear-gradient(to bottom, transparent 31px, rgba(89, 112, 132, 0.22) 31px, rgba(89, 112, 132, 0.22) 32px),
-    url("/texture-card-1.jpg");
-  background-position: 0 22px, center;
-  background-size: 100% 32px, cover;
+    linear-gradient(rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.88)),
+    url("/texture-card-2.jpg");
+  background-position: center;
+  background-size: cover;
 }
 
 .scratchpad-rich-surface .ProseMirror {
@@ -557,16 +578,17 @@
   max-width: 820px;
   margin: 0 auto;
   padding: 24px clamp(20px, 7vw, 78px) 80px;
-  color: var(--scratch-navy);
-  font-size: 16px;
-  line-height: 32px;
+  color: var(--scratch-text);
+  font-family: var(--reading-font-family, inherit);
+  font-size: var(--editor-font-size, 14px);
+  line-height: 1.9;
 }
 
 .scratchpad-rich-surface .ProseMirror :where(p, ul, ol) {
-  min-height: 32px;
+  min-height: 1.9em;
   margin-top: 0;
   margin-bottom: 0;
-  line-height: 32px;
+  line-height: 1.9;
 }
 
 .scratchpad-map-pane {
@@ -586,8 +608,8 @@
   gap: 8px;
   padding: 10px 14px;
   overflow-x: auto;
-  border-bottom: 1px solid rgba(61, 73, 88, 0.16);
-  background: #f5f5f0;
+  border-bottom: 1px solid var(--scratch-border);
+  background: var(--scratch-paper);
   scrollbar-width: none;
 }
 
@@ -618,7 +640,7 @@
   width: 100%;
   height: 100%;
   min-height: 240px;
-  background: #f7f8f2;
+  background: var(--scratch-pane);
 }
 
 .scratchpad-flow .react-flow__node {
@@ -626,8 +648,8 @@
   padding: 9px 12px;
   border: 1px solid rgba(73, 99, 84, 0.34);
   border-radius: 5px;
-  background: #fffdf8;
-  color: #2b302b;
+  background: var(--scratch-paper);
+  color: var(--scratch-text);
   font-family: var(--reading-font-family, inherit);
   box-shadow: 0 2px 8px rgba(45, 55, 45, 0.1);
 }
@@ -672,7 +694,8 @@
   padding: 3px 2px;
   border: 0;
   background: transparent;
-  color: #29342e;
+  color: var(--scratch-text);
+  font: inherit;
   text-align: center;
 }
 
@@ -682,7 +705,7 @@
   padding: 4px;
   border: 1px solid rgba(61, 83, 70, 0.22);
   border-radius: 6px;
-  background: #f8f7f1;
+  background: var(--scratch-paper);
   box-shadow: 0 4px 12px rgba(35, 50, 42, 0.12);
 }
 
@@ -708,9 +731,47 @@
   min-height: 32px;
   padding: 7px 16px;
   border-top: 1px solid rgba(86, 106, 92, 0.16);
-  background: #f1f2ee;
-  color: rgba(39, 56, 76, 0.76);
-  font-size: 12px;
+  background: var(--scratch-paper);
+  color: var(--scratch-muted);
+  font-size: calc(var(--editor-font-size, 14px) * 0.86);
+}
+
+.scratchpad-workspace.is-dark {
+  --scratch-navy: #f5f8ff;
+  --scratch-paper: #172b44;
+  --scratch-pane: #172b44;
+  --scratch-text: #f5f8ff;
+  --scratch-muted: #c6d5e6;
+  --scratch-border: rgba(219, 234, 247, 0.22);
+  border-color: rgba(219, 234, 247, 0.24);
+}
+
+.scratchpad-workspace.is-dark .scratchpad-rich-surface {
+  background-image:
+    linear-gradient(rgba(23, 43, 68, 0.9), rgba(23, 43, 68, 0.9)),
+    url("/texture-card-2.jpg");
+}
+
+.scratchpad-workspace.is-dark .scratch-idea-node {
+  border-color: rgba(219, 234, 247, 0.28);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
+}
+
+.scratchpad-workspace.is-dark .scratch-idea-node input {
+  color: #f5f8ff;
+}
+
+.scratchpad-workspace.is-dark .scratch-node-toolbar,
+.scratchpad-workspace.is-dark .scratch-node-toolbar button:hover,
+.scratchpad-workspace.is-dark .scratch-node-toolbar button[aria-pressed="true"] {
+  background: #243b58;
+  color: #f5f8ff;
+}
+
+.scratchpad-workspace.is-dark .react-flow__controls button {
+  background: #243b58;
+  border-color: rgba(219, 234, 247, 0.22);
+  fill: #f5f8ff;
 }
 
 .scratchpad-conflict,
@@ -732,6 +793,14 @@ body[data-theme="dark"] .text-style-controls {
 body[data-theme="dark"] .rich-text-surface .ProseMirror,
 body[data-theme="dark"] .text-style-button {
   color: rgba(255, 248, 239, 0.95);
+}
+
+body[data-theme="dark"] .scratchpad-workspace.is-dark .scratchpad-rich-surface .ProseMirror {
+  color: #f5f8ff;
+}
+
+body[data-theme="dark"] .author-section .appearance-panel .appearance-setting-label {
+  color: var(--ink, #fff4e4) !important;
 }
 
 @media (max-width: 900px) {

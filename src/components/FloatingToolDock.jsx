@@ -93,7 +93,7 @@ export default function FloatingToolDock({ user, appearance = {}, showScratchpad
       )}
       {scratchpadOpen && (
         <Suspense fallback={null}>
-          <Scratchpad user={user} open onClose={() => setScratchpadOpen(false)} />
+          <Scratchpad user={user} appearance={appearance} open onClose={() => setScratchpadOpen(false)} />
         </Suspense>
       )}
     </>
