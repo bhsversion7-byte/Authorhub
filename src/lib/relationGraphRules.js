@@ -29,3 +29,10 @@ export function isMainPairRelationship(relationship, nodes, getNodeId) {
   const target = nodes.find((node) => node.id === targetId);
   return Boolean(source && target && isMainCharacter(source) && isMainCharacter(target));
 }
+
+export function getRelationshipVisualStyle(relationship, nodes, getNodeId) {
+  if (isMainPairRelationship(relationship, nodes, getNodeId)) {
+    return { lineColor: MAIN_PAIR_RELATION_COLOR, labelColor: MAIN_PAIR_RELATION_COLOR };
+  }
+  return { lineColor: "#8BA09C", labelColor: "#72584a" };
+}

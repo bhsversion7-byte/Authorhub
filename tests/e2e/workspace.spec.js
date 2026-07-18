@@ -102,6 +102,12 @@ test("reading settings align and tool switches retain their behavior", async ({ 
   await settings.scrollIntoViewIfNeeded();
   const items = settings.locator(".appearance-setting-item");
   await expect(items).toHaveCount(4);
+  const bottomBorders = await items.evaluateAll((settingItems) => settingItems.map((item) => getComputedStyle(item).borderBottomStyle));
+  bottomBorders.forEach((borderStyle) => expect(borderStyle).toBe("none"));
+
+  const titleIconColor = await settings.locator(".panel-title svg").evaluate((element) => getComputedStyle(element).color);
+  const settingIconColors = await items.locator(".appearance-setting-label svg").evaluateAll((icons) => icons.map((icon) => getComputedStyle(icon).color));
+  settingIconColors.forEach((color) => expect(color).toBe(titleIconColor));
 
   const musicBackground = await page.locator(".floating-music").evaluate((element) => getComputedStyle(element).backgroundColor);
   const musicChannels = musicBackground.match(/[\d.]+/g)?.slice(0, 3).map(Number) ?? [];
@@ -153,6 +159,8 @@ test("editor workspaces stay inside every supported viewport", async ({ page }) 
   await expectElementInsideViewport(scratchpadStyles, page);
   await page.getByRole("button", { name: "关闭文本样式" }).click();
   await expect(scratchpad.locator(".scratchpad-rich-surface")).toHaveCSS("background-image", /linear-gradient/);
+  await expect(scratchpad.locator(".scratchpad-rich-surface")).toHaveCSS("background-image", /texture-card-2/);
+  await expect(scratchpad.locator(".scratchpad-rich-surface")).not.toHaveCSS("background-image", /texture-card-1/);
   if (process.env.CAPTURE_SCREENSHOTS) {
     await page.screenshot({ path: `output/playwright/scratchpad-note-${test.info().project.name}.png` });
   }
@@ -168,6 +176,30 @@ test("editor workspaces stay inside every supported viewport", async ({ page }) 
   if (process.env.CAPTURE_SCREENSHOTS) {
     await page.screenshot({ path: `output/playwright/editor-workspaces-${test.info().project.name}.png`, fullPage: true });
   }
+});
+
+test("scratchpad uses the global reading theme in dark mode", async ({ page }) => {
+  await page.getByRole("button", { name: "作者主页" }).click();
+  await page.getByRole("button", { name: "夜间模式" }).click();
+  await expect(page.locator("body")).toHaveAttribute("data-theme", "dark");
+  await page.getByRole("button", { name: "打开草稿本" }).click();
+
+  const scratchpad = page.getByRole("dialog", { name: "草稿本" });
+  await expect(scratchpad).toBeVisible();
+  await expect(scratchpad).toHaveCSS("background-color", "rgb(23, 43, 68)");
+  await expect(scratchpad.locator(".scratchpad-rich-surface .ProseMirror")).toHaveCSS("color", "rgb(245, 248, 255)");
+  await scratchpad.getByRole("tab", { name: "思维图" }).click();
+  await expect(scratchpad.locator(".scratchpad-flow")).toHaveCSS("background-color", "rgb(23, 43, 68)");
+});
+
+test("tour demonstrates the outline focus editor instead of highlighting the timeline", async ({ page }) => {
+  await page.getByRole("button", { name: "作者主页" }).click();
+  await page.getByRole("button", { name: "重看引导" }).click();
+  for (let index = 0; index < 5; index += 1) await page.getByRole("button", { name: "下一步" }).click();
+
+  await expect(page.getByRole("heading", { name: "打开大纲专注编辑器" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "大纲" })).toBeVisible();
+  await expect(page.locator(".tour-target-outline")).toHaveCount(1);
 });
 
 test("graph clicks sync the inspector, select A to B, and clear on blank space", async ({ page }, testInfo) => {
@@ -223,6 +255,9 @@ test("rich text tools format content and protect unsaved focus edits", async ({ 
   const outline = page.locator(".story-card").filter({ hasText: "大纲" }).first();
   await expect(outline.getByRole("button", { name: "文本样式" })).toHaveCount(0);
   const compactEditor = outline.locator('[contenteditable="true"]');
+  const compactSurface = outline.locator(".compact-rich-text-surface");
+  await expect(compactSurface).toHaveCSS("overflow-y", "auto");
+  await expect(compactSurface).toHaveCSS("resize", "vertical");
   await outline.getByRole("button", { name: "专注编辑大纲" }).click();
   const zen = page.getByRole("dialog", { name: "大纲" });
   await expect(zen).toBeVisible();

@@ -43,9 +43,17 @@
 }
 
 .graph-node.is-selected .node-core {
-  stroke: #fffdf8;
-  stroke-width: 6;
-  filter: drop-shadow(0 0 0.45rem rgba(122, 94, 68, 0.45));
+  filter: none;
+}
+
+.graph-node.is-selected .planet-halo {
+  opacity: 0.82;
+  filter: drop-shadow(0 0 0.7rem rgba(201, 95, 90, 0.58));
+  animation: selectedHaloPulse 1.45s ease-in-out infinite;
+}
+
+.graph-link-labels g.is-main-pair text {
+  fill: #C95F5A;
 }
 
 .graph-relationship-preview {
@@ -84,9 +92,27 @@
 
 @media (prefers-reduced-motion: reduce) {
   .planet-halo,
-  .planet-halo.is-celestial {
+  .planet-halo.is-celestial,
+  .graph-node.is-selected .planet-halo {
     animation: none;
+    filter: none;
   }
+}
+
+@keyframes selectedHaloPulse {
+  0%,
+  100% {
+    opacity: 0.54;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.08);
+  }
+}
+
+.graph-card.relation-graph:hover {
+  transform: none !important;
 }
 
 body[data-theme="dark"] .graph-area-select {

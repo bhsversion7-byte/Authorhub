@@ -13,6 +13,7 @@ import {
 import {
   MAIN_PAIR_RELATION_COLOR,
   getCharacterRelationTag,
+  getRelationshipVisualStyle,
   isMainCharacter,
   isMainPairRelationship,
 } from "../lib/relationGraphRules.js";
@@ -575,9 +576,12 @@ export default function RelationGraph({
       .join("path")
       // Ordinary line color is fixed (not tinted by novel.color) - user
       // preference, only the main-pair line is meaningful color here.
-      .attr("stroke", (relationship) =>
-        isMainPairRelationship(relationship, nodes, getNodeId) ? MAIN_PAIR_RELATION_COLOR : relationship.isPreview ? "#7E9A9A" : "#8BA09C",
-      )
+      .attr("stroke", (relationship) => {
+        const visualStyle = getRelationshipVisualStyle(relationship, nodes, getNodeId);
+        return visualStyle.lineColor === MAIN_PAIR_RELATION_COLOR || !relationship.isPreview
+          ? visualStyle.lineColor
+          : "#7E9A9A";
+      })
       .attr("stroke-width", (relationship) => (relationship.isPreview ? 2.2 : isCoreRelationship(relationship, nodes) ? 1.7 : 1.25))
       .attr("stroke-dasharray", (relationship) => (relationship.isPreview ? "3 5" : "5 7"))
       .attr("stroke-opacity", (relationship) => (relationship.isPreview ? 0.82 : 0.48))
@@ -593,6 +597,9 @@ export default function RelationGraph({
       .selectAll("g")
       .data(links)
       .join("g")
+      .attr("class", (relationship) =>
+        isMainPairRelationship(relationship, nodes, getNodeId) ? "is-main-pair" : null,
+      )
       .attr("opacity", (relationship) =>
         relationship.key === activeRelationshipKey || relationship.key === previewRelationshipKey ? 1 : 0,
       )
@@ -607,7 +614,12 @@ export default function RelationGraph({
       .attr("width", (relationship) => Math.max(38, String(relationship.label).length * 13))
       .attr("height", 24)
       .attr("rx", 12);
-    label.append("text").text((relationship) => relationship.label).attr("text-anchor", "middle").attr("dy", "0.34em");
+    label
+      .append("text")
+      .text((relationship) => relationship.label)
+      .attr("fill", (relationship) => getRelationshipVisualStyle(relationship, nodes, getNodeId).labelColor)
+      .attr("text-anchor", "middle")
+      .attr("dy", "0.34em");
 
     const previewLayer = graphLayer.append("g").attr("class", "graph-relationship-preview").style("display", "none");
     const previewPath = previewLayer
@@ -645,8 +657,8 @@ export default function RelationGraph({
 
     const simulation = d3
       .forceSimulation(nodes)
-      .velocityDecay(0.58)
-      .alphaDecay(0.065)
+      .velocityDecay(0.42)
+      .alphaDecay(0.078)
       .alphaMin(0.003)
       .force(
         "link",
@@ -722,8 +734,11 @@ export default function RelationGraph({
           })
           .on("end", (event) => {
             event.sourceEvent?.stopPropagation();
-            if (!event.active) simulation.alphaTarget(0);
             const moved = nodeDragStart?.id === event.subject.id && nodeDragStart.moved;
+            if (!event.active) {
+              simulation.alphaTarget(0);
+              if (moved) simulation.alpha(Math.max(simulation.alpha(), 0.13)).restart();
+            }
             nodeDragStart = null;
             if (moved) nodePositionsRef.current.set(event.subject.id, { x: event.subject.x, y: event.subject.y });
             if (moved && !readOnly) {

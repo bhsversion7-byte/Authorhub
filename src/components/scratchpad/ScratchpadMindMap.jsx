@@ -22,13 +22,14 @@ import {
   Rows3,
   Trash2,
 } from "lucide-react";
+import { getScratchpadNodeColor } from "../../lib/scratchpadAppearance.js";
 
 const NODE_COLORS = ["#f8f5ea", "#e7eee8", "#e6ebf1", "#eee8f1", "#f3eadc"];
 const NODE_WIDTH = 156;
 const NODE_HEIGHT = 58;
 const NODE_TYPES = { scratchIdea: ScratchIdeaNode };
 
-export default function ScratchpadMindMap({ mindMap, onChange }) {
+export default function ScratchpadMindMap({ mindMap, darkMode = false, onChange }) {
   const [selectedNodeId, setSelectedNodeId] = useState("");
   const [selectedEdgeId, setSelectedEdgeId] = useState("");
   const [flowNodes, setFlowNodes] = useState(() => mindMap?.nodes ?? []);
@@ -46,6 +47,8 @@ export default function ScratchpadMindMap({ mindMap, onChange }) {
     selected: node.id === selectedNodeId,
     data: {
       ...node.data,
+      renderedColor: getScratchpadNodeColor(node.data?.color || NODE_COLORS[0], darkMode),
+      darkMode,
       onLabelChange: (label) => updateNode(node.id, { label }),
       onAction: (action) => handleNodeAction(action, node.id),
     },
@@ -185,9 +188,10 @@ export default function ScratchpadMindMap({ mindMap, onChange }) {
           minZoom={0.35}
           maxZoom={2.2}
           deleteKeyCode={null}
-          defaultEdgeOptions={{ type: "smoothstep", style: { stroke: "#70867a", strokeWidth: 1.5 } }}
+          className={darkMode ? "is-dark" : ""}
+          defaultEdgeOptions={{ type: "smoothstep", style: { stroke: darkMode ? "#a8c6d9" : "#70867a", strokeWidth: 1.5 } }}
         >
-          <Background gap={22} size={1} color="rgba(70, 92, 80, 0.2)" />
+          <Background gap={22} size={1} color={darkMode ? "rgba(222, 237, 247, 0.22)" : "rgba(70, 92, 80, 0.2)"} />
           <Controls showInteractive={false} />
         </ReactFlow>
       </div>
@@ -198,8 +202,8 @@ export default function ScratchpadMindMap({ mindMap, onChange }) {
 function ScratchIdeaNode({ data, selected }) {
   return (
     <div
-      className={`scratch-idea-node is-${data.variant || "detail"}${selected ? " is-selected" : ""}`}
-      style={{ backgroundColor: data.color || NODE_COLORS[0] }}
+      className={`scratch-idea-node is-${data.variant || "detail"}${selected ? " is-selected" : ""}${data.darkMode ? " is-dark" : ""}`}
+      style={{ backgroundColor: data.renderedColor || data.color || NODE_COLORS[0] }}
     >
       <NodeToolbar isVisible={selected} position={Position.Top} className="scratch-node-toolbar">
         <button type="button" onClick={() => data.onAction("child")} title="新增子主题"><GitBranchPlus size={14} /></button>
@@ -255,7 +259,7 @@ function collectDescendants(nodeId, edges) {
 
 function stripRuntimeData(nodes) {
   return nodes.map((node) => {
-    const { onAction, onLabelChange, ...data } = node.data ?? {};
+    const { onAction, onLabelChange, renderedColor, darkMode, ...data } = node.data ?? {};
     return {
       id: node.id,
       type: "scratchIdea",

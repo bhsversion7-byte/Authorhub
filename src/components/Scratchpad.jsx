@@ -5,11 +5,12 @@ import { BrainCircuit, FileText, Save, X } from "lucide-react";
 import RichTextSurface from "./rich-text/RichTextSurface.jsx";
 import TextStylePopover from "./rich-text/TextStylePopover.jsx";
 import ScratchpadMindMap from "./scratchpad/ScratchpadMindMap.jsx";
+import { getScratchpadReadingStyle } from "../lib/scratchpadAppearance.js";
 import { cacheScratchpad, createEmptyScratchpad, loadScratchpad, saveScratchpad } from "../lib/scratchpadStore.js";
 
 const SAVE_DELAY = 1200;
 
-export default function Scratchpad({ user, open, onClose }) {
+export default function Scratchpad({ user, appearance = {}, open, onClose }) {
   const [scratchpad, setScratchpad] = useState(createEmptyScratchpad);
   const [loading, setLoading] = useState(true);
   const [conflict, setConflict] = useState(false);
@@ -162,7 +163,14 @@ export default function Scratchpad({ user, open, onClose }) {
 
   return createPortal(
     <div className="scratchpad-backdrop" role="presentation" onMouseDown={close}>
-      <section className="scratchpad-workspace" role="dialog" aria-modal="true" aria-label="草稿本" onMouseDown={(event) => event.stopPropagation()}>
+      <section
+        className={`scratchpad-workspace font-${appearance.fontFamily ?? "sans"}${appearance.darkMode ? " is-dark" : ""}`}
+        style={getScratchpadReadingStyle(appearance)}
+        role="dialog"
+        aria-modal="true"
+        aria-label="草稿本"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
         <header className="scratchpad-head">
           <div>
             <p className="eyebrow">Private scratchpad</p>
@@ -216,6 +224,7 @@ export default function Scratchpad({ user, open, onClose }) {
           <div className="scratchpad-map-pane">
             <ScratchpadMindMap
               mindMap={scratchpad.mindMap}
+              darkMode={Boolean(appearance.darkMode)}
               onChange={(mindMap, options) => update({ ...scratchpadRef.current, mindMap }, options)}
             />
           </div>
