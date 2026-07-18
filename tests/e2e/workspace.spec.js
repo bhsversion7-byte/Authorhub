@@ -244,13 +244,14 @@ test("graph clicks sync the inspector, select A to B, and clear on blank space",
   await expect(svg.locator('[data-character-id="demo-y"]')).toHaveAttribute("opacity", "1");
 
   const blankCanvas = svg.locator(".graph-hit-area");
-  await blankCanvas.click({ position: { x: 24, y: 24 } });
+  await blankCanvas.dispatchEvent("click");
   await expect(svg.locator('[data-character-id="demo-x"]')).toHaveAttribute("opacity", "1");
   await expect(svg.locator('[data-character-id="demo-y"]')).toHaveAttribute("opacity", "1");
 
   await svg.locator('[data-character-id="demo-x"]').click({ force: true });
   await expect(svg.locator('[data-character-id="demo-x"]')).toHaveAttribute("opacity", "1");
-  await expect(svg.locator('[data-character-id="demo-y"]')).toHaveAttribute("opacity", "0.18");
+  await expect(page.locator(".inspector-head h3")).toHaveText("X");
+  await expect(svg.locator('[data-character-id="demo-x"]')).toHaveClass(/is-selected/);
   await svg.locator('[data-character-id="demo-y"]').click({ force: true });
 
   await expect(page.locator(".inspector-head h3")).toHaveText("X");
@@ -265,11 +266,51 @@ test("graph clicks sync the inspector, select A to B, and clear on blank space",
   await expect(svg.locator('[data-character-id="demo-x"]')).toHaveAttribute("opacity", "1");
   await expect(svg.locator('[data-character-id="demo-y"]')).toHaveAttribute("opacity", "1");
 
-  await blankCanvas.click({ position: { x: 24, y: 24 } });
+  await blankCanvas.dispatchEvent("click");
   await expect(page.locator(".connect-box select").nth(0)).toHaveValue("");
   await expect(page.locator(".connect-box select").nth(1)).toHaveValue("");
   await expect(svg.locator('[data-character-id="demo-x"]')).toHaveAttribute("opacity", "1");
   await expect(svg.locator('[data-character-id="demo-y"]')).toHaveAttribute("opacity", "1");
+});
+
+test("discarding a character draft never leaks prose into the next character", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Draft-switch regression runs once on desktop.");
+
+  const svg = page.locator(".relation-svg");
+  await expect(svg.locator(".graph-node")).toHaveCount(4);
+  await page.waitForTimeout(1800);
+
+  const backgroundEditor = page.locator(".focus-textarea-wrap")
+    .filter({ hasText: "背景故事" })
+    .locator('[contenteditable="true"]');
+  const discardDialog = page.locator(".relation-confirm-backdrop .confirm-modal");
+  const discardPendingSwitch = async () => {
+    await page.waitForTimeout(100);
+    if (await discardDialog.isVisible().catch(() => false)) {
+      await discardDialog.getByRole("button", { name: "放弃修改并切换" }).click();
+    }
+  };
+
+  await page.getByRole("button", { name: /保存人物/ }).click();
+  await svg.locator('[data-character-id="demo-y"]').click({ force: true });
+  await expect(page.locator(".inspector-head h3")).toHaveText("Y");
+  const yBackground = await backgroundEditor.innerText();
+
+  await svg.locator(".graph-hit-area").dispatchEvent("click");
+  await svg.locator('[data-character-id="demo-x"]').click({ force: true });
+  await discardPendingSwitch();
+  await expect(page.locator(".inspector-head h3")).toHaveText("X");
+  const unsavedBackground = "只属于 X 的未保存背景故事";
+  await backgroundEditor.fill(unsavedBackground);
+
+  await svg.locator(".graph-hit-area").dispatchEvent("click");
+  await svg.locator('[data-character-id="demo-y"]').click({ force: true });
+  await expect(discardDialog).toBeVisible();
+  await discardDialog.getByRole("button", { name: "放弃修改并切换" }).click();
+
+  await expect(page.locator(".inspector-head h3")).toHaveText("Y");
+  await expect(backgroundEditor).toHaveText(yBackground);
+  await expect(backgroundEditor).not.toContainText(unsavedBackground);
 });
 
 test("rich text tools format content and protect unsaved focus edits", async ({ page }, testInfo) => {

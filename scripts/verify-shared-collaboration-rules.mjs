@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   SHARED_DRAFT_TAIL_LIMIT,
   SHARED_SAVE_SNIPPET_LIMIT,
@@ -157,6 +158,29 @@ assert.equal(
 assert.deepEqual(
   normalizeSharedSaveNotice(saveNotice, { currentUserId: "friend-1", currentRole: "editor" }),
   { type: "save-notice", sharedNovelId: "shared-1", userId: "author-1", actorRole: "owner", label: "作者A", snippet: "乖宝和石墨" },
+);
+
+const appSource = readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
+const shareAdapterSource = readFileSync(new URL("../src/lib/shareAdapter.js", import.meta.url), "utf8");
+const ownerDeleteMigration = readFileSync(
+  new URL("../supabase/migrations/20260718174055_delete_owner_shared_novel.sql", import.meta.url),
+  "utf8",
+);
+assert.ok(
+  appSource.includes("deleteCandidate.sharedMeta.role === SHARE_ROLES.OWNER"),
+  "delete confirmation must distinguish a workspace owner from a collaborator",
+);
+assert.ok(
+  appSource.includes("是否删除此小说？") && appSource.includes("是否删除此共享小说？"),
+  "owners and collaborators must receive distinct delete wording",
+);
+assert.ok(
+  shareAdapterSource.includes('rpc("delete_author_hub_owned_shared_novel"'),
+  "owner deletion must use the dedicated server-side RPC instead of leaveSharedNovel",
+);
+assert.ok(
+  ownerDeleteMigration.includes("owner_id = v_user_id") && ownerDeleteMigration.includes("update public.author_hub_documents"),
+  "owner deletion must verify ownership and atomically remove the source document",
 );
 
 console.log("shared collaboration rule checks passed");

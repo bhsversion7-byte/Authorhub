@@ -100,7 +100,10 @@ const RichTextSurface = forwardRef(function RichTextSurface(
 
   useEffect(() => {
     if (!editor || editor.isDestroyed) return;
-    if (!documentValue || documentValue.version !== 1) return;
+    // A character may have legacy plain text without a rich-text document.
+    // In that case `fallbackText` is still the authoritative value. Skipping
+    // the sync here lets a recycled editor retain the previous character's
+    // unsaved prose and risks persisting it under the newly selected person.
     const nextHtml = createRichTextDocument(documentValue, fallbackText).html;
     const currentHtml = sanitizeRichTextHtml(editor.getHTML());
     if (nextHtml !== currentHtml) editor.commands.setContent(nextHtml, { emitUpdate: false });

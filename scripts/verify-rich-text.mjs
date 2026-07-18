@@ -37,9 +37,15 @@ assert.match(sanitizeRichTextHtml('<p style="margin-left: 48px">缩进</p>'), /m
 assert.doesNotMatch(sanitizeRichTextHtml('<p style="margin-left: 13px">非法缩进</p>'), /margin-left/i);
 
 const focusSource = readFileSync(new URL("../src/components/FocusTextarea.jsx", import.meta.url), "utf8");
+const richTextSurfaceSource = readFileSync(new URL("../src/components/rich-text/RichTextSurface.jsx", import.meta.url), "utf8");
 assert.match(focusSource, /author-hub-compact-editor-height:/, "compact editor height must have a stable local persistence key");
 assert.match(focusSource, /onPointerUp=.*persistCompactHeight/, "manual compact editor resizing must persist on release");
 assert.match(focusSource, /style=\{\{ height: `\$\{compactHeight\}px`/, "compact editor must render at its persisted fixed height rather than content height");
+assert.doesNotMatch(
+  richTextSurfaceSource,
+  /if \(!documentValue \|\| documentValue\.version !== 1\) return;/,
+  "legacy plain-text fields must also reset a reused rich-text editor when the selected record changes",
+);
 
 const markdown = richTextToMarkdown({
   version: 1,

@@ -160,6 +160,17 @@ export async function leaveSharedNovel(sharedNovelId) {
   if (error) throw error;
 }
 
+// This is deliberately distinct from leaveSharedNovel: the latter removes
+// only the caller's membership, while this owner-only RPC removes the source
+// manuscript and the shared workspace in one database transaction.
+export async function deleteOwnedSharedNovel(sharedNovelId) {
+  assertSharingAvailable();
+  const { error } = await supabase.rpc("delete_author_hub_owned_shared_novel", {
+    p_shared_novel_id: sharedNovelId,
+  });
+  if (error) throw error;
+}
+
 export async function getSharedNovelByToken(token) {
   assertSharingAvailable();
   const { data, error } = await supabase.rpc("get_author_hub_shared_novel_by_token", {
