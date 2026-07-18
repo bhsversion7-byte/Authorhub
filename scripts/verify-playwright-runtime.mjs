@@ -17,14 +17,14 @@ try {
   await writeFile(older, "older");
   await writeFile(newer, "newer");
 
-  assert.equal(runtime.resolvePlaywrightExecutable({ cacheRoot, platform: "win32" }), newer);
+  assert.equal(runtime.resolvePlaywrightExecutable({ cacheRoot, platform: "win32", ci: false }), newer);
   assert.equal(runtime.resolvePlaywrightExecutable({ cacheRoot, platform: "win32", ci: true }), undefined);
-  assert.equal(runtime.resolvePlaywrightExecutable({ explicitPath: older, cacheRoot, platform: "win32" }), older);
+  assert.equal(runtime.resolvePlaywrightExecutable({ explicitPath: older, cacheRoot, platform: "win32", ci: false }), older);
   assert.throws(
-    () => runtime.resolvePlaywrightExecutable({ explicitPath: join(cacheRoot, "missing.exe"), cacheRoot, platform: "win32" }),
+    () => runtime.resolvePlaywrightExecutable({ explicitPath: join(cacheRoot, "missing.exe"), cacheRoot, platform: "win32", ci: false }),
     /PW_CHROMIUM_EXECUTABLE/,
   );
-  assert.equal(runtime.resolvePlaywrightExecutable({ cacheRoot, platform: "linux" }), undefined);
+  assert.equal(runtime.resolvePlaywrightExecutable({ cacheRoot, platform: "linux", ci: false }), undefined);
 } finally {
   await rm(cacheRoot, { recursive: true, force: true });
 }
