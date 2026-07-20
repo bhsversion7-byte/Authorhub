@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
+import PasswordRecoveryBoundary from "./components/PasswordRecoveryBoundary.jsx";
 import "./styles.css";
 import "./internal-polish.css";
 import "./novel-section-restore.css";
@@ -47,7 +48,9 @@ window.addEventListener("vite:preloadError", recoverFromStaleChunk);
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <App />
+      <PasswordRecoveryBoundary>
+        <App />
+      </PasswordRecoveryBoundary>
     </ErrorBoundary>
   </React.StrictMode>,
 );
