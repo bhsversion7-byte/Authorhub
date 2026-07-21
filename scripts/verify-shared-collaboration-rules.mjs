@@ -163,7 +163,7 @@ assert.deepEqual(
 const appSource = readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
 const shareAdapterSource = readFileSync(new URL("../src/lib/shareAdapter.js", import.meta.url), "utf8");
 const ownerDeleteMigration = readFileSync(
-  new URL("../supabase/migrations/20260718174055_delete_owner_shared_novel.sql", import.meta.url),
+  new URL("../supabase/migrations/20260718174412_delete_owner_shared_novel.sql", import.meta.url),
   "utf8",
 );
 assert.ok(
